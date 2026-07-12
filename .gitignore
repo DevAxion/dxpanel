@@ -33,5 +33,4 @@ logs/
 Thumbs.db
 
 .claude/
-
-.claude/
+.claude_backup/

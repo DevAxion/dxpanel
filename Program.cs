@@ -306,7 +306,9 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Account/AccessDenied");
     options.Conventions.AllowAnonymousToPage("/Pricing");
-});
+})
+// Turn delete/remove handler failures into a friendly flash instead of an error page.
+.AddMvcOptions(options => options.Filters.Add<SRXPanel.Services.DeleteErrorPageFilter>());
 
 var app = builder.Build();
 

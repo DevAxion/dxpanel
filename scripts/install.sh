@@ -188,12 +188,13 @@ DB_PW="$(gen_pw)"
 
 systemctl enable --now mysql 2>/dev/null || true
 
-mysql -u root --connect-timeout=10 <<EOF
-CREATE DATABASE IF NOT EXISTS \`srxpanel\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'srxpanel'@'localhost' IDENTIFIED BY '${DB_PW}';
-GRANT ALL PRIVILEGES ON \`srxpanel\`.* TO 'srxpanel'@'localhost';
-FLUSH PRIVILEGES;
-EOF
+# Run each statement as its own non-interactive `-e` command. A heredoc on stdin
+# can hang if the client waits for input; discrete -e calls with a connect timeout
+# never block.
+mysql -u root --connect-timeout=10 -e "CREATE DATABASE IF NOT EXISTS \`srxpanel\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root --connect-timeout=10 -e "CREATE USER IF NOT EXISTS 'srxpanel'@'localhost' IDENTIFIED BY '${DB_PW}';"
+mysql -u root --connect-timeout=10 -e "GRANT ALL PRIVILEGES ON \`srxpanel\`.* TO 'srxpanel'@'localhost';"
+mysql -u root --connect-timeout=10 -e "FLUSH PRIVILEGES;"
 
 info "✓ MySQL configured"
 
@@ -254,6 +255,15 @@ ok "Application published"
 # systemd service
 # ---------------------------------------------------------------------------
 info "Creating systemd service…"
+
+# Store the operator-chosen admin password in a root-only env file and pass it to
+# the app via EnvironmentFile. The seeder reads SRXPANEL_ADMIN_PASSWORD when it
+# creates the initial admin account.
+cat > "$CONFIG_DIR/admin.env" <<EOF
+SRXPANEL_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOF
+chmod 600 "$CONFIG_DIR/admin.env"
+
 cat > /etc/systemd/system/srxpanel.service <<EOF
 [Unit]
 Description=SRXPanel Hosting Control Panel
@@ -265,6 +275,7 @@ ExecStart=/usr/bin/dotnet ${PUBLISH_DIR}/SRXPanel.dll
 Restart=always
 RestartSec=10
 User=www-data
+EnvironmentFile=${CONFIG_DIR}/admin.env
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5000
 StandardOutput=syslog

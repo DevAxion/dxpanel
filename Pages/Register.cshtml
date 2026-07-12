@@ -66,25 +66,36 @@
 
         <!-- Step 2: Plan -->
         <div class="reg-step d-none" data-step="2">
-            <div class="row g-3">
-                @{ int pi = 0; }
-                @foreach (var plan in Model.Plans)
-                {
-                    var featured = pi == 1; pi++;
-                    <div class="col-md-4">
-                        <label class="plan-card d-block" style="cursor:pointer;">
-                            <input type="radio" name="planpick" value="@plan.Id" class="d-none" @(Model.Input.PlanId == plan.Id ? "checked" : "") />
-                            <div class="p-3 h-100" style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:12px;">
-                                @if (featured) { <span class="badge text-bg-primary mb-1">Popular</span> }
-                                <h5 class="text-light mb-1">@plan.Name</h5>
-                                <div class="mb-2"><span style="font-size:26px;font-weight:800;color:#fff;">@Money(plan.Price)</span><span class="text-secondary small">/mo</span></div>
-                                <div class="text-secondary small"><i class="bi bi-check-lg accent"></i> @Disk(plan.DiskQuotaMB) storage</div>
-                                <div class="text-secondary small"><i class="bi bi-check-lg accent"></i> @(plan.MaxDomains == 0 ? "Unlimited" : plan.MaxDomains.ToString()) domains</div>
-                            </div>
-                        </label>
-                    </div>
-                }
-            </div>
+            @if (!Model.Plans.Any())
+            {
+                <div class="text-center p-4" style="background:#161b22;border:1px solid #30363d;border-radius:14px;">
+                    <i class="bi bi-inboxes text-secondary" style="font-size:2rem;"></i>
+                    <h5 class="text-light mt-2 mb-1">No plans available</h5>
+                    <p class="text-secondary mb-0">No hosting plans are currently offered. Please contact admin.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @{ int pi = 0; }
+                    @foreach (var plan in Model.Plans)
+                    {
+                        var featured = pi == 1; pi++;
+                        <div class="col-md-4">
+                            <label class="plan-card d-block" style="cursor:pointer;">
+                                <input type="radio" name="planpick" value="@plan.Id" class="d-none" @(Model.Input.PlanId == plan.Id ? "checked" : "") />
+                                <div class="p-3 h-100" style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:12px;">
+                                    @if (featured) { <span class="badge text-bg-primary mb-1">Popular</span> }
+                                    <h5 class="text-light mb-1">@plan.Name</h5>
+                                    <div class="mb-2"><span style="font-size:26px;font-weight:800;color:#fff;">@Money(plan.Price)</span><span class="text-secondary small">/mo</span></div>
+                                    <div class="text-secondary small"><i class="bi bi-check-lg accent"></i> @Disk(plan.DiskQuotaMB) storage</div>
+                                    <div class="text-secondary small"><i class="bi bi-check-lg accent"></i> @(plan.MaxDomains == 0 ? "Unlimited" : plan.MaxDomains.ToString()) domains</div>
+                                </div>
+                            </label>
+                        </div>
+                    }
+                </div>
+            }
             <div class="d-flex justify-content-between mt-3">
                 <button type="button" class="btn btn-outline-cta" data-prev="1"><i class="bi bi-arrow-left"></i> Back</button>
                 <button type="button" class="btn btn-cta" data-next="3">Continue <i class="bi bi-arrow-right"></i></button>
