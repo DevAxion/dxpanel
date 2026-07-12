@@ -242,7 +242,8 @@
 
                     <div class="nav-section-title">Fleet</div>
                     <a class="nav-link @(currentPage.StartsWith("/Admin/Nodes") ? "active" : "")" asp-page="/Admin/Nodes/Index"><i class="bi bi-hdd-stack"></i> Nodes</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Admin/Vps") ? "active" : "")" asp-page="/Admin/Vps/Index"><i class="bi bi-hdd-rack"></i> VPS Instances</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Vps/") ? "active" : "")" asp-page="/Admin/Vps/Index"><i class="bi bi-hdd-rack"></i> VPS Instances</a>
+                    <a class="nav-link @(currentPage == "/Admin/VpsPlans" ? "active" : "")" asp-page="/Admin/VpsPlans"><i class="bi bi-tags"></i> VPS Plans</a>
                     <a class="nav-link @(currentPage == "/Admin/Proxmox" ? "active" : "")" asp-page="/Admin/Proxmox"><i class="bi bi-hdd-stack-fill"></i> Proxmox</a>
                     <a class="nav-link @(currentPage == "/Admin/LoadBalancer" ? "active" : "")" asp-page="/Admin/LoadBalancer"><i class="bi bi-diagram-3"></i> Load Balancer</a>
                     <a class="nav-link @(currentPage.StartsWith("/Admin/Dns/Cluster") ? "active" : "")" asp-page="/Admin/Dns/Cluster"><i class="bi bi-hdd-network"></i> DNS Cluster</a>
