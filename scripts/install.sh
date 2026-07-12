@@ -188,19 +188,23 @@ DB_USER="srxpanel"
 DB_PW="$(gen_pw)"
 
 systemctl enable --now mysql
-mysql <<SQL || warn "MySQL root may already be configured; continuing."
+
+# Configure root without password (Ubuntu default)
+mysql -u root <<SQL || warn "MySQL root may already be configured; continuing."
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PW}';
 DELETE FROM mysql.user WHERE User='';
 DROP DATABASE IF EXISTS test;
 FLUSH PRIVILEGES;
 SQL
 
-mysql -uroot -p"${MYSQL_ROOT_PW}" <<SQL
+# Create srxpanel database and user
+mysql -u root -p"${MYSQL_ROOT_PW}" <<SQL || mysql -u root <<SQL2
 CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PW}';
 GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 SQL
+SQL2
 
 cat > "$CONFIG_DIR/db.conf" <<EOF
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PW}
