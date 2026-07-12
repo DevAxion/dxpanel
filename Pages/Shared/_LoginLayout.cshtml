@@ -1,0 +1,29 @@
+@using SRXPanel.Services
+@inject IFrontendService Frontend
+@{
+    var lfs = await Frontend.GetSettingsAsync();
+    var loginCompany = string.IsNullOrWhiteSpace(lfs.SiteName) ? "Professional Web Hosting" : lfs.SiteName;
+}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @loginCompany</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (lfs.PrimaryColor != null)
+    {
+        <style>:root { --srx-sidebar-active: @lfs.PrimaryColor; --srx-accent: @lfs.PrimaryColor; } .btn-primary { background-color: @lfs.PrimaryColor; border-color: @lfs.PrimaryColor; }</style>
+    }
+</head>
+<body>
+    @RenderBody()
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

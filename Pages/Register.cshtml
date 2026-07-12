@@ -1,0 +1,156 @@
+@page
+@model SRXPanel.Pages.RegisterModel
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = "Create your account";
+    string Money(decimal d) => $"${d:0.00}";
+    string Disk(long mb) => mb >= 1024 ? $"{mb / 1024} GB" : $"{mb} MB";
+}
+
+<div class="container py-5" style="max-width:720px;">
+    <h1 class="text-light fw-bold text-center">Create your account</h1>
+    <p class="text-secondary text-center">Start your 14-day free trial — no credit card required.</p>
+
+    <!-- Progress -->
+    <div class="d-flex justify-content-between align-items-center my-4" id="steps">
+        @{
+            var stepNames = new[] { "Account", "Choose Plan", "Billing" };
+        }
+        @for (var i = 0; i < stepNames.Length; i++)
+        {
+            <div class="text-center flex-fill step-indicator" data-step="@(i + 1)">
+                <div class="mx-auto d-flex align-items-center justify-content-center step-dot" style="width:38px;height:38px;border-radius:50%;background:#161b22;border:1px solid #30363d;color:#8b949e;font-weight:700;">@(i + 1)</div>
+                <div class="small mt-1 text-secondary step-label">@stepNames[i]</div>
+            </div>
+            @if (i < stepNames.Length - 1)
+            {
+                <div class="flex-fill" style="height:2px;background:#30363d;margin-top:-18px;"></div>
+            }
+        }
+    </div>
+
+    <form method="post" id="regForm">
+        <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+        <input type="hidden" asp-for="Input.PlanId" id="PlanId" />
+        <input type="hidden" asp-for="Input.BillingChoice" id="BillingChoice" />
+
+        <!-- Step 1: Account -->
+        <div class="reg-step" data-step="1">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:26px;">
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Full name</label>
+                    <input asp-for="Input.FullName" class="form-control" />
+                    <span asp-validation-for="Input.FullName" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Email</label>
+                    <input asp-for="Input.Email" class="form-control" />
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Username</label>
+                    <input asp-for="Input.UserName" class="form-control" />
+                    <span asp-validation-for="Input.UserName" class="text-danger small"></span>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label text-secondary">Password</label>
+                    <input asp-for="Input.Password" type="password" class="form-control" />
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    <div class="form-text text-secondary">At least 8 characters, with upper/lowercase, a number and a symbol.</div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button type="button" class="btn btn-cta" data-next="2">Continue <i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 2: Plan -->
+        <div class="reg-step d-none" data-step="2">
+            <div class="row g-3">
+                @{ int pi = 0; }
+                @foreach (var plan in Model.Plans)
+                {
+                    var featured = pi == 1; pi++;
+                    <div class="col-md-4">
+                        <label class="plan-card d-block" style="cursor:pointer;">
+                            <input type="radio" name="planpick" value="@plan.Id" class="d-none" @(Model.Input.PlanId == plan.Id ? "checked" : "") />
+                            <div class="p-3 h-100" style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:12px;">
+                                @if (featured) { <span class="badge text-bg-primary mb-1">Popular</span> }
+                                <h5 class="text-light mb-1">@plan.Name</h5>
+                                <div class="mb-2"><span style="font-size:26px;font-weight:800;color:#fff;">@Money(plan.Price)</span><span class="text-secondary small">/mo</span></div>
+                                <div class="text-secondary small"><i class="bi bi-check-lg accent"></i> @Disk(plan.DiskQuotaMB) storage</div>
+                                <div class="text-secondary small"><i class="bi bi-check-lg accent"></i> @(plan.MaxDomains == 0 ? "Unlimited" : plan.MaxDomains.ToString()) domains</div>
+                            </div>
+                        </label>
+                    </div>
+                }
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <button type="button" class="btn btn-outline-cta" data-prev="1"><i class="bi bi-arrow-left"></i> Back</button>
+                <button type="button" class="btn btn-cta" data-next="3">Continue <i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 3: Billing -->
+        <div class="reg-step d-none" data-step="3">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:26px;">
+                <h5 class="text-light mb-3">How would you like to start?</h5>
+                <label class="d-block mb-2" style="cursor:pointer;">
+                    <input type="radio" name="billpick" value="trial" checked /> <span class="text-light">Start a 14-day free trial</span>
+                    <div class="text-secondary small ms-4">No credit card required. Cancel anytime.</div>
+                </label>
+                <label class="d-block" style="cursor:pointer;">
+                    <input type="radio" name="billpick" value="pay" /> <span class="text-light">Pay now with card</span>
+                    <div class="text-secondary small ms-4">Enter payment details on the next step (Stripe secure checkout).</div>
+                </label>
+            </div>
+            <div class="d-flex justify-content-between mt-3">
+                <button type="button" class="btn btn-outline-cta" data-prev="2"><i class="bi bi-arrow-left"></i> Back</button>
+                <button type="submit" class="btn btn-cta"><i class="bi bi-check-lg"></i> Create Account</button>
+            </div>
+        </div>
+    </form>
+
+    <p class="text-center text-secondary mt-3">Already have an account? <a href="/Account/Login" class="accent">Sign in</a></p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var current = 1;
+            function show(step) {
+                current = step;
+                document.querySelectorAll('.reg-step').forEach(function (s) { s.classList.toggle('d-none', +s.dataset.step !== step); });
+                document.querySelectorAll('.step-indicator').forEach(function (ind) {
+                    var n = +ind.dataset.step, dot = ind.querySelector('.step-dot'), lbl = ind.querySelector('.step-label');
+                    if (n <= step) { dot.style.background = 'var(--srx-primary)'; dot.style.color = '#fff'; dot.style.borderColor = 'var(--srx-primary)'; lbl.classList.remove('text-secondary'); lbl.classList.add('text-light'); }
+                    else { dot.style.background = '#161b22'; dot.style.color = '#8b949e'; dot.style.borderColor = '#30363d'; lbl.classList.add('text-secondary'); lbl.classList.remove('text-light'); }
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            document.querySelectorAll('[data-next]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    if (current === 1) {
+                        var reqd = document.querySelectorAll('.reg-step[data-step="1"] input');
+                        for (var i = 0; i < reqd.length; i++) { if (!reqd[i].value) { reqd[i].reportValidity(); return; } }
+                    }
+                    show(+b.dataset.next);
+                });
+            });
+            document.querySelectorAll('[data-prev]').forEach(function (b) {
+                b.addEventListener('click', function () { show(+b.dataset.prev); });
+            });
+            document.querySelectorAll('input[name="planpick"]').forEach(function (r) {
+                r.addEventListener('change', function () { document.getElementById('PlanId').value = this.value; });
+            });
+            document.querySelectorAll('input[name="billpick"]').forEach(function (r) {
+                r.addEventListener('change', function () { document.getElementById('BillingChoice').value = this.value; });
+            });
+            // Init from any preselected plan
+            var pre = document.querySelector('input[name="planpick"]:checked');
+            if (pre) document.getElementById('PlanId').value = pre.value;
+            show(1);
+        })();
+    </script>
+}

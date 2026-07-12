@@ -1,0 +1,73 @@
+@page
+@model SRXPanel.Pages.Email.CreateModel
+@{
+    ViewData["Title"] = "New Email Account";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Email/Index">Email</a></li>
+            <li class="breadcrumb-item active" aria-current="page">New</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Create Email Account</h4>
+
+<div class="card srx-card" style="max-width: 640px;">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        @if (!Model.DomainOptions.Any() && !Model.CanChooseOwner)
+        {
+            <div class="alert alert-warning">You need at least one domain before creating email accounts.</div>
+        }
+
+        <form method="post">
+            <div class="row g-3">
+                @if (Model.CanChooseOwner)
+                {
+                    <div class="col-md-12">
+                        <label asp-for="Input.OwnerId" class="form-label"></label>
+                        <select asp-for="Input.OwnerId" asp-items="Model.OwnerOptions" class="form-select">
+                            <option value="">-- Select owner --</option>
+                        </select>
+                        <div class="form-text">Reload after selecting an owner to load their domains.</div>
+                    </div>
+                }
+                <div class="col-md-6">
+                    <label asp-for="Input.LocalPart" class="form-label"></label>
+                    <input asp-for="Input.LocalPart" class="form-control" placeholder="info" />
+                    <span asp-validation-for="Input.LocalPart" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.DomainId" class="form-label"></label>
+                    <select asp-for="Input.DomainId" asp-items="Model.DomainOptions" class="form-select">
+                        <option value="">-- Select domain --</option>
+                    </select>
+                    <span asp-validation-for="Input.DomainId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Input.Password" class="form-label"></label>
+                    <input asp-for="Input.Password" type="text" class="form-control" />
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.QuotaMB" class="form-label"></label>
+                    <input asp-for="Input.QuotaMB" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Create Email Account</button>
+                <a asp-page="/Email/Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

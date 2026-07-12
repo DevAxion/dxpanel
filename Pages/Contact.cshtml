@@ -1,0 +1,84 @@
+@page
+@using SRXPanel.Services
+@model SRXPanel.Pages.ContactModel
+@inject IFrontendService Frontend
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = "Contact Us";
+    var fs = await Frontend.GetSettingsAsync();
+}
+
+<section class="text-center" style="padding:56px 0 24px;">
+    <div class="container">
+        <h1 class="text-light fw-bold">Get in touch</h1>
+        <p class="text-secondary fs-5">Questions about hosting? We're here to help.</p>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-7">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:28px;">
+                @if (TempData["ContactSuccess"] != null)
+                {
+                    <div class="alert alert-success"><i class="bi bi-check-circle"></i> @TempData["ContactSuccess"]</div>
+                }
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary">Name</label>
+                            <input asp-for="Input.Name" class="form-control" />
+                            <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary">Email</label>
+                            <input asp-for="Input.Email" class="form-control" />
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary">Subject</label>
+                            <input asp-for="Input.Subject" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary">Message</label>
+                            <textarea asp-for="Input.Message" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Input.Message" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-cta mt-3"><i class="bi bi-send"></i> Send Message</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:28px;height:100%;">
+                <h5 class="text-light mb-3">Contact details</h5>
+                @if (!string.IsNullOrEmpty(fs.ContactEmail))
+                {
+                    <div class="d-flex gap-3 mb-3"><i class="bi bi-envelope accent fs-5"></i><div><div class="text-secondary small">Email</div><a href="mailto:@fs.ContactEmail" class="text-light text-decoration-none">@fs.ContactEmail</a></div></div>
+                }
+                @if (!string.IsNullOrEmpty(fs.ContactPhone))
+                {
+                    <div class="d-flex gap-3 mb-3"><i class="bi bi-telephone accent fs-5"></i><div><div class="text-secondary small">Phone</div><span class="text-light">@fs.ContactPhone</span></div></div>
+                }
+                @if (!string.IsNullOrEmpty(fs.ContactAddress))
+                {
+                    <div class="d-flex gap-3 mb-3"><i class="bi bi-geo-alt accent fs-5"></i><div><div class="text-secondary small">Address</div><span class="text-light">@fs.ContactAddress</span></div></div>
+                }
+                <div class="d-flex gap-3"><i class="bi bi-chat-dots accent fs-5"></i><div><div class="text-secondary small">Live chat</div><span class="text-light">Available 24/7 in the panel</span></div></div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(fs.GoogleMapsEmbed))
+    {
+        <div class="mt-4" style="border-radius:14px;overflow:hidden;border:1px solid #30363d;">
+            @Html.Raw(fs.GoogleMapsEmbed)
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

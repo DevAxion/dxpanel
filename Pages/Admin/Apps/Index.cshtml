@@ -1,0 +1,131 @@
+@page
+@model SRXPanel.Pages.Admin.Apps.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Applications";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Applications</li>
+        <li class="breadcrumb-item active" aria-current="page">Definitions</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Application Catalog</h4>
+    <a href="/Admin/Apps/Updates" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat"></i> Update Manager</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Apps.Count</div><div class="text-secondary small">Apps in catalog</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#3fb950;">@Model.TotalInstallations</div><div class="text-secondary small">Total installations</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.FailedCount</div><div class="text-secondary small">Failed installs</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Apps.Count(a => a.IsActive)</div><div class="text-secondary small">Enabled</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3">Definitions</h6>
+            <div class="table-responsive" style="max-height:480px;overflow:auto;">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>App</th><th>Category</th><th>Version</th><th>Installs</th><th>Active</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var a in Model.Apps)
+                    {
+                        <tr>
+                            <td class="text-light small"><i class="bi @a.IconPath accent"></i> @a.Name<div class="text-secondary font-monospace" style="font-size:11px;">@a.Slug</div></td>
+                            <td class="small text-secondary">@a.Category</td>
+                            <td class="small">@a.Version</td>
+                            <td class="small">@a.InstallCount</td>
+                            <td>
+                                <form method="post" asp-page-handler="Toggle"><input type="hidden" name="id" value="@a.Id" />
+                                    <button class="btn btn-sm @(a.IsActive ? "btn-success" : "btn-outline-secondary") py-0">@(a.IsActive ? "On" : "Off")</button></form>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a href="?editId=@a.Id" class="btn btn-sm btn-outline-primary py-0"><i class="bi bi-pencil"></i></a>
+                                <form method="post" asp-page-handler="Delete" class="d-inline" onsubmit="return confirm('Delete @a.Name?');"><input type="hidden" name="id" value="@a.Id" />
+                                    <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-trash"></i></button></form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle"></i> Failed installation queue</h6>
+            @if (!Model.FailedJobs.Any())
+            {
+                <p class="text-secondary mb-0">No failed jobs. </p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>App</th><th>Type</th><th>Step</th><th>When</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var j in Model.FailedJobs)
+                    {
+                        <tr>
+                            <td class="text-light small">@j.AppName</td>
+                            <td class="small">@j.Type</td>
+                            <td class="small text-danger">@j.CurrentStep</td>
+                            <td class="small text-secondary">@j.StartedAt.ToString("MMM d HH:mm")</td>
+                            <td class="text-end">
+                                <form method="post" asp-page-handler="ClearJob"><input type="hidden" name="jobId" value="@j.Id" />
+                                    <button class="btn btn-sm btn-outline-secondary py-0">Clear</button></form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3">@(Model.Editing ? "Edit application" : "Add application")</h6>
+            <form method="post" asp-page-handler="Save">
+                <input type="hidden" asp-for="Input.Id" />
+                <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+                <div class="mb-2"><label class="form-label small">Name</label><input asp-for="Input.Name" class="form-control form-control-sm" /></div>
+                <div class="mb-2"><label class="form-label small">Slug</label><input asp-for="Input.Slug" class="form-control form-control-sm font-monospace" /></div>
+                <div class="mb-2"><label class="form-label small">Description</label><textarea asp-for="Input.Description" class="form-control form-control-sm" rows="2"></textarea></div>
+                <div class="row g-2">
+                    <div class="col-6 mb-2"><label class="form-label small">Category</label><select asp-for="Input.Category" asp-items="Html.GetEnumSelectList<AppCategory>()" class="form-select form-select-sm"></select></div>
+                    <div class="col-6 mb-2"><label class="form-label small">Version</label><input asp-for="Input.Version" class="form-control form-control-sm" /></div>
+                    <div class="col-6 mb-2"><label class="form-label small">Icon</label><input asp-for="Input.IconPath" class="form-control form-control-sm" placeholder="bi-box" /></div>
+                    <div class="col-6 mb-2"><label class="form-label small">Min disk (MB)</label><input asp-for="Input.MinDiskMB" type="number" class="form-control form-control-sm" /></div>
+                    <div class="col-6 mb-2"><label class="form-label small">Min PHP</label><input asp-for="Input.MinPhpVersion" class="form-control form-control-sm" /></div>
+                </div>
+                <div class="mb-2"><label class="form-label small">Download URL</label><input asp-for="Input.DownloadUrl" class="form-control form-control-sm" /></div>
+                <div class="mb-2"><label class="form-label small">Features (one per line)</label><textarea asp-for="Input.Features" class="form-control form-control-sm" rows="3"></textarea></div>
+                <div class="form-check form-switch mb-1"><input class="form-check-input" asp-for="Input.RequiresDatabase" /><label class="form-check-label small">Requires database</label></div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" asp-for="Input.IsActive" /><label class="form-check-label small">Active</label></div>
+                <button class="btn btn-primary btn-sm"><i class="bi bi-save"></i> Save</button>
+                @if (Model.Editing)
+                {
+                    <a href="/Admin/Apps" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                }
+            </form>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-trophy"></i> Most popular</h6>
+            @if (!Model.Popular.Any())
+            {
+                <p class="text-secondary mb-0">No installations yet.</p>
+            }
+            else
+            {
+                foreach (var p in Model.Popular)
+                {
+                    <div class="d-flex justify-content-between py-1"><span class="text-light small">@p.Name</span><span class="badge text-bg-secondary">@p.Count</span></div>
+                }
+            }
+        </div></div>
+    </div>
+</div>

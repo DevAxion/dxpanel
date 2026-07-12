@@ -1,0 +1,367 @@
+@page
+@model SRXPanel.Pages.Client.Cron.IndexModel
+@using SRXPanel.Models
+@using SRXPanel.Services.Developer
+@{
+    ViewData["Title"] = "Cron Jobs";
+    var editing = Model.EditJob != null;
+    // Open the form by default when editing, or when there is nothing to show yet.
+    var formOpen = editing || (!Model.AtLimit && !Model.Jobs.Any());
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Cron Jobs</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0">Cron Jobs</h4>
+        <div class="text-secondary small">
+            Scheduled commands run from your home directory.
+            @if (Model.Limit.HasValue)
+            {
+                <span>Using <strong class="text-light">@Model.Used</strong> of <strong class="text-light">@Model.Limit</strong> allowed by your plan.</span>
+            }
+            else
+            {
+                <span>Your plan allows unlimited cron jobs.</span>
+            }
+        </div>
+    </div>
+    @if (!Model.AtLimit || editing)
+    {
+        <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#jobForm">
+            <i class="bi bi-plus-lg"></i> New Cron Job
+        </button>
+    }
+</div>
+
+@if (Model.AtLimit && !editing)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        You have reached your plan's limit of @Model.Limit cron jobs. Delete one, or upgrade your plan to add more.
+    </div>
+}
+
+<div class="collapse @(formOpen ? "show" : "")" id="jobForm">
+    <div class="card srx-card mb-4"><div class="card-body">
+        <h6 class="text-light mb-3">@(editing ? "Edit cron job" : "Create a cron job")</h6>
+
+        <form method="post" asp-page-handler="@(editing ? "Update" : "Create")" id="cronForm">
+            @if (editing)
+            {
+                <input type="hidden" name="id" value="@Model.EditJob!.Id" />
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Command</label>
+                <div class="input-group">
+                    <span class="input-group-text font-monospace">~/$</span>
+                    <input name="Input.Command" value="@Model.Input.Command" class="form-control font-monospace"
+                           placeholder="php public_html/artisan schedule:run" required />
+                </div>
+                <div class="form-text">
+                    Runs from your home directory. <code>sudo</code>, <code>..</code> and system commands are rejected.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description <span class="text-secondary">(optional)</span></label>
+                <input name="Input.Description" value="@Model.Input.Description" class="form-control"
+                       placeholder="Nightly Laravel scheduler" />
+            </div>
+
+            <hr class="border-secondary" />
+
+            <label class="form-label">Schedule</label>
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPresets" type="button">Presets</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabVisual" type="button">Visual builder</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAdvanced" type="button">Advanced</button></li>
+            </ul>
+
+            <div class="tab-content mb-3">
+                <div class="tab-pane fade show active" id="tabPresets">
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var (label, expression) in CronExpression.Presets)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-secondary preset" data-expr="@expression">@label</button>
+                        }
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tabVisual">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small">Every</label>
+                            <select id="vbEvery" class="form-select form-select-sm">
+                                <option value="minute">Minutes</option>
+                                <option value="hour">Hours</option>
+                                <option value="day" selected>Days</option>
+                                <option value="week">Weeks</option>
+                                <option value="month">Months</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Interval</label>
+                            <input id="vbInterval" type="number" min="1" max="59" value="1" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-2 vb-time">
+                            <label class="form-label small">Hour</label>
+                            <input id="vbHour" type="number" min="0" max="23" value="3" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-2 vb-minute">
+                            <label class="form-label small">Minute</label>
+                            <input id="vbMinute" type="number" min="0" max="59" value="0" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3 vb-dow d-none">
+                            <label class="form-label small">Day of week</label>
+                            <select id="vbDow" class="form-select form-select-sm">
+                                <option value="0">Sunday</option><option value="1">Monday</option>
+                                <option value="2">Tuesday</option><option value="3">Wednesday</option>
+                                <option value="4">Thursday</option><option value="5">Friday</option>
+                                <option value="6">Saturday</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 vb-dom d-none">
+                            <label class="form-label small">Day of month</label>
+                            <input id="vbDom" type="number" min="1" max="31" value="1" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tabAdvanced">
+                    <label class="form-label small">Raw cron expression</label>
+                    <input id="rawExpr" class="form-control font-monospace" value="@Model.Input.Schedule" />
+                    <div class="form-text">
+                        Five fields: <code>minute hour day-of-month month day-of-week</code>. Macros like <code>@@daily</code> work too.
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="Input.Schedule" id="scheduleField" value="@Model.Input.Schedule" />
+
+            <div class="alert alert-secondary py-2 px-3 d-flex justify-content-between align-items-center" id="preview">
+                <span><i class="bi bi-clock-history"></i> <span id="previewText">Checking…</span></span>
+                <span class="text-secondary small" id="nextRunText"></span>
+            </div>
+
+            <hr class="border-secondary" />
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Notification email <span class="text-secondary">(optional)</span></label>
+                    <input name="Input.Email" value="@Model.Input.Email" type="email" class="form-control" placeholder="you@example.com" />
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="Input.EmailOnFailure" value="true" id="onFail" checked="@Model.Input.EmailOnFailure" />
+                        @* The trailing hidden field makes an unchecked switch post "false" rather than nothing.
+                           The binder takes the first value, so it must come after the checkbox. *@
+                        <input type="hidden" name="Input.EmailOnFailure" value="false" />
+                        <label class="form-check-label" for="onFail">Email on failure</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="Input.EmailOnSuccess" value="true" id="onSuccess" checked="@Model.Input.EmailOnSuccess" />
+                        <input type="hidden" name="Input.EmailOnSuccess" value="false" />
+                        <label class="form-check-label" for="onSuccess">Email on success</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button class="btn btn-primary" id="submitBtn">
+                    <i class="bi bi-check-lg"></i> @(editing ? "Save changes" : "Create cron job")
+                </button>
+                @if (editing)
+                {
+                    <a asp-page="/Client/Cron/Index" class="btn btn-outline-secondary">Cancel</a>
+                }
+            </div>
+        </form>
+    </div></div>
+</div>
+
+@if (!Model.Jobs.Any())
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-clock text-secondary" style="font-size:48px;"></i>
+        <h5 class="text-light mt-3">No cron jobs yet</h5>
+        <p class="text-secondary mb-0">Schedule a command to run automatically — a backup script, a queue worker, a nightly report.</p>
+    </div></div>
+}
+else
+{
+    <div class="card srx-card"><div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Command</th>
+                    <th>Schedule</th>
+                    <th>Last run</th>
+                    <th>Next run</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var job in Model.Jobs)
+                {
+                    <tr>
+                        <td>
+                            @switch (job.State)
+                            {
+                                case CronJobState.Running:
+                                    <span class="badge text-bg-info"><i class="bi bi-arrow-repeat"></i> Running</span>
+                                    break;
+                                case CronJobState.Disabled:
+                                    <span class="badge text-bg-secondary">Disabled</span>
+                                    break;
+                                case CronJobState.Error:
+                                    <span class="badge text-bg-danger">Error (@job.LastExitCode)</span>
+                                    break;
+                                default:
+                                    <span class="badge text-bg-success">Active</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            <code class="text-light">@job.Command</code>
+                            @if (!string.IsNullOrWhiteSpace(job.Description))
+                            {
+                                <div class="text-secondary small">@job.Description</div>
+                            }
+                        </td>
+                        <td>
+                            <code class="small">@job.Schedule</code>
+                            <div class="text-secondary small">@Model.Descriptions.GetValueOrDefault(job.Id)</div>
+                        </td>
+                        <td class="text-secondary small">
+                            @(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")
+                        </td>
+                        <td class="text-secondary small">
+                            @(job.IsActive ? job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—" : "—")
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a asp-page="/Client/Cron/Logs" asp-route-id="@job.Id" class="btn btn-outline-secondary" title="Execution log">
+                                    <i class="bi bi-list-ul"></i>
+                                </a>
+                                <form method="post" asp-page-handler="RunNow" class="d-inline">
+                                    <input type="hidden" name="id" value="@job.Id" />
+                                    <button class="btn btn-outline-primary" title="Run now" @(job.IsRunning ? "disabled" : "")>
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                </form>
+                                <a asp-page="/Client/Cron/Index" asp-route-editId="@job.Id" class="btn btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="post" asp-page-handler="Toggle" class="d-inline">
+                                    <input type="hidden" name="id" value="@job.Id" />
+                                    <input type="hidden" name="enable" value="@((!job.IsActive).ToString().ToLowerInvariant())" />
+                                    <button class="btn btn-outline-secondary" title="@(job.IsActive ? "Disable" : "Enable")">
+                                        <i class="bi @(job.IsActive ? "bi-pause-fill" : "bi-power")"></i>
+                                    </button>
+                                </form>
+                                <form method="post" asp-page-handler="Delete" class="d-inline"
+                                      onsubmit="return confirm('Delete this cron job? Its execution history will be removed too.');">
+                                    <input type="hidden" name="id" value="@job.Id" />
+                                    <button class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div></div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var field = document.getElementById('scheduleField');
+            var raw = document.getElementById('rawExpr');
+            var previewText = document.getElementById('previewText');
+            var nextRunText = document.getElementById('nextRunText');
+            var preview = document.getElementById('preview');
+            var submitBtn = document.getElementById('submitBtn');
+            if (!field) return;
+
+            var debounce;
+            function validate() {
+                var expr = field.value;
+                clearTimeout(debounce);
+                debounce = setTimeout(function () {
+                    fetch('?handler=Validate&expression=' + encodeURIComponent(expr))
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) {
+                            preview.className = 'alert py-2 px-3 d-flex justify-content-between align-items-center ' +
+                                (d.valid ? 'alert-secondary' : 'alert-danger');
+                            previewText.textContent = d.valid ? d.description : d.error;
+                            nextRunText.textContent = d.valid && d.nextRun ? 'Next run: ' + d.nextRun : '';
+                            submitBtn.disabled = !d.valid;
+                        });
+                }, 220);
+            }
+
+            function setExpression(expr) {
+                field.value = expr;
+                if (raw) raw.value = expr;
+                validate();
+            }
+
+            // Presets.
+            document.querySelectorAll('.preset').forEach(function (btn) {
+                btn.addEventListener('click', function () { setExpression(btn.dataset.expr); });
+            });
+
+            // Raw input.
+            if (raw) raw.addEventListener('input', function () { field.value = raw.value; validate(); });
+
+            // Visual builder.
+            var every = document.getElementById('vbEvery');
+            var interval = document.getElementById('vbInterval');
+            var hour = document.getElementById('vbHour');
+            var minute = document.getElementById('vbMinute');
+            var dow = document.getElementById('vbDow');
+            var dom = document.getElementById('vbDom');
+
+            function show(sel, on) {
+                document.querySelectorAll(sel).forEach(function (el) { el.classList.toggle('d-none', !on); });
+            }
+
+            function buildVisual() {
+                var e = every.value, n = Math.max(1, parseInt(interval.value || '1', 10));
+                var h = parseInt(hour.value || '0', 10), m = parseInt(minute.value || '0', 10);
+
+                show('.vb-time', e !== 'minute' && e !== 'hour');
+                show('.vb-minute', e !== 'minute');
+                show('.vb-dow', e === 'week');
+                show('.vb-dom', e === 'month');
+                interval.disabled = (e === 'week');
+
+                var expr;
+                if (e === 'minute')      expr = n <= 1 ? '* * * * *' : '*/' + n + ' * * * *';
+                else if (e === 'hour')   expr = n <= 1 ? m + ' * * * *' : m + ' */' + n + ' * * *';
+                else if (e === 'day')    expr = n <= 1 ? m + ' ' + h + ' * * *' : m + ' ' + h + ' */' + n + ' * *';
+                else if (e === 'week')   expr = m + ' ' + h + ' * * ' + dow.value;
+                else                     expr = m + ' ' + h + ' ' + dom.value + ' */' + n + ' *';
+
+                setExpression(expr);
+            }
+
+            [every, interval, hour, minute, dow, dom].forEach(function (el) {
+                if (el) el.addEventListener('input', buildVisual);
+            });
+
+            validate();
+        })();
+    </script>
+}

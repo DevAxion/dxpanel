@@ -1,0 +1,65 @@
+@page
+@model SRXPanel.Pages.Admin.Apps.RuntimesModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "App Runtimes";
+    string Label(AppRuntimeType t) => t == AppRuntimeType.NodeJs ? "Node.js" : t.ToString();
+    string Tool(AppRuntimeType t) => t switch { AppRuntimeType.NodeJs => "nvm", AppRuntimeType.Python => "pyenv", AppRuntimeType.Ruby => "rbenv", _ => "goenv" };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Apps/Hosted">Applications</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Runtimes</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4"><i class="bi bi-box-seam accent"></i> App Runtimes</h4>
+
+<div class="row g-3">
+    @foreach (var type in new[] { AppRuntimeType.NodeJs, AppRuntimeType.Python, AppRuntimeType.Ruby, AppRuntimeType.Go })
+    {
+        var installed = Model.Installed[type];
+        <div class="col-lg-6">
+            <div class="card srx-card h-100"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-light mb-0"><i class="bi @(type == AppRuntimeType.NodeJs ? "bi-node-plus" : type == AppRuntimeType.Python ? "bi-filetype-py" : type == AppRuntimeType.Ruby ? "bi-gem" : "bi-google") accent"></i> @Label(type)</h6>
+                    <span class="badge text-bg-secondary">@Tool(type)</span>
+                </div>
+
+                @if (!installed.Any()) { <p class="text-secondary small">No versions installed.</p> }
+                else
+                {
+                    <table class="table table-sm align-middle mb-3">
+                        <tbody>
+                        @foreach (var r in installed)
+                        {
+                            <tr>
+                                <td class="font-monospace text-light">@r.Version @if (r.IsDefault) { <span class="badge text-bg-success ms-1">default</span> }</td>
+                                <td class="text-end">
+                                    @if (!r.IsDefault)
+                                    {
+                                        <form method="post" asp-page-handler="Default" class="d-inline"><input type="hidden" name="runtimeId" value="@r.Id" /><button class="btn btn-sm btn-outline-secondary">Set default</button></form>
+                                    }
+                                    <form method="post" asp-page-handler="Remove" class="d-inline srx-confirm-form" data-confirm-message="Remove @Label(type) @r.Version?"><input type="hidden" name="runtimeId" value="@r.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+
+                <form method="post" asp-page-handler="Install" class="d-flex gap-2">
+                    <input type="hidden" name="type" value="@type" />
+                    <select name="version" class="form-select form-select-sm">
+                        @foreach (var v in Model.Installable[type])
+                        {
+                            <option value="@v">@v</option>
+                        }
+                    </select>
+                    <button class="btn btn-sm btn-primary" style="white-space:nowrap"><i class="bi bi-download"></i> Install</button>
+                </form>
+            </div></div>
+        </div>
+    }
+</div>

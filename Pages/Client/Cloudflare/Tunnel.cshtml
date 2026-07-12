@@ -1,0 +1,109 @@
+@page
+@model SRXPanel.Pages.Client.Cloudflare.TunnelModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Cloudflare Tunnel";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Cloudflare/Index">Cloudflare</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Tunnels</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-1"><i class="bi bi-diagram-3 accent"></i> Cloudflare Tunnel</h4>
+<p class="text-secondary small">
+    Expose a service to the internet without opening inbound ports — cloudflared connects out to Cloudflare.
+    Ideal for apps behind NAT or a home connection.
+</p>
+
+@if (Model.Account == null)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Connect a Cloudflare account first.
+        <a asp-page="/Client/Cloudflare/Connect" class="alert-link">Connect now</a>
+    </div>
+}
+else
+{
+    @if (Model.NewSecret != null)
+    {
+        <div class="card srx-card border-warning mb-4"><div class="card-body">
+            <h6 class="text-warning mb-2"><i class="bi bi-key-fill"></i> Tunnel run token — shown once</h6>
+            <p class="text-secondary small mb-2">Install cloudflared on your server and run:</p>
+            <pre class="bg-black p-3 rounded small mb-0"><code>cloudflared tunnel run --token @Model.NewSecret</code></pre>
+        </div></div>
+    }
+
+    <div class="card srx-card mb-4"><div class="card-body">
+        <h6 class="text-light mb-3">Create a tunnel</h6>
+        <form method="post" asp-page-handler="Create">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Tunnel name</label>
+                    <input name="name" class="form-control" placeholder="home-lab" required />
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Public hostnames <span class="text-secondary">(one per line)</span></label>
+                    <textarea name="hostnames" rows="2" class="form-control font-monospace small"
+                              placeholder="app.example.com =&gt; http://localhost:8080&#10;api.example.com =&gt; http://localhost:3000"></textarea>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-sm mt-3"><i class="bi bi-plus-lg"></i> Create tunnel</button>
+        </form>
+    </div></div>
+
+    @if (!Model.Tunnels.Any())
+    {
+        <div class="card srx-card"><div class="card-body text-center py-4">
+            <i class="bi bi-diagram-3 text-secondary" style="font-size:40px;"></i>
+            <p class="text-secondary mt-2 mb-0">No tunnels yet.</p>
+        </div></div>
+    }
+    else
+    {
+        foreach (var tunnel in Model.Tunnels)
+        {
+            <div class="card srx-card mb-3"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-light mb-1"><i class="bi bi-diagram-3 accent"></i> @tunnel.Name</h6>
+                        <div class="text-secondary small">Tunnel <code>@tunnel.TunnelId</code></div>
+                    </div>
+                    <div>
+                        @switch (tunnel.Status)
+                        {
+                            case CfTunnelStatus.Healthy: <span class="badge text-bg-success">Healthy</span> break;
+                            case CfTunnelStatus.Degraded: <span class="badge text-bg-warning">Degraded</span> break;
+                            case CfTunnelStatus.Down: <span class="badge text-bg-danger">Down</span> break;
+                            default: <span class="badge text-bg-secondary">Inactive</span> break;
+                        }
+                        <form method="post" asp-page-handler="Delete" class="d-inline"
+                              onsubmit="return confirm('Delete tunnel @tunnel.Name?');">
+                            <input type="hidden" name="id" value="@tunnel.Id" />
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+
+                @if (tunnel.HostnameList.Any())
+                {
+                    <table class="table table-sm mt-3 mb-0">
+                        <thead><tr><th>Public hostname</th><th></th><th>Local service</th></tr></thead>
+                        <tbody>
+                            @foreach (var (hostname, service) in tunnel.HostnameList)
+                            {
+                                <tr>
+                                    <td class="text-light small font-monospace">@hostname</td>
+                                    <td class="text-secondary"><i class="bi bi-arrow-right"></i></td>
+                                    <td class="text-secondary small font-monospace">@service</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div></div>
+        }
+    }
+}

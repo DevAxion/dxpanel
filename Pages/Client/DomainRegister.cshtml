@@ -1,0 +1,65 @@
+@page "/Client/Domains/Register"
+@model SRXPanel.Pages.Client.DomainRegisterModel
+@{
+    ViewData["Title"] = "Register a Domain";
+    string Money(decimal d) => $"${d:0.00}";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Store</li>
+        <li class="breadcrumb-item active" aria-current="page">Register Domain</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-2">Register a Domain</h4>
+<p class="text-secondary">Search for a domain and register it — a DNS zone is created automatically.</p>
+
+<form method="get" class="d-flex gap-2 mb-4" style="max-width:560px;">
+    <input name="q" value="@Model.Q" class="form-control" placeholder="Enter a domain name…" autofocus />
+    <button class="btn btn-primary px-4"><i class="bi bi-search"></i> Search</button>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Model.Q) && Model.Results.Any())
+{
+    <div class="card srx-card" style="max-width:720px;"><div class="card-body">
+        @foreach (var r in Model.Results)
+        {
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+                <div>
+                    <span class="text-light fw-semibold">@r.Domain</span>
+                    @if (r.Available)
+                    {
+                        <span class="badge text-bg-success ms-2">Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary ms-2">Taken</span>
+                    }
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-secondary">@Money(r.Price)/yr</span>
+                    @if (r.Available)
+                    {
+                        <form method="post" asp-page-handler="AddToCart">
+                            <input type="hidden" name="domain" value="@r.Domain" /><input type="hidden" name="price" value="@r.Price" />
+                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-cart-plus"></i> Cart</button>
+                        </form>
+                        <form method="post" asp-page-handler="Register" onsubmit="return confirm('Register @r.Domain for @Money(r.Price)?');">
+                            <input type="hidden" name="domain" value="@r.Domain" /><input type="hidden" name="price" value="@r.Price" />
+                            <button class="btn btn-sm btn-primary">Register</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-outline-secondary" disabled>Taken</button>
+                    }
+                </div>
+            </div>
+        }
+    </div></div>
+}
+else if (!string.IsNullOrWhiteSpace(Model.Q))
+{
+    <p class="text-secondary">Enter a valid domain name to check availability.</p>
+}

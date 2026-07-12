@@ -1,0 +1,192 @@
+@page
+@model SRXPanel.Pages.Billing.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Billing";
+    string Pct(int used, int max) => max <= 0 ? "0" : Math.Min(100, (int)(100.0 * used / max)).ToString();
+    string LimitTxt(int max) => max == 0 ? "∞" : max.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Billing</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Billing &amp; Subscription</h4>
+    <a asp-page="/Billing/PaymentMethods" class="btn btn-outline-secondary"><i class="bi bi-credit-card"></i> Payment Methods</a>
+</div>
+
+@if (Model.Subscription == null)
+{
+    <div class="card srx-card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-box-seam fs-1 text-secondary"></i>
+            <h5 class="text-light mt-3">No active subscription</h5>
+            <p class="text-secondary">Choose a plan to get started with SRXPanel hosting.</p>
+            <a asp-page="/Pricing" class="btn btn-primary"><i class="bi bi-arrow-right"></i> View Plans</a>
+        </div>
+    </div>
+}
+else
+{
+    var sub = Model.Subscription;
+    var plan = Model.Plan;
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card srx-card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="text-light mb-1">@plan?.Name plan</h5>
+                            <span class="text-secondary">@(plan != null ? SRXPanel.Pages.Billing.IndexModel.Money(plan.Price, plan.Currency) : "")/month</span>
+                        </div>
+                        <div class="text-end">
+                            @{
+                                var badge = sub.Status switch
+                                {
+                                    SubscriptionStatus.Active => "srx-badge-active",
+                                    SubscriptionStatus.Trialing => "text-bg-info",
+                                    SubscriptionStatus.PastDue => "text-bg-warning",
+                                    _ => "srx-badge-suspended"
+                                };
+                            }
+                            <span class="badge @badge">@sub.Status</span>
+                            @if (sub.IsTrial && sub.TrialEndsAt != null)
+                            {
+                                <div class="small text-secondary mt-1">Trial ends @sub.TrialEndsAt.Value.ToString("yyyy-MM-dd")</div>
+                            }
+                        </div>
+                    </div>
+                    <hr style="border-color:#30363d;" />
+                    <div class="row text-secondary small">
+                        <div class="col-6">Current period<br /><span class="text-light">@sub.CurrentPeriodStart.ToString("yyyy-MM-dd") → @sub.CurrentPeriodEnd.ToString("yyyy-MM-dd")</span></div>
+                        <div class="col-6">Next billing date<br /><span class="text-light">@(sub.Status == SubscriptionStatus.Cancelled ? "—" : sub.CurrentPeriodEnd.ToString("yyyy-MM-dd"))</span></div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#changePlan"><i class="bi bi-arrow-left-right"></i> Change Plan</button>
+                        @if (sub.Status != SubscriptionStatus.Cancelled)
+                        {
+                            <form method="post" asp-page-handler="Cancel" class="srx-confirm-form" data-confirm-message="Cancel your subscription? Service continues until the end of the current period.">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Cancel Subscription</button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="collapse mt-3" id="changePlan">
+                        <div class="row g-2">
+                            @foreach (var p in Model.AvailablePlans.Where(p => p.Id != sub.PlanId))
+                            {
+                                <div class="col-md-6">
+                                    <form method="post" asp-page-handler="ChangePlan">
+                                        <input type="hidden" name="newPlanId" value="@p.Id" />
+                                        <button type="submit" class="btn btn-outline-secondary w-100 text-start">
+                                            <strong>@p.Name</strong> — @SRXPanel.Pages.Billing.IndexModel.Money(p.Price, p.Currency)/mo
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card srx-card">
+                <div class="card-body">
+                    <h6 class="text-light mb-3"><i class="bi bi-receipt"></i> Invoice History</h6>
+                    @if (Model.Invoices.Any())
+                    {
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th><th class="text-end">PDF</th></tr></thead>
+                            <tbody>
+                                @foreach (var inv in Model.Invoices)
+                                {
+                                    <tr>
+                                        <td><code>@inv.Number</code></td>
+                                        <td>@inv.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                        <td>@SRXPanel.Pages.Billing.IndexModel.Money(inv.Amount, inv.Currency)</td>
+                                        <td>
+                                            @if (inv.Status == InvoiceStatus.Paid)
+                                            {
+                                                <span class="badge srx-badge-active">Paid</span>
+                                            }
+                                            else if (inv.Status == InvoiceStatus.Unpaid)
+                                            {
+                                                <span class="badge text-bg-warning">Unpaid</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge srx-badge-suspended">Void</span>
+                                            }
+                                        </td>
+                                        <td class="text-end"><a href="@(inv.InvoicePdf ?? "#")" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i></a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-secondary mb-0">No invoices yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card srx-card mb-4">
+                <div class="card-body">
+                    <h6 class="text-light mb-3">Usage vs Limits</h6>
+                    @{
+                        var items = new[] {
+                            ("Domains", Model.DomainCount, plan?.MaxDomains ?? 0),
+                            ("Databases", Model.DatabaseCount, plan?.MaxDatabases ?? 0),
+                            ("Email accounts", Model.EmailCount, plan?.MaxEmails ?? 0),
+                            ("FTP accounts", Model.FtpCount, plan?.MaxFtpAccounts ?? 0),
+                        };
+                    }
+                    @foreach (var (label, used, max) in items)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small text-secondary mb-1">
+                                <span>@label</span><span>@used / @LimitTxt(max)</span>
+                            </div>
+                            <div class="progress" style="height:6px;">
+                                <div class="progress-bar bg-primary" style="width:@Pct(used, max)%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card srx-card">
+                <div class="card-body">
+                    <h6 class="text-light mb-3">Payment Methods</h6>
+                    @if (Model.PaymentMethods.Any())
+                    {
+                        @foreach (var pm in Model.PaymentMethods)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light"><i class="bi bi-credit-card-2-front"></i> @pm.Brand.ToUpper() ****@pm.Last4</span>
+                                @if (pm.IsDefault)
+                                {
+                                    <span class="badge text-bg-secondary">Default</span>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-secondary small mb-2">No cards on file.</p>
+                    }
+                    <a asp-page="/Billing/PaymentMethods" class="btn btn-sm btn-outline-secondary w-100 mt-2">Manage Cards</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

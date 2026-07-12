@@ -1,0 +1,51 @@
+@page "{id:int}"
+@model SRXPanel.Pages.Ftp.EditModel
+@{
+    ViewData["Title"] = "Edit FTP Account";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Ftp/Index">FTP Accounts</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Edit FTP Account — <span class="text-secondary">@Model.Username</span></h4>
+
+<div class="card srx-card" style="max-width: 640px;">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label asp-for="Input.HomeDirectory" class="form-label"></label>
+                    <input asp-for="Input.HomeDirectory" class="form-control" />
+                    <span asp-validation-for="Input.HomeDirectory" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.QuotaMB" class="form-label"></label>
+                    <input asp-for="Input.QuotaMB" class="form-control" />
+                </div>
+                <div class="col-md-8">
+                    <label asp-for="Input.NewPassword" class="form-label"></label>
+                    <input asp-for="Input.NewPassword" type="text" class="form-control" placeholder="Leave blank to keep current" />
+                    <span asp-validation-for="Input.NewPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button>
+                <a asp-page="/Ftp/Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

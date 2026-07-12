@@ -1,0 +1,86 @@
+@page
+@model SRXPanel.Pages.FeaturesModel
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = "Features";
+    ViewData["MetaDescription"] = "A complete hosting control panel: domains, email, databases, DNS, SSL, backups, billing and more.";
+}
+
+<section class="text-center" style="padding:56px 0 24px;">
+    <div class="container">
+        <h1 class="text-light fw-bold">Everything in one control panel</h1>
+        <p class="text-secondary fs-5" style="max-width:640px;margin:0 auto;">Everything you need to launch, manage and grow your websites — in one place.</p>
+    </div>
+</section>
+
+<div class="container pb-5">
+    @{
+        var groups = new (string Icon, string Title, string[] Items)[]
+        {
+            ("bi-globe2", "Domains & DNS", new[] { "Unlimited domains & subdomains", "Full DNS zone editor (BIND9)", "Domain redirects & parked domains", "Free SSL on every domain" }),
+            ("bi-envelope-at", "Email", new[] { "Professional mailboxes", "Forwarders & autoresponders", "Webmail access", "Spam & virus protection" }),
+            ("bi-database", "Databases", new[] { "MySQL databases & users", "phpMyAdmin included", "Remote access control", "One-click backups" }),
+            ("bi-shield-lock", "Security", new[] { "Free Let's Encrypt SSL", "Fail2ban brute-force protection", "Firewall (UFW) management", "Two-factor authentication" }),
+            ("bi-hdd-stack", "Backups", new[] { "Automated daily backups", "One-click restore", "Off-site backup targets", "Download backups any time" }),
+            ("bi-people", "Reseller & Billing", new[] { "White-label control panel", "Per-reseller resource limits", "Stripe billing & invoices", "Coupons & affiliate program" })
+        };
+    }
+    <div class="row g-4">
+        @foreach (var g in groups)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:26px;height:100%;">
+                    <i class="bi @g.Icon accent" style="font-size:28px;"></i>
+                    <h5 class="text-light mt-3 mb-3">@g.Title</h5>
+                    @foreach (var it in g.Items)
+                    {
+                        <div class="text-secondary py-1"><i class="bi bi-check-lg accent"></i> @it</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row align-items-center g-4 mt-5">
+        <div class="col-lg-6">
+            <h3 class="text-light fw-bold">A dashboard your customers will love</h3>
+            <p class="text-secondary">A clean, fast, dark-themed interface that works beautifully on every device. Everything your users need is a click away — no clutter, no confusion.</p>
+            <a href="/register" class="btn btn-cta">Try it free</a>
+        </div>
+        <div class="col-lg-6">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;">
+                <div style="background:#0d1117;padding:8px 12px;border-bottom:1px solid #30363d;">
+                    <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ff5f56;margin-right:5px;"></span>
+                    <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ffbd2e;margin-right:5px;"></span>
+                    <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#27c93f;"></span>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="flex-fill text-center p-3" style="background:#0d1117;border-radius:8px;"><i class="bi bi-globe2 accent fs-4"></i><div class="text-secondary small mt-1">Domains</div></div>
+                        <div class="flex-fill text-center p-3" style="background:#0d1117;border-radius:8px;"><i class="bi bi-envelope accent fs-4"></i><div class="text-secondary small mt-1">Email</div></div>
+                        <div class="flex-fill text-center p-3" style="background:#0d1117;border-radius:8px;"><i class="bi bi-database accent fs-4"></i><div class="text-secondary small mt-1">Databases</div></div>
+                    </div>
+                    <div style="height:8px;background:#0d1117;border-radius:4px;margin-bottom:8px;"><div style="width:72%;height:100%;background:var(--srx-primary);border-radius:4px;"></div></div>
+                    <div class="text-secondary small">Disk usage · 72%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <h4 class="text-light text-center mb-4">Technical specifications</h4>
+        <div class="table-responsive" style="max-width:760px;margin:0 auto;">
+            <table class="table table-dark align-middle" style="background:#161b22;border-radius:12px;overflow:hidden;">
+                <tbody>
+                    <tr><td class="text-secondary">Web server</td><td class="text-light">Nginx with per-site PHP-FPM</td></tr>
+                    <tr><td class="text-secondary">PHP versions</td><td class="text-light">7.4 · 8.0 · 8.1 · 8.2 · 8.3</td></tr>
+                    <tr><td class="text-secondary">Database</td><td class="text-light">MySQL 8 / MariaDB</td></tr>
+                    <tr><td class="text-secondary">SSL</td><td class="text-light">Let's Encrypt (auto-renew)</td></tr>
+                    <tr><td class="text-secondary">DNS</td><td class="text-light">BIND9 authoritative</td></tr>
+                    <tr><td class="text-secondary">Email</td><td class="text-light">Postfix + Dovecot (IMAP/POP3)</td></tr>
+                    <tr><td class="text-secondary">Control panel</td><td class="text-light">ASP.NET Core 9</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,201 @@
+@page
+@using SRXPanel.Services
+@model SRXPanel.Pages.IndexModel
+@inject IFrontendService Frontend
+@{
+    Layout = "_PublicLayout";
+    var fs = await Frontend.GetSettingsAsync();
+    ViewData["Title"] = fs.HeroHeadline;
+    var req = ViewContext.HttpContext.Request;
+    ViewData["JsonLd"] = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        context = "https://schema.org",
+        type = "Organization",
+        name = fs.SiteName,
+        url = $"{req.Scheme}://{req.Host}",
+        description = fs.MetaDescription
+    }).Replace("\"context\"", "\"@context\"").Replace("\"type\"", "\"@type\"");
+    string Money(decimal d) => $"${d:0.00}";
+    string Disk(long mb) => mb >= 1024 ? $"{mb / 1024} GB" : $"{mb} MB";
+}
+
+<section class="hero-section" style="background:radial-gradient(ellipse at top, #16233b 0%, #0d1117 60%); padding:120px 0 84px; text-align:center;">
+    <div class="container">
+        <h1 style="font-size:clamp(36px,5.5vw,62px);font-weight:800;color:#fff;letter-spacing:-1px;">@fs.HeroHeadline</h1>
+        <p class="lead mx-auto" style="max-width:700px;color:#8b949e;font-size:20px;margin:18px auto 28px;">@fs.HeroSubheadline</p>
+        <div class="d-flex gap-2 justify-content-center mb-4 flex-wrap">
+            <a href="/register" class="btn btn-cta btn-lg"><i class="bi bi-rocket-takeoff"></i> @fs.HeroCtaPrimaryText</a>
+            <a href="/pricing" class="btn btn-outline-cta btn-lg">@fs.HeroCtaSecondaryText</a>
+        </div>
+        <div class="d-flex gap-4 justify-content-center flex-wrap text-secondary">
+            <span><i class="bi bi-activity accent"></i> 99.9% Uptime</span>
+            <span><i class="bi bi-headset accent"></i> 24/7 Support</span>
+            <span><i class="bi bi-shield-lock accent"></i> Free SSL</span>
+        </div>
+    </div>
+</section>
+
+@if (Model.Stats.Any())
+{
+    <section style="padding:36px 0;border-top:1px solid #21262d;border-bottom:1px solid #21262d;background:#0b0f14;">
+        <div class="container">
+            <div class="row g-4 text-center">
+                @foreach (var s in Model.Stats)
+                {
+                    <div class="col-6 col-lg-3">
+                        <i class="bi @s.Icon accent" style="font-size:26px;"></i>
+                        <div class="counter" data-target="@s.Value" style="font-size:34px;font-weight:800;color:#fff;">0<span>@s.Suffix</span></div>
+                        <div class="text-secondary">@s.Label</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center text-light fw-bold">Everything you need to succeed online</h2>
+        <p class="text-center text-secondary mb-5">Powerful features, included on every plan.</p>
+        <div class="row g-4">
+            @foreach (var f in Model.Features)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:26px;height:100%;">
+                        <i class="bi @f.Icon accent" style="font-size:30px;"></i>
+                        <h5 class="text-light mt-3 mb-2">@f.Title</h5>
+                        <p class="text-secondary small mb-0">@f.Description</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="py-5" style="background:#0b0f14;">
+    <div class="container">
+        <h2 class="text-center text-light fw-bold mb-2">How it works</h2>
+        <p class="text-center text-secondary mb-5">Launch your site in three simple steps.</p>
+        <div class="row g-4 text-center">
+            @{
+                var steps = new (string Icon, string Title, string Desc)[]
+                {
+                    ("bi-list-check", "Choose a Plan", "Pick the hosting plan that fits your needs — upgrade any time."),
+                    ("bi-person-plus", "Register", "Create your account in seconds. Start with a free trial, no card required."),
+                    ("bi-rocket-takeoff", "Launch Your Site", "Point your domain, install your apps and go live instantly.")
+                };
+            }
+            @{ var n = 1; }
+            @foreach (var st in steps)
+            {
+                <div class="col-md-4">
+                    <div style="width:64px;height:64px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                        <i class="bi @st.Icon" style="font-size:26px;color:#fff;"></i>
+                    </div>
+                    <h5 class="text-light">@(n++). @st.Title</h5>
+                    <p class="text-secondary small">@st.Desc</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@if (Model.Plans.Any())
+{
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center text-light fw-bold mb-2">Simple, transparent pricing</h2>
+            <p class="text-center text-secondary mb-5">Start free for 14 days. No credit card required.</p>
+            <div class="row g-4 justify-content-center">
+                @{ int idx = 0; }
+                @foreach (var plan in Model.Plans)
+                {
+                    var featured = idx == 1; idx++;
+                    <div class="col-lg-4 col-md-6">
+                        <div style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(featured ? "box-shadow:0 0 0 1px var(--srx-primary);" : "")">
+                            @if (featured) { <span class="badge text-bg-primary mb-2">Most Popular</span> }
+                            <h4 class="text-light">@plan.Name</h4>
+                            <p class="text-secondary small" style="min-height:40px;">@plan.Description</p>
+                            <div class="my-3"><span style="font-size:40px;font-weight:800;color:#fff;">@Money(plan.Price)</span> <span class="text-secondary">/mo</span></div>
+                            <a href="/register?plan=@plan.Id" class="btn @(featured ? "btn-cta" : "btn-outline-cta") w-100 mb-3">Get Started</a>
+                            <div class="text-secondary small py-1"><i class="bi bi-check-lg accent"></i> @Disk(plan.DiskQuotaMB) SSD storage</div>
+                            <div class="text-secondary small py-1"><i class="bi bi-check-lg accent"></i> @Disk(plan.BandwidthQuotaMB) bandwidth</div>
+                            <div class="text-secondary small py-1"><i class="bi bi-check-lg accent"></i> @(plan.MaxDomains == 0 ? "Unlimited" : plan.MaxDomains.ToString()) domains</div>
+                            <div class="text-secondary small py-1"><i class="bi bi-check-lg accent"></i> Free SSL certificates</div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-4"><a href="/pricing" class="btn btn-outline-cta">Compare all plans <i class="bi bi-arrow-right"></i></a></div>
+        </div>
+    </section>
+}
+
+@if (Model.Testimonials.Any())
+{
+    <section class="py-5" style="background:#0b0f14;">
+        <div class="container">
+            <h2 class="text-center text-light fw-bold mb-5">Loved by hosts worldwide</h2>
+            <div class="row g-4">
+                @foreach (var t in Model.Testimonials)
+                {
+                    <div class="col-md-4">
+                        <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:24px;height:100%;">
+                            <div class="mb-2 accent">
+                                @for (var i = 0; i < 5; i++)
+                                {
+                                    <i class="bi @(i < t.Rating ? "bi-star-fill" : "bi-star")"></i>
+                                }
+                            </div>
+                            <p class="text-light">“@t.Content”</p>
+                            <div class="d-flex align-items-center gap-2 mt-3">
+                                @if (!string.IsNullOrEmpty(t.PhotoUrl))
+                                {
+                                    <img src="@t.PhotoUrl" alt="@t.Name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                                }
+                                else
+                                {
+                                    <div style="width:40px;height:40px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">@t.Name.Substring(0,1)</div>
+                                }
+                                <div>
+                                    <div class="text-light small fw-semibold">@t.Name</div>
+                                    <div class="text-secondary" style="font-size:12px;">@t.Company</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="py-5 text-center">
+    <div class="container">
+        <h2 class="text-light fw-bold">Ready to launch your hosting business?</h2>
+        <p class="text-secondary mb-4">Get started free today — no credit card required.</p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="/register" class="btn btn-cta btn-lg">Get Started Free</a>
+            <a href="/contact" class="btn btn-outline-cta btn-lg">Talk to Sales</a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Animated counters
+        (function () {
+            var counters = document.querySelectorAll('.counter');
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (!e.isIntersecting) return;
+                    var el = e.target, target = +el.dataset.target, suffix = el.querySelector('span') ? el.querySelector('span').textContent : '';
+                    var cur = 0, step = Math.max(1, Math.floor(target / 60));
+                    var t = setInterval(function () { cur += step; if (cur >= target) { cur = target; clearInterval(t); } el.innerHTML = cur.toLocaleString() + '<span>' + suffix + '</span>'; }, 25);
+                    io.unobserve(el);
+                });
+            }, { threshold: .4 });
+            counters.forEach(function (c) { io.observe(c); });
+        })();
+    </script>
+}

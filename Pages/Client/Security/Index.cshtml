@@ -1,0 +1,87 @@
+@page
+@model SRXPanel.Pages.Client.Security.IndexModel
+@{
+    ViewData["Title"] = "Security";
+    var score = Model.Score;
+    string ScoreColor(int s) => s >= 75 ? "#3fb950" : s >= 50 ? "#d29922" : "#f85149";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item active" aria-current="page">Security</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Security Center</h4>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card srx-card text-center"><div class="card-body">
+            <h6 class="text-secondary text-uppercase small">Security Score</h6>
+            <div style="position:relative;width:160px;height:160px;margin:12px auto;">
+                <svg viewBox="0 0 36 36" style="width:160px;height:160px;transform:rotate(-90deg);">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#30363d" stroke-width="3"/>
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="@ScoreColor(score.Total)" stroke-width="3" stroke-dasharray="@score.Total, 100"/>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <span style="font-size:40px;font-weight:800;color:#fff;">@score.Total</span>
+                    <span class="text-secondary">/ 100 · @score.Grade</span>
+                </div>
+            </div>
+            <p class="text-secondary small mb-0">Improve your score by completing the recommendations.</p>
+        </div></div>
+
+        <div class="card srx-card mt-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-lightning-charge"></i> Quick actions</h6>
+            <div class="d-grid gap-2">
+                <a href="/Client/Security/Waf" class="btn btn-outline-secondary btn-sm text-start"><i class="bi bi-shield-shaded"></i> Web Application Firewall</a>
+                <a href="/Client/Security/Antivirus" class="btn btn-outline-secondary btn-sm text-start"><i class="bi bi-bug"></i> Antivirus Scan</a>
+                <a href="/Client/Security/Malware" class="btn btn-outline-secondary btn-sm text-start"><i class="bi bi-file-earmark-lock"></i> Malware Scanner</a>
+                <a href="/Client/Email/Security" class="btn btn-outline-secondary btn-sm text-start"><i class="bi bi-envelope-check"></i> Email Security (DKIM/SPF/DMARC)</a>
+                <a href="/Client/Security/Blacklist" class="btn btn-outline-secondary btn-sm text-start"><i class="bi bi-shield-exclamation"></i> IP Blacklist</a>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-check2-square"></i> Checklist</h6>
+            @foreach (var item in score.Items)
+            {
+                <div class="d-flex align-items-start gap-2 py-2 border-bottom border-secondary">
+                    <i class="bi @(item.Achieved ? "bi-check-circle-fill text-success" : "bi-x-circle text-danger")" style="font-size:18px;"></i>
+                    <div class="flex-grow-1">
+                        <div class="text-light">@item.Label <span class="text-secondary small">(+@item.Points)</span></div>
+                        @if (!item.Achieved)
+                        {
+                            <div class="text-secondary small">@item.Recommendation</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Recent security events</h6>
+            @if (!Model.Timeline.Any())
+            {
+                <p class="text-secondary mb-0">No security events recorded. Good news!</p>
+            }
+            else
+            {
+                foreach (var e in Model.Timeline)
+                {
+                    var color = e.Severity is "Critical" or "High" ? "text-danger" : e.Severity == "Medium" ? "text-warning" : "text-secondary";
+                    <div class="d-flex gap-2 py-2 border-bottom border-secondary">
+                        <i class="bi bi-dot @color" style="font-size:22px;"></i>
+                        <div>
+                            <span class="badge text-bg-secondary">@e.Type</span>
+                            <span class="text-light small">@e.Message</span>
+                            <div class="text-secondary" style="font-size:12px;">@e.At.ToString("MMM d, HH:mm")</div>
+                        </div>
+                    </div>
+                }
+            }
+        </div></div>
+    </div>
+</div>

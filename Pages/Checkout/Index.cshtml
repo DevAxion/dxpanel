@@ -1,0 +1,130 @@
+@page "{planId:int}"
+@model SRXPanel.Pages.Checkout.IndexModel
+@{
+    ViewData["Title"] = "Checkout";
+    string Money(decimal d) => $"${d:0.00}";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Pricing">Pricing</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Checkout</h4>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-credit-card"></i> Payment Details</h6>
+
+                @if (Model.SimulationMode)
+                {
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-cpu"></i> <strong>Simulation mode.</strong> No real charge is made.
+                        A mock Visa ****4242 will be attached and the account provisioned immediately.
+                    </div>
+                }
+
+                <form method="post" id="paymentForm">
+                    <input type="hidden" asp-for="PaymentMethodToken" id="paymentMethodToken" />
+
+                    @if (!Model.SimulationMode && !string.IsNullOrEmpty(Model.PublishableKey))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Card</label>
+                            <div id="card-element" class="form-control" style="padding:12px;"></div>
+                            <div id="card-errors" class="text-danger small mt-1"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <input class="form-control" value="4242 4242 4242 4242" readonly />
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6"><label class="form-label">Expiry</label><input class="form-control" value="12 / 30" readonly /></div>
+                            <div class="col-6"><label class="form-label">CVC</label><input class="form-control" value="123" readonly /></div>
+                        </div>
+                    }
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" asp-for="StartTrial" id="startTrial" />
+                        <label class="form-check-label" for="startTrial">
+                            Start with a 14-day free trial instead (no charge today)
+                        </label>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary w-100">
+                        <i class="bi bi-lock"></i> Pay @Money(Model.FinalAmount) &amp; Activate
+                    </button>
+                    <p class="text-secondary small text-center mt-2 mb-0">
+                        <i class="bi bi-shield-check"></i> Secured by Stripe. We never store your card number.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3">Order Summary</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">@Model.Plan.Name plan</span>
+                    <span class="text-light">@Money(Model.Plan.Price)/mo</span>
+                </div>
+                <p class="text-secondary small">@Model.Plan.Description</p>
+
+                <form method="post" asp-page-handler="ApplyCoupon" class="input-group input-group-sm my-3">
+                    <input type="hidden" name="PlanId" value="@Model.PlanId" />
+                    <input name="CouponCode" class="form-control" placeholder="Coupon code" value="@Model.CouponCode" />
+                    <button type="submit" class="btn btn-outline-secondary">Apply</button>
+                </form>
+
+                @if (Model.AppliedCoupon != null)
+                {
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span><i class="bi bi-tag"></i> @Model.AppliedCoupon.Code (-@Model.AppliedCoupon.DiscountPercent%)</span>
+                        <span>-@Money(Model.Plan.Price - Model.FinalAmount)</span>
+                    </div>
+                }
+
+                <hr style="border-color:#30363d;" />
+                <div class="d-flex justify-content-between">
+                    <strong class="text-light">Total due today</strong>
+                    <strong class="text-light fs-5">@Money(Model.FinalAmount)</strong>
+                </div>
+                <p class="text-secondary small mt-2 mb-0">Then @Money(Model.Plan.Price)/month. Cancel anytime.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @if (!Model.SimulationMode && !string.IsNullOrEmpty(Model.PublishableKey))
+    {
+        <script src="https://js.stripe.com/v3/"></script>
+        <script>
+            const stripe = Stripe('@Model.PublishableKey');
+            const elements = stripe.elements();
+            const card = elements.create('card', { style: { base: { color: '#c9d1d9' } } });
+            card.mount('#card-element');
+            const form = document.getElementById('paymentForm');
+            form.addEventListener('submit', async (e) => {
+                if (document.getElementById('startTrial').checked) return; // trial: no card needed
+                e.preventDefault();
+                const { paymentMethod, error } = await stripe.createPaymentMethod({ type: 'card', card });
+                if (error) { document.getElementById('card-errors').textContent = error.message; return; }
+                document.getElementById('paymentMethodToken').value = paymentMethod.id;
+                form.submit();
+            });
+        </script>
+    }
+}

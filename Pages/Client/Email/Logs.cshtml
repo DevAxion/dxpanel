@@ -1,0 +1,100 @@
+@page
+@model SRXPanel.Pages.Client.Email.LogsModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Email Logs";
+    var r = Model.Report;
+    (string cls, string text) Badge(EmailLogStatus s) => s switch
+    {
+        EmailLogStatus.Delivered => ("text-bg-success", "Delivered"),
+        EmailLogStatus.Deferred => ("text-bg-warning", "Deferred"),
+        EmailLogStatus.Bounced => ("text-bg-danger", "Bounced"),
+        EmailLogStatus.Spam => ("text-bg-warning", "Spam"),
+        EmailLogStatus.Rejected => ("text-bg-danger", "Rejected"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Email</li><li class="breadcrumb-item active" aria-current="page">Logs</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-journal-text accent"></i> Email Logs</h4>
+    <a asp-page-handler="Export" asp-all-route-data='new Dictionary<string,string>{{"from", Model.From?.ToString("yyyy-MM-dd") ?? ""},{"to", Model.To?.ToString("yyyy-MM-dd") ?? ""},{"domainId", Model.DomainId?.ToString() ?? ""}}' class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Export CSV</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@r.Total</div><div class="srx-stat-label">Total</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@r.Delivered</div><div class="srx-stat-label">Delivered</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@r.Bounced</div><div class="srx-stat-label">Bounced</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@r.Spam</div><div class="srx-stat-label">Spam</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@r.DeliveryRate<span class="fs-6">%</span></div><div class="srx-stat-label">Delivery rate</div></div></div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-auto"><label class="form-label text-secondary small">From</label><input type="date" name="from" value="@Model.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+        <div class="col-auto"><label class="form-label text-secondary small">To</label><input type="date" name="to" value="@Model.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+        <div class="col-auto"><label class="form-label text-secondary small">Status</label>
+            <select name="status" class="form-select form-select-sm"><option value="">All</option>
+                @foreach (var s in Enum.GetValues<EmailLogStatus>()) { <option value="@s" selected="@(Model.Status == s)">@s</option> }
+            </select></div>
+        <div class="col-auto"><label class="form-label text-secondary small">Domain</label>
+            <select name="domainId" class="form-select form-select-sm"><option value="">All</option>
+                @foreach (var d in Model.Domains) { <option value="@d.Id" selected="@(Model.DomainId == d.Id)">@d.DomainName</option> }
+            </select></div>
+        <div class="col"><label class="form-label text-secondary small">Search</label><input name="q" value="@Model.Q" class="form-control form-control-sm" placeholder="email, subject or message-id" /></div>
+        <div class="col-auto"><button class="btn btn-sm btn-primary">Filter</button></div>
+    </form>
+
+    @if (!Model.Logs.Items.Any()) { <p class="text-secondary mb-0">No log entries for this filter.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>From</th><th>To</th><th>Subject</th><th>Status</th><th>Spam</th><th>Date</th></tr></thead>
+            <tbody>
+            @foreach (var l in Model.Logs.Items)
+            {
+                var b = Badge(l.Status);
+                <tr style="cursor:pointer" onclick="showDetail('@l.MessageId')">
+                    <td class="small text-secondary font-monospace">@l.FromAddress</td>
+                    <td class="small text-secondary font-monospace">@l.ToAddress</td>
+                    <td class="small text-light">@(l.Subject.Length > 36 ? l.Subject[..36] + "…" : l.Subject)</td>
+                    <td><span class="badge @b.cls">@b.text</span></td>
+                    <td class="small @(l.SpamScore >= 5 ? "text-warning" : "text-secondary")">@l.SpamScore.ToString("0.0")</td>
+                    <td class="text-secondary small">@l.CreatedAt.ToString("MM-dd HH:mm")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>
+
+<div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Message details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <h6 class="text-secondary">Headers</h6>
+        <pre id="dHeaders" style="background:#0d1117;color:#8b949e;padding:12px;border-radius:8px;font-size:.8rem;white-space:pre-wrap;"></pre>
+        <h6 class="text-secondary mt-3">Delivery</h6>
+        <p id="dPreview" class="text-light"></p>
+    </div>
+</div></div></div>
+
+@section Scripts {
+    <script>
+        function showDetail(mid) {
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+            document.getElementById('dHeaders').textContent = 'Loading…';
+            document.getElementById('dPreview').textContent = '';
+            fetch('?handler=Details&messageId=' + encodeURIComponent(mid))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    document.getElementById('dHeaders').textContent = d.headers;
+                    document.getElementById('dPreview').textContent = d.preview;
+                });
+        }
+    </script>
+}

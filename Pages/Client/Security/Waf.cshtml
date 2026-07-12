@@ -1,0 +1,138 @@
+@page
+@model SRXPanel.Pages.Client.Security.WafModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "WAF";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Security/Index">Security</a></li>
+        <li class="breadcrumb-item active" aria-current="page">WAF</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">Web Application Firewall</h4>
+
+@if (!Model.Domains.Any())
+{
+    <div class="alert alert-info">Add a domain first to configure the WAF.</div>
+}
+else
+{
+    <form method="get" class="mb-4" style="max-width:360px;">
+        <label class="form-label text-secondary small">Domain</label>
+        <select name="domainId" class="form-select" onchange="this.form.submit()">
+            @foreach (var d in Model.Domains)
+            {
+                <option value="@d.Id" selected="@(Model.Selected?.Id == d.Id)">@d.DomainName</option>
+            }
+        </select>
+    </form>
+
+    var s = Model.Status!;
+    var dom = Model.Selected!;
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="text-light mb-0"><i class="bi bi-shield-shaded"></i> Status</h6>
+                    <span class="badge @(s.Enabled ? "text-bg-success" : "text-bg-secondary")">@(s.Enabled ? "Protected" : "Disabled")</span>
+                </div>
+                <div class="text-secondary small mt-2">OWASP Core Rule Set <strong>v@s.CrsVersion</strong> · @s.RuleCount rules active</div>
+                <form method="post" asp-page-handler="Toggle" class="mt-3">
+                    <input type="hidden" name="domainId" value="@dom.Id" />
+                    <input type="hidden" name="enable" value="@((!s.Enabled).ToString().ToLower())" />
+                    <button class="btn @(s.Enabled ? "btn-outline-danger" : "btn-primary") w-100">
+                        <i class="bi @(s.Enabled ? "bi-shield-slash" : "bi-shield-check")"></i> @(s.Enabled ? "Disable WAF" : "Enable WAF")
+                    </button>
+                </form>
+            </div></div>
+
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Mode</h6>
+                <form method="post" asp-page-handler="SetMode">
+                    <input type="hidden" name="domainId" value="@dom.Id" />
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" value="@WafMode.Detection" id="mDet" @(s.Mode == WafMode.Detection ? "checked" : "")>
+                        <label class="form-check-label text-light" for="mDet">Detection <span class="text-secondary small">— log only, don't block</span></label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mode" value="@WafMode.Prevention" id="mPre" @(s.Mode == WafMode.Prevention ? "checked" : "")>
+                        <label class="form-check-label text-light" for="mPre">Prevention <span class="text-secondary small">— actively block attacks</span></label>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm mt-2">Apply mode</button>
+                </form>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-hdd-network"></i> IP rules</h6>
+                @foreach (var r in Model.IpRules)
+                {
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <span class="text-light"><span class="badge @(r.Action == WafIpAction.Block ? "text-bg-danger" : "text-bg-success")">@r.Action</span> @r.IP</span>
+                        <form method="post" asp-page-handler="RemoveIp"><input type="hidden" name="domainId" value="@dom.Id" /><input type="hidden" name="ruleId" value="@r.Id" />
+                            <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form>
+                    </div>
+                }
+                <form method="post" asp-page-handler="AddIp" class="border-top border-secondary pt-2 mt-2">
+                    <input type="hidden" name="domainId" value="@dom.Id" />
+                    <div class="input-group input-group-sm">
+                        <input name="ip" class="form-control" placeholder="1.2.3.4" />
+                        <select name="action" class="form-select" style="max-width:120px;">
+                            <option value="@WafIpAction.Block">Block</option>
+                            <option value="@WafIpAction.Whitelist">Whitelist</option>
+                        </select>
+                        <button class="btn btn-outline-secondary">Add</button>
+                    </div>
+                </form>
+            </div></div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle"></i> Alert log <span class="text-secondary small">(last 30 days)</span></h6>
+                <div class="table-responsive" style="max-height:320px;overflow:auto;">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Time</th><th>IP</th><th>URI</th><th>Rule</th><th>Action</th></tr></thead>
+                        <tbody>
+                        @if (!Model.Alerts.Any())
+                        {
+                            <tr><td colspan="5" class="text-secondary text-center py-3">No alerts recorded.</td></tr>
+                        }
+                        @foreach (var a in Model.Alerts)
+                        {
+                            <tr>
+                                <td class="text-secondary small text-nowrap">@a.Timestamp.ToString("MMM d HH:mm")</td>
+                                <td class="small">@a.IP</td>
+                                <td class="small" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@a.URI">@a.URI</td>
+                                <td class="small" title="@a.RuleMessage">@a.RuleId</td>
+                                <td><span class="badge @(a.Action == "blocked" ? "text-bg-danger" : "text-bg-secondary")">@a.Action</span></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-file-earmark-code"></i> Custom rules</h6>
+                @foreach (var r in Model.Rules)
+                {
+                    <div class="d-flex justify-content-between align-items-start py-1">
+                        <div><code class="text-info small">@r.RuleNumber</code> <span class="text-secondary small">@r.Description</span>
+                            <pre class="bg-black p-1 rounded small mb-0 mt-1" style="max-width:420px;overflow:auto;"><code>@r.RuleText</code></pre></div>
+                        <form method="post" asp-page-handler="RemoveRule"><input type="hidden" name="domainId" value="@dom.Id" /><input type="hidden" name="ruleId" value="@r.Id" />
+                            <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form>
+                    </div>
+                }
+                <form method="post" asp-page-handler="AddRule" class="border-top border-secondary pt-2 mt-2">
+                    <input type="hidden" name="domainId" value="@dom.Id" />
+                    <input name="description" class="form-control form-control-sm mb-1" placeholder="Description" />
+                    <textarea name="ruleText" class="form-control form-control-sm font-monospace mb-1" rows="2" placeholder='SecRule ARGS "@@rx (?i)union.*select" "id:900001,deny,status:403"'></textarea>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-plus-lg"></i> Add rule</button>
+                </form>
+            </div></div>
+        </div>
+    </div>
+}

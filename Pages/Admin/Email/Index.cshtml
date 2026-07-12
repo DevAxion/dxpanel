@@ -1,0 +1,97 @@
+@page
+@model SRXPanel.Pages.Admin.Email.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Email Overview";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item active" aria-current="page">Email</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-envelope-at accent"></i> Email Overview</h4>
+    <div class="d-flex gap-2">
+        <a asp-page="/Admin/Email/Queue" class="btn btn-sm btn-outline-secondary">Queue</a>
+        <a asp-page="/Admin/Email/Logs" class="btn btn-sm btn-outline-secondary">Logs</a>
+        <a asp-page="/Admin/Email/Blacklist" class="btn btn-sm btn-outline-secondary">Blacklist</a>
+        <a asp-page="/Admin/Email/Bounces" class="btn btn-sm btn-outline-secondary">Bounces</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@Model.SentToday</div><div class="srx-stat-label">Sent today</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@Model.SentWeek</div><div class="srx-stat-label">Sent (7d)</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@Model.SentMonth</div><div class="srx-stat-label">Sent (30d)</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@Model.TotalFailed</div><div class="srx-stat-label">Failed</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@Model.TotalDeferred</div><div class="srx-stat-label">Deferred</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@Model.DeliveryRate<span class="fs-6">%</span></div><div class="srx-stat-label">Delivery rate</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8"><div class="card srx-card h-100"><div class="card-body">
+        <h6 class="text-light mb-3">Delivered vs failed (14 days)</h6>
+        @if (!Model.Chart.Any()) { <p class="text-secondary mb-0">No data yet — mail is being processed.</p> }
+        else { <canvas id="mailChart" height="90"></canvas> }
+    </div></div></div>
+
+    <div class="col-lg-4"><div class="card srx-card h-100"><div class="card-body">
+        <h6 class="text-light mb-3">Top sending domains</h6>
+        @if (!Model.TopDomains.Any()) { <p class="text-secondary mb-0">No sending activity.</p> }
+        else
+        {
+            <table class="table table-sm mb-0">
+                <tbody>
+                @foreach (var (domain, sent) in Model.TopDomains)
+                {
+                    <tr><td class="text-light">@domain</td><td class="text-end text-secondary">@sent</td></tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div></div>
+</div>
+
+<div class="card srx-card mt-3"><div class="card-body">
+    <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle text-warning"></i> Blacklisted IPs / domains</h6>
+    @if (!Model.Listed.Any()) { <p class="text-success mb-0"><i class="bi bi-check-circle"></i> No active blacklistings across the platform.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Value</th><th>Type</th><th>Blacklist</th><th>Domain</th><th>Since</th></tr></thead>
+            <tbody>
+            @foreach (var e in Model.Listed)
+            {
+                <tr>
+                    <td class="font-monospace small text-light">@e.Value</td>
+                    <td class="text-secondary">@e.Type</td>
+                    <td><span class="badge text-bg-danger">@e.BlacklistName</span></td>
+                    <td class="text-secondary small">@(e.Domain?.DomainName ?? "—")</td>
+                    <td class="text-secondary small">@e.FirstDetectedAt.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>
+
+@section Scripts {
+    @if (Model.Chart.Any())
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Chart.Select(c => c.date.ToString("MM-dd"))));
+            var sent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Chart.Select(c => c.sent)));
+            var failed = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Chart.Select(c => c.failed)));
+            new Chart(document.getElementById('mailChart'), {
+                type: 'bar',
+                data: { labels: labels, datasets: [
+                    { label: 'Delivered', data: sent, backgroundColor: '#3fb950' },
+                    { label: 'Failed', data: failed, backgroundColor: '#f85149' } ] },
+                options: { plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { x: { stacked: true, grid: { color: '#21262d' }, ticks: { color: '#8b949e' } }, y: { stacked: true, grid: { color: '#21262d' }, ticks: { color: '#8b949e' } } } }
+            });
+        </script>
+    }
+}

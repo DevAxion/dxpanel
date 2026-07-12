@@ -1,0 +1,90 @@
+@page "/blog/{slug}"
+@using SRXPanel.Services
+@model SRXPanel.Pages.Blog.PostModel
+@inject IFrontendService Frontend
+@{
+    Layout = "_PublicLayout";
+    var p = Model.Post;
+    var postFs = await Frontend.GetSettingsAsync();
+    var postCompany = string.IsNullOrWhiteSpace(postFs.SiteName) ? "Editorial" : postFs.SiteName;
+    ViewData["Title"] = string.IsNullOrEmpty(p.MetaTitle) ? p.Title : p.MetaTitle;
+    ViewData["MetaDescription"] = string.IsNullOrEmpty(p.MetaDescription) ? p.Excerpt : p.MetaDescription;
+    ViewData["OgImage"] = p.FeaturedImage;
+    var req = ViewContext.HttpContext.Request;
+    ViewData["Canonical"] = $"{req.Scheme}://{req.Host}/blog/{p.Slug}";
+    ViewData["JsonLd"] = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        context = "https://schema.org",
+        type = "BlogPosting",
+        headline = p.Title,
+        datePublished = p.PublishedAt?.ToString("yyyy-MM-dd"),
+        author = p.Author?.FullName ?? postCompany
+    }).Replace("\"context\"", "\"@context\"").Replace("\"type\"", "\"@type\"");
+}
+
+<article class="container py-5" style="max-width:800px;">
+    <a href="/blog" class="text-secondary text-decoration-none small"><i class="bi bi-arrow-left"></i> Back to blog</a>
+    <div class="d-flex gap-2 align-items-center my-3">
+        @if (p.Category != null)
+        {
+            <a href="/blog?category=@p.Category.Slug" class="badge text-bg-primary text-decoration-none">@p.Category.Name</a>
+        }
+        <span class="text-secondary small">@(p.PublishedAt?.ToString("MMMM d, yyyy"))</span>
+        <span class="text-secondary small">· @p.Views views</span>
+    </div>
+    <h1 class="text-light fw-bold">@p.Title</h1>
+    <div class="d-flex align-items-center gap-2 my-3">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">@((p.Author?.FullName ?? "S").Substring(0,1))</div>
+        <span class="text-secondary small">By @(p.Author?.FullName ?? $"{postCompany} Team")</span>
+    </div>
+
+    @if (!string.IsNullOrEmpty(p.FeaturedImage))
+    {
+        <img src="@p.FeaturedImage" alt="@p.Title" class="w-100 my-3" style="border-radius:12px;object-fit:cover;max-height:380px;" />
+    }
+
+    <div class="blog-content text-light" style="line-height:1.8;font-size:17px;">
+        @Html.Raw(p.Content)
+    </div>
+
+    @if (p.Tags.Any())
+    {
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            @foreach (var t in p.Tags)
+            {
+                <a href="/blog?tag=@t.Slug" class="badge text-decoration-none" style="background:#0d1117;border:1px solid #30363d;color:#c9d1d9;">#@t.Name</a>
+            }
+        </div>
+    }
+</article>
+
+@if (Model.Related.Any())
+{
+    <section class="py-4" style="background:#0b0f14;border-top:1px solid #21262d;">
+        <div class="container" style="max-width:900px;">
+            <h4 class="text-light mb-3">Related posts</h4>
+            <div class="row g-3">
+                @foreach (var r in Model.Related)
+                {
+                    <div class="col-md-4">
+                        <a href="/blog/@r.Slug" class="text-decoration-none">
+                            <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px;height:100%;">
+                                <h6 class="text-light">@r.Title</h6>
+                                <p class="text-secondary small mb-0">@r.Excerpt</p>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<style>
+    .blog-content h2 { color:#fff; font-size:24px; margin-top:28px; }
+    .blog-content h3 { color:#e6edf3; font-size:20px; margin-top:22px; }
+    .blog-content p { margin-bottom:16px; color:#c9d1d9; }
+    .blog-content ul, .blog-content ol { color:#c9d1d9; margin-bottom:16px; }
+    .blog-content code { color:#79c0ff; background:#161b22; padding:2px 6px; border-radius:4px; }
+    .blog-content a { color:#79c0ff; }
+</style>

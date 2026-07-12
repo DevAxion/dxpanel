@@ -1,0 +1,285 @@
+@page
+@model SRXPanel.Pages.Client.Developer.SettingsModel
+@{
+    ViewData["Title"] = "Developer Settings";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Settings</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">Developer Settings</h4>
+
+@if (Model.NewApiKey != null)
+{
+    <div class="card srx-card border-warning mb-4"><div class="card-body">
+        <h6 class="text-warning mb-2"><i class="bi bi-key-fill"></i> Your new API key — shown once</h6>
+        <div class="input-group">
+            <input class="form-control font-monospace" readonly value="@Model.NewApiKey" id="newKey" />
+            <button class="btn btn-warning" onclick="copyText(document.getElementById('newKey').value, this)">
+                <i class="bi bi-clipboard"></i> Copy
+            </button>
+        </div>
+        <div class="form-text">Only a hash is stored. If you lose this key, revoke it and generate another.</div>
+    </div></div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-bug"></i> Debugging</h6>
+            <form method="post" asp-page-handler="Save">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="debugMode" value="true" id="debugMode"
+                           checked="@Model.Settings.DebugMode" />
+                    <input type="hidden" name="debugMode" value="false" />
+                    <label class="form-check-label" for="debugMode">
+                        Debug mode
+                        <span class="text-secondary small d-block">
+                            Shows full stack traces on error pages. Never leave this on for a live site — it exposes
+                            file paths, queries and configuration.
+                        </span>
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">Error reporting email</label>
+                    <input name="errorReportingEmail" type="email" value="@Model.Settings.ErrorReportingEmail"
+                           class="form-control form-control-sm" placeholder="dev@example.com" />
+                    <div class="form-text">Fatal errors and failed deployments are emailed here.</div>
+                </div>
+
+                <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save</button>
+            </form>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-light mb-0"><i class="bi bi-key"></i> API keys</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#newKeyForm">
+                    <i class="bi bi-plus-lg"></i> Generate
+                </button>
+            </div>
+
+            <div class="collapse mb-3" id="newKeyForm">
+                <form method="post" asp-page-handler="GenerateKey" class="input-group input-group-sm">
+                    <input name="name" class="form-control" placeholder="Deployment script" required />
+                    <button class="btn btn-primary">Generate</button>
+                </form>
+            </div>
+
+            @if (!Model.ApiKeys.Any())
+            {
+                <p class="text-secondary small mb-0">No API keys. Generate one to use the REST API.</p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        @foreach (var key in Model.ApiKeys)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="text-light small">@key.Name</div>
+                                    <code class="text-secondary" style="font-size:11px;">@key.Prefix…</code>
+                                </td>
+                                <td class="text-secondary small">
+                                    @(key.LastUsedAt is DateTime used ? $"used {used:MMM dd}" : "never used")
+                                </td>
+                                <td class="text-end">
+                                    <form method="post" asp-page-handler="RevokeKey"
+                                          onsubmit="return confirm('Revoke @key.Name? Anything using it stops working immediately.');">
+                                        <input type="hidden" name="keyId" value="@key.Id" />
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <div class="form-text mt-2">
+                <a asp-page="/Docs/Api">Read the API documentation →</a>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-light mb-0"><i class="bi bi-broadcast"></i> Webhook endpoints</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addHook">
+                    <i class="bi bi-plus-lg"></i> Add endpoint
+                </button>
+            </div>
+
+            <div class="collapse mb-3" id="addHook">
+                <form method="post" asp-page-handler="AddWebhook" class="border border-secondary rounded p-3">
+                    <div class="mb-2">
+                        <label class="form-label small">Endpoint URL</label>
+                        <input name="url" type="url" class="form-control form-control-sm font-monospace"
+                               placeholder="https://example.com/hooks/srxpanel" required />
+                        <div class="form-text">
+                            We POST JSON and sign the body with HMAC-SHA256 in the <code>X-SRX-Signature</code> header.
+                        </div>
+                    </div>
+                    <label class="form-label small">Events</label>
+                    <div class="row g-1">
+                        <div class="col-6"><div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="onDomain" value="true" id="ndom" checked />
+                            <input type="hidden" name="onDomain" value="false" />
+                            <label class="form-check-label small" for="ndom">Domain created / deleted</label>
+                        </div></div>
+                        <div class="col-6"><div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="onEmail" value="true" id="nem" checked />
+                            <input type="hidden" name="onEmail" value="false" />
+                            <label class="form-check-label small" for="nem">Email account changed</label>
+                        </div></div>
+                        <div class="col-6"><div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="onSsl" value="true" id="nssl" checked />
+                            <input type="hidden" name="onSsl" value="false" />
+                            <label class="form-check-label small" for="nssl">SSL renewed / expiring</label>
+                        </div></div>
+                        <div class="col-6"><div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="onInvoice" value="true" id="ninv" checked />
+                            <input type="hidden" name="onInvoice" value="false" />
+                            <label class="form-check-label small" for="ninv">Invoice paid</label>
+                        </div></div>
+                    </div>
+                    <button class="btn btn-primary btn-sm mt-3">Add endpoint</button>
+                </form>
+            </div>
+
+            @if (!Model.Webhooks.Any())
+            {
+                <p class="text-secondary small mb-0">No webhook endpoints registered.</p>
+            }
+            else
+            {
+                foreach (var hook in Model.Webhooks)
+                {
+                    <div class="border border-secondary rounded p-3 mb-2">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="text-truncate" style="max-width:60%;">
+                                <code class="text-light small">@hook.Url</code>
+                                <div class="text-secondary" style="font-size:11px;">
+                                    @if (hook.LastTriggeredAt is DateTime triggered)
+                                    {
+                                        <span>last fired @triggered.ToString("MMM dd, HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span>never fired</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <span class="badge @(hook.IsActive ? "text-bg-success" : "text-bg-secondary")">
+                                    @(hook.IsActive ? "Active" : "Paused")
+                                </span>
+                                <form method="post" asp-page-handler="TestWebhook" class="d-inline">
+                                    <input type="hidden" name="id" value="@hook.Id" />
+                                    <button class="btn btn-sm btn-outline-primary" title="Send a test delivery">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </form>
+                                <form method="post" asp-page-handler="DeleteWebhook" class="d-inline"
+                                      onsubmit="return confirm('Remove this webhook endpoint?');">
+                                    <input type="hidden" name="id" value="@hook.Id" />
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <form method="post" asp-page-handler="UpdateWebhook" class="d-flex flex-wrap gap-3 align-items-center">
+                            <input type="hidden" name="id" value="@hook.Id" />
+                            <div class="form-check form-check-inline mb-0">
+                                <input class="form-check-input" type="checkbox" name="onDomain" value="true" id="d-@hook.Id" checked="@hook.OnDomainChange" />
+                                <input type="hidden" name="onDomain" value="false" />
+                                <label class="form-check-label small" for="d-@hook.Id">domain</label>
+                            </div>
+                            <div class="form-check form-check-inline mb-0">
+                                <input class="form-check-input" type="checkbox" name="onEmail" value="true" id="e-@hook.Id" checked="@hook.OnEmailChange" />
+                                <input type="hidden" name="onEmail" value="false" />
+                                <label class="form-check-label small" for="e-@hook.Id">email</label>
+                            </div>
+                            <div class="form-check form-check-inline mb-0">
+                                <input class="form-check-input" type="checkbox" name="onSsl" value="true" id="s-@hook.Id" checked="@hook.OnSslExpiring" />
+                                <input type="hidden" name="onSsl" value="false" />
+                                <label class="form-check-label small" for="s-@hook.Id">ssl</label>
+                            </div>
+                            <div class="form-check form-check-inline mb-0">
+                                <input class="form-check-input" type="checkbox" name="onInvoice" value="true" id="i-@hook.Id" checked="@hook.OnInvoicePaid" />
+                                <input type="hidden" name="onInvoice" value="false" />
+                                <label class="form-check-label small" for="i-@hook.Id">invoice</label>
+                            </div>
+                            <div class="form-check form-switch form-check-inline mb-0">
+                                <input class="form-check-input" type="checkbox" name="isActive" value="true" id="a-@hook.Id" checked="@hook.IsActive" />
+                                <input type="hidden" name="isActive" value="false" />
+                                <label class="form-check-label small" for="a-@hook.Id">enabled</label>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-auto">Save</button>
+                        </form>
+                    </div>
+                }
+            }
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-list-check"></i> Delivery log</h6>
+            @if (!Model.Deliveries.Any())
+            {
+                <p class="text-secondary small mb-0">No deliveries yet. Use the <i class="bi bi-send"></i> button to send a test.</p>
+            }
+            else
+            {
+                <div class="table-responsive" style="max-height:300px;overflow:auto;">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>When</th><th>Event</th><th>Endpoint</th><th>Response</th><th>Time</th></tr></thead>
+                        <tbody>
+                            @foreach (var delivery in Model.Deliveries)
+                            {
+                                <tr>
+                                    <td class="text-secondary small">@delivery.CreatedAt.ToString("MMM dd, HH:mm:ss")</td>
+                                    <td><span class="badge text-bg-secondary">@delivery.EventType</span></td>
+                                    <td class="text-secondary small text-truncate" style="max-width:180px;">@delivery.Endpoint?.Url</td>
+                                    <td>
+                                        @if (delivery.Success)
+                                        {
+                                            <span class="badge text-bg-success">@delivery.ResponseCode</span>
+                                        }
+                                        else if (delivery.ResponseCode == 0)
+                                        {
+                                            <span class="badge text-bg-danger" title="@delivery.ResponseBody">failed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-danger">@delivery.ResponseCode</span>
+                                        }
+                                    </td>
+                                    <td class="text-secondary small">@delivery.DurationMs ms</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text).then(function () {
+                var original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied';
+                setTimeout(function () { btn.innerHTML = original; }, 1400);
+            });
+        }
+    </script>
+}

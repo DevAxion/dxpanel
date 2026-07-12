@@ -1,0 +1,339 @@
+@page
+@model SRXPanel.Pages.Dashboard.IndexModel
+@using SRXPanel.Pages.Dashboard
+@{
+    ViewData["Title"] = "Dashboard";
+
+    string BarColor(int pct) => pct >= 90 ? "bg-danger" : pct >= 75 ? "bg-warning" : "bg-success";
+    string Limit(int max) => max <= 0 ? "∞" : max.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <h4 class="text-light mb-0">Welcome back, @User.Identity?.Name</h4>
+    @if (Model.Subscription is { } sub)
+    {
+        @if (sub.Status == SubscriptionStatus.Trialing && sub.TrialEndsAt != null)
+        {
+            var daysLeft = Math.Max(0, (int)Math.Ceiling((sub.TrialEndsAt.Value - DateTime.UtcNow).TotalDays));
+            <a asp-page="/Billing/Index" class="badge text-bg-info text-decoration-none">
+                <i class="bi bi-hourglass-split"></i> Trial — @daysLeft day(s) left
+            </a>
+        }
+        else if (sub.Status == SubscriptionStatus.PastDue)
+        {
+            <a asp-page="/Billing/Index" class="badge text-bg-warning text-decoration-none">
+                <i class="bi bi-exclamation-triangle"></i> Payment past due
+            </a>
+        }
+        else if (sub.Status == SubscriptionStatus.Active)
+        {
+            <span class="badge text-bg-secondary"><i class="bi bi-check-circle"></i> @(sub.Plan?.Name) plan</span>
+        }
+    }
+</div>
+
+@{
+    var u = Model.Usage;
+    var diskPct = ResourceUsage.Percent(u.DiskUsedMB, u.DiskQuotaMB);
+    var bwPct = ResourceUsage.Percent(u.BandwidthUsedMB, u.BandwidthQuotaMB);
+    var dbPct = ResourceUsage.Percent(u.Databases, u.MaxDatabases);
+    var emailPct = ResourceUsage.Percent(u.Emails, u.MaxEmails);
+    var ftpPct = ResourceUsage.Percent(u.FtpAccounts, u.MaxFtpAccounts);
+    var domainPct = ResourceUsage.Percent(u.DomainsCount, u.MaxDomains);
+}
+
+<div class="card srx-card mb-4">
+    <div class="card-body">
+        <h6 class="card-title text-light mb-3"><i class="bi bi-speedometer"></i> Resource Usage</h6>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between small text-secondary mb-1">
+                    <span><i class="bi bi-hdd"></i> Disk</span>
+                    <span>@u.DiskUsedMB MB / @(u.DiskQuotaMB == 0 ? "∞" : $"{u.DiskQuotaMB} MB") (@diskPct%)</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar @BarColor(diskPct)" style="width: @diskPct%"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between small text-secondary mb-1">
+                    <span><i class="bi bi-activity"></i> Bandwidth</span>
+                    <span>@u.BandwidthUsedMB MB / @(u.BandwidthQuotaMB == 0 ? "∞" : $"{u.BandwidthQuotaMB} MB") (@bwPct%)</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar @BarColor(bwPct)" style="width: @bwPct%"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="d-flex justify-content-between small text-secondary mb-1">
+                    <span><i class="bi bi-database"></i> Databases</span>
+                    <span>@u.Databases / @Limit(u.MaxDatabases)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar @BarColor(dbPct)" style="width: @dbPct%"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex justify-content-between small text-secondary mb-1">
+                    <span><i class="bi bi-envelope"></i> Email</span>
+                    <span>@u.Emails / @Limit(u.MaxEmails)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar @BarColor(emailPct)" style="width: @emailPct%"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex justify-content-between small text-secondary mb-1">
+                    <span><i class="bi bi-folder2-open"></i> FTP</span>
+                    <span>@u.FtpAccounts / @Limit(u.MaxFtpAccounts)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar @BarColor(ftpPct)" style="width: @ftpPct%"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex justify-content-between small text-secondary mb-1">
+                    <span><i class="bi bi-globe2"></i> Domains</span>
+                    <span>@u.DomainsCount / @Limit(u.MaxDomains)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar @BarColor(domainPct)" style="width: @domainPct%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.CurrentRole == Roles.SuperAdmin)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@Model.TotalUsers</div>
+                <div class="srx-stat-label"><i class="bi bi-people"></i> Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@Model.TotalResellers</div>
+                <div class="srx-stat-label"><i class="bi bi-person-badge"></i> Resellers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@Model.TotalClients</div>
+                <div class="srx-stat-label"><i class="bi bi-person"></i> Clients</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@Model.TotalDomains</div>
+                <div class="srx-stat-label"><i class="bi bi-globe2"></i> Domains</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card srx-card">
+        <div class="card-body">
+            <h6 class="card-title text-light mb-3"><i class="bi bi-cpu"></i> System Resources</h6>
+            @if (Model.SystemStats != null)
+            {
+                <p class="text-secondary small mb-3">@Model.SystemStats.OsDescription</p>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span>CPU Usage</span><span>@Model.SystemStats.CpuUsagePercent%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" style="width: @Model.SystemStats.CpuUsagePercent%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span>Memory Usage</span><span>@Model.SystemStats.MemoryUsedMB MB / @Model.SystemStats.MemoryTotalMB MB (@Model.SystemStats.MemoryUsagePercent%)</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: @Model.SystemStats.MemoryUsagePercent%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span>Disk Usage</span><span>@Model.SystemStats.DiskUsedMB MB / @Model.SystemStats.DiskTotalMB MB (@Model.SystemStats.DiskUsagePercent%)</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: @Model.SystemStats.DiskUsagePercent%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card srx-card mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="card-title text-light mb-0"><i class="bi bi-hdd-stack"></i> Server Fleet</h6>
+                <div class="d-flex gap-2">
+                    @if (Model.OpenAlertsCount > 0)
+                    {
+                        <a asp-page="/Admin/Alerts" class="badge text-bg-danger text-decoration-none">
+                            <i class="bi bi-bell"></i> @Model.OpenAlertsCount open alert(s)
+                        </a>
+                    }
+                    <a asp-page="/Admin/Nodes/Index" class="btn btn-sm btn-outline-secondary">Manage nodes</a>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <div class="srx-stat-card">
+                        <div class="srx-stat-value">@Model.FleetOnline / @Model.FleetTotal</div>
+                        <div class="srx-stat-label"><i class="bi bi-check-circle"></i> Nodes Online (@Model.FleetOnlinePercent%)</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="srx-stat-card">
+                        <div class="srx-stat-value">@Model.FleetAvgCpu.ToString("0")%</div>
+                        <div class="srx-stat-label"><i class="bi bi-cpu"></i> Avg CPU</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="srx-stat-card">
+                        <div class="srx-stat-value">@Model.FleetAvgRam.ToString("0")%</div>
+                        <div class="srx-stat-label"><i class="bi bi-memory"></i> Avg RAM</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="srx-stat-card">
+                        <div class="srx-stat-value">@Model.FleetAvgDisk.ToString("0")%</div>
+                        <div class="srx-stat-label"><i class="bi bi-hdd"></i> Avg Disk</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.FleetCapacities.Any())
+            {
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr><th>Node</th><th style="width:22%">CPU</th><th style="width:22%">RAM</th><th style="width:22%">Disk</th><th class="text-end">Domains</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.FleetCapacities)
+                            {
+                                <tr>
+                                    <td>@c.Name</td>
+                                    <td>
+                                        <div class="progress" style="height:6px;"><div class="progress-bar @BarColor((int)c.CpuPercent)" style="width:@c.CpuPercent.ToString("0")%"></div></div>
+                                        <small class="text-secondary">@c.CpuPercent.ToString("0")%</small>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height:6px;"><div class="progress-bar @BarColor((int)c.RamPercent)" style="width:@c.RamPercent.ToString("0")%"></div></div>
+                                        <small class="text-secondary">@c.RamPercent.ToString("0")%</small>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height:6px;"><div class="progress-bar @BarColor((int)c.DiskPercent)" style="width:@c.DiskPercent.ToString("0")%"></div></div>
+                                        <small class="text-secondary">@c.DiskPercent.ToString("0")%</small>
+                                    </td>
+                                    <td class="text-end">@c.DomainCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-secondary mb-3">No active nodes. <a asp-page="/Admin/Nodes/Add">Add a node</a> to get started.</p>
+            }
+
+            @if (Model.RecentAlerts.Any())
+            {
+                <h6 class="text-light small mb-2"><i class="bi bi-clock-history"></i> Recent node events</h6>
+                <ul class="list-unstyled small mb-0">
+                    @foreach (var a in Model.RecentAlerts)
+                    {
+                        var sev = a.Severity == AlertSeverity.Critical ? "text-danger" : a.Severity == AlertSeverity.Warning ? "text-warning" : "text-info";
+                        <li class="mb-1">
+                            <i class="bi bi-dot @sev"></i>
+                            <span class="text-secondary">@a.CreatedAt.ToString("MMM dd HH:mm")</span>
+                            <span class="@sev">[@a.Severity]</span>
+                            @a.Message
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+}
+else if (Model.CurrentRole == Roles.Reseller)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@Model.MyClientsCount</div>
+                <div class="srx-stat-label"><i class="bi bi-people"></i> My Clients</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@Model.MyClientsDomainsCount</div>
+                <div class="srx-stat-label"><i class="bi bi-globe2"></i> Client Domains</div>
+            </div>
+        </div>
+    </div>
+    <a asp-page="/Users/Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add New Client</a>
+}
+else
+{
+    <div class="d-flex gap-2 mb-4">
+        <a asp-page="/Domains/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Domain</a>
+        <a asp-page="/Databases/Create" class="btn btn-outline-secondary"><i class="bi bi-database"></i> New Database</a>
+        <a asp-page="/Email/Create" class="btn btn-outline-secondary"><i class="bi bi-envelope"></i> New Email</a>
+        <a asp-page="/FileManager/Index" class="btn btn-outline-secondary"><i class="bi bi-files"></i> Files</a>
+    </div>
+
+    <div class="card srx-card">
+        <div class="card-body">
+            <h6 class="card-title text-light mb-3">Recent Domains</h6>
+            @if (Model.MyDomains.Any())
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr><th>Domain</th><th>Status</th><th>SSL</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.MyDomains.Take(5))
+                        {
+                            <tr>
+                                <td>@d.DomainName</td>
+                                <td>
+                                    @if (d.IsActive)
+                                    {
+                                        <span class="badge srx-badge-active">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge srx-badge-suspended">Suspended</span>
+                                    }
+                                </td>
+                                <td>@(d.SslEnabled ? "Yes" : "No")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-secondary mb-0">No domains yet.</p>
+            }
+        </div>
+    </div>
+}

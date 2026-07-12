@@ -1,0 +1,118 @@
+@page
+@model SRXPanel.Pages.Client.ApiAccessModel
+@{
+    ViewData["Title"] = "API Access";
+    var maxDaily = Model.Daily.Any() ? Math.Max(1, Model.Daily.Max(d => d.Count)) : 1;
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">API Access</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">API Access</h4>
+
+@if (Model.NewKey != null)
+{
+    <div class="alert alert-success"><strong>New API key</strong> (copy now, shown once): <code class="ms-2">@Model.NewKey</code></div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6"><div class="srx-stat-card"><div class="srx-stat-value">@Model.CallsToday</div><div class="srx-stat-label"><i class="bi bi-activity"></i> Calls Today</div></div></div>
+    <div class="col-md-3 col-6"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Calls7Days</div><div class="srx-stat-label"><i class="bi bi-calendar-week"></i> Last 7 Days</div></div></div>
+    <div class="col-md-6">
+        <div class="srx-stat-card h-100">
+            <div class="d-flex align-items-end gap-1" style="height:48px;">
+                @foreach (var d in Model.Daily)
+                {
+                    <div class="flex-fill bg-primary rounded-top" style="height:@(Math.Max(4, d.Count * 44 / maxDaily))px;" title="@d.Day: @d.Count"></div>
+                }
+            </div>
+            <div class="srx-stat-label mt-1"><i class="bi bi-bar-chart"></i> Daily calls</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-light mb-0"><i class="bi bi-key"></i> API Keys</h6>
+                    <a href="/swagger" target="_blank" class="small">Swagger UI</a>
+                </div>
+                <form method="post" asp-page-handler="Generate" class="input-group input-group-sm mb-3">
+                    <input name="name" class="form-control" placeholder="Key name (e.g. CI deploy)" />
+                    <button class="btn btn-primary">Generate</button>
+                </form>
+                @if (Model.Keys.Any())
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <tbody>
+                            @foreach (var k in Model.Keys)
+                            {
+                                <tr>
+                                    <td><strong class="text-light">@k.Name</strong><div class="small text-secondary"><code>@k.Prefix…</code> · @(k.LastUsedAt?.ToString("yyyy-MM-dd") ?? "never used")</div></td>
+                                    <td class="text-end"><form method="post" asp-page-handler="Revoke" asp-route-id="@k.Id" class="srx-confirm-form" data-confirm-message="Revoke this key?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary small mb-0">No API keys yet.</p>
+                }
+                <hr class="border-secondary" />
+                <p class="small text-secondary mb-1">Get a bearer token:</p>
+                <pre class="small bg-black p-2 rounded mb-0"><code>curl -X POST /api/v1/auth/token \
+  -H "X-API-Key: YOUR_KEY"</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-broadcast"></i> Webhooks</h6>
+                <form method="post" asp-page-handler="AddWebhook" class="mb-3">
+                    <div class="mb-2"><input name="url" class="form-control form-control-sm" placeholder="https://example.com/hooks/srx" /></div>
+                    <div class="d-flex flex-wrap gap-3 mb-2 small">
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="onDomain" value="true" checked /><label class="form-check-label">Domain</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="onEmail" value="true" checked /><label class="form-check-label">Email</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="onSsl" value="true" checked /><label class="form-check-label">SSL expiring</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" name="onInvoice" value="true" checked /><label class="form-check-label">Invoice paid</label></div>
+                    </div>
+                    <button class="btn btn-primary btn-sm">Add Webhook</button>
+                </form>
+                @if (Model.Webhooks.Any())
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <tbody>
+                            @foreach (var w in Model.Webhooks)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="text-light small text-break">@w.Url</div>
+                                        <div class="small text-secondary">
+                                            @(w.OnDomainChange ? "domain " : "")@(w.OnEmailChange ? "email " : "")@(w.OnSslExpiring ? "ssl " : "")@(w.OnInvoicePaid ? "invoice" : "")
+                                        </div>
+                                    </td>
+                                    <td class="text-end"><form method="post" asp-page-handler="DeleteWebhook" asp-route-id="@w.Id" class="d-inline"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary small mb-0">No webhooks configured.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

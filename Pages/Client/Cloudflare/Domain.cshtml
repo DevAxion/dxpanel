@@ -1,0 +1,715 @@
+@page "/Client/Cloudflare/Domain/{domainId:int}"
+@model SRXPanel.Pages.Client.Cloudflare.DomainModel
+@using SRXPanel.Models
+@using SRXPanel.Services.Cloudflare
+@{
+    ViewData["Title"] = $"Cloudflare — {Model.Cf.Domain?.DomainName}";
+    var cf = Model.Cf;
+    var tab = Model.Tab;
+
+    string Bytes(long v) => v switch
+    {
+        > 1_099_511_627_776 => $"{v / 1099511627776.0:0.0} TB",
+        > 1_073_741_824 => $"{v / 1073741824.0:0.0} GB",
+        > 1_048_576 => $"{v / 1048576.0:0.0} MB",
+        > 1024 => $"{v / 1024.0:0.0} KB",
+        _ => $"{v} B"
+    };
+
+    (string href, string icon, string label)[] tabs =
+    {
+        ("overview", "bi-speedometer2", "Overview"),
+        ("dns", "bi-hdd-network", "DNS"),
+        ("ssl", "bi-shield-lock", "SSL/TLS"),
+        ("speed", "bi-lightning-charge", "Speed"),
+        ("caching", "bi-hdd-stack", "Caching"),
+        ("firewall", "bi-shield-shaded", "Firewall"),
+        ("analytics", "bi-graph-up", "Analytics"),
+        ("pagerules", "bi-list-check", "Page Rules")
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Cloudflare/Index">Cloudflare</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@cf.Domain?.DomainName</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi bi-cloud accent"></i> @cf.Domain?.DomainName</h4>
+        <div class="text-secondary small">
+            Zone <code>@cf.ZoneId</code>
+            @switch (cf.Status)
+            {
+                case CloudflareZoneStatus.Active: <span class="badge text-bg-success">Active</span> break;
+                case CloudflareZoneStatus.Pending: <span class="badge text-bg-warning">Pending</span> break;
+                default: <span class="badge text-bg-secondary">@cf.Status</span> break;
+            }
+            @if (Model.IsWordPress) { <span class="badge text-bg-info"><i class="bi bi-wordpress"></i> WordPress</span> }
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    @foreach (var (href, icon, label) in tabs)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(tab == href ? "active" : "")"
+               asp-page="/Client/Cloudflare/Domain" asp-route-domainId="@Model.DomainId" asp-route-tab="@href">
+                <i class="bi @icon"></i> @label
+            </a>
+        </li>
+    }
+</ul>
+
+@if (tab == "overview")
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">Requests today</div>
+            <div class="fs-4 text-light">@(Model.Today?.Requests.ToString("N0") ?? "—")</div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">Bandwidth today</div>
+            <div class="fs-4 text-light">@(Model.Today != null ? Bytes(Model.Today.Bandwidth) : "—")</div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">Threats blocked</div>
+            <div class="fs-4 text-danger">@(Model.Today?.Threats.ToString("N0") ?? "—")</div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">Cache hit rate</div>
+            <div class="fs-4 text-success">@(Model.Today != null ? $"{Model.Today.CacheHitRate}%" : "—")</div>
+        </div></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Nameservers</h6>
+                @if (cf.NameServer1 != null)
+                {
+                    <div class="input-group input-group-sm mb-2">
+                        <input class="form-control font-monospace" readonly value="@cf.NameServer1" id="ns1" />
+                        <button class="btn btn-outline-secondary" onclick="copyText('@cf.NameServer1', this)"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <input class="form-control font-monospace" readonly value="@cf.NameServer2" id="ns2" />
+                        <button class="btn btn-outline-secondary" onclick="copyText('@cf.NameServer2', this)"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                    @if (cf.Status == CloudflareZoneStatus.Pending)
+                    {
+                        <div class="alert alert-warning py-2 px-3 small mt-3 mb-0">
+                            <i class="bi bi-exclamation-triangle"></i> Set these at your registrar to activate Cloudflare.
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-secondary small mb-0">Nameservers are assigned once the zone is created.</p>
+                }
+            </div></div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Quick toggles</h6>
+
+                @{
+                    (string key, string label, string help, bool on)[] toggles =
+                    {
+                        ("dev", "Development Mode", "Bypass cache for 3 hours while you work.", cf.DevelopmentMode),
+                        ("attack", "Under Attack Mode", "Show an interstitial challenge to every visitor.", cf.UnderAttackMode),
+                        ("https", "Always Use HTTPS", "Redirect every HTTP request to HTTPS.", cf.AlwaysUseHttps),
+                        ("bot", "Bot Fight Mode", "Challenge traffic from known bots.", cf.BotFightMode)
+                    };
+                }
+                @foreach (var (key, label, help, on) in toggles)
+                {
+                    <form method="post" asp-page-handler="Toggle" class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+                        <div>
+                            <div class="text-light">@label</div>
+                            <div class="text-secondary small">@help</div>
+                        </div>
+                        <input type="hidden" name="setting" value="@key" />
+                        <input type="hidden" name="value" value="@((!on).ToString().ToLowerInvariant())" />
+                        <button class="btn btn-sm @(on ? "btn-success" : "btn-outline-secondary")">
+                            @(on ? "On" : "Off")
+                        </button>
+                    </form>
+                }
+            </div></div>
+        </div>
+    </div>
+}
+else if (tab == "dns")
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0">DNS records (@Model.Records.Count)</h6>
+        <div class="d-flex gap-2">
+            <a asp-page="/Client/Cloudflare/Migrate" asp-route-domainId="@Model.DomainId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left-right"></i> Sync / import
+            </a>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addRecord"><i class="bi bi-plus-lg"></i> Add record</button>
+        </div>
+    </div>
+
+    <div class="collapse mb-3" id="addRecord">
+        <div class="card srx-card"><div class="card-body">
+            <form method="post" asp-page-handler="AddRecord" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small">Type</label>
+                    <select name="type" class="form-select form-select-sm">
+                        @foreach (var t in new[] { "A", "AAAA", "CNAME", "MX", "TXT", "NS", "SRV" }) { <option>@t</option> }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Name</label>
+                    <input name="name" class="form-control form-control-sm" placeholder="@@ or www" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Content</label>
+                    <input name="content" class="form-control form-control-sm" placeholder="203.0.113.10" required />
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small">TTL</label>
+                    <input name="ttl" type="number" value="1" class="form-control form-control-sm" title="1 = automatic" />
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small">Prio</label>
+                    <input name="priority" type="number" class="form-control form-control-sm" placeholder="—" />
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" name="proxied" value="true" id="np" checked />
+                        <input type="hidden" name="proxied" value="false" />
+                        <label class="form-check-label small" for="np">Proxied</label>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-primary btn-sm w-100">Add</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="card srx-card"><div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Type</th><th>Name</th><th>Content</th><th>TTL</th><th>Proxy</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var r in Model.Records)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@r.Type</span></td>
+                        <td class="text-light small font-monospace">@r.Name</td>
+                        <td class="text-secondary small font-monospace" style="word-break:break-all;">
+                            @if (r.Priority is int p) { <span class="badge text-bg-dark">@p</span> }
+                            @r.Content
+                        </td>
+                        <td class="text-secondary small">@(r.Ttl <= 1 ? "Auto" : $"{r.Ttl}s")</td>
+                        <td>
+                            @if (r.Type is "A" or "AAAA" or "CNAME")
+                            {
+                                <form method="post" asp-page-handler="ToggleProxy" class="d-inline">
+                                    <input type="hidden" name="recordId" value="@r.RecordId" />
+                                    <input type="hidden" name="type" value="@r.Type" />
+                                    <input type="hidden" name="name" value="@r.Name" />
+                                    <input type="hidden" name="content" value="@r.Content" />
+                                    <input type="hidden" name="ttl" value="@r.Ttl" />
+                                    <input type="hidden" name="proxied" value="@((!r.Proxied).ToString().ToLowerInvariant())" />
+                                    <button class="btn btn-sm border-0" title="@(r.Proxied ? "Proxied (click to unproxy)" : "DNS only (click to proxy)")">
+                                        <i class="bi bi-cloud-fill" style="color:@(r.Proxied ? "#f6821f" : "#6e7681");font-size:18px;"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-secondary small">—</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="DeleteRecord" class="d-inline"
+                                  onsubmit="return confirm('Delete this @r.Type record?');">
+                                <input type="hidden" name="recordId" value="@r.RecordId" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Records.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-secondary py-4">No DNS records in this zone yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div></div>
+}
+else if (tab == "ssl")
+{
+    <form method="post" asp-page-handler="Ssl" style="max-width:720px;">
+        <div class="card srx-card mb-3"><div class="card-body">
+            <h6 class="text-light mb-3">SSL/TLS encryption</h6>
+            <div class="mb-3">
+                <label class="form-label">SSL mode</label>
+                <select name="sslMode" class="form-select">
+                    @foreach (var mode in Enum.GetValues<CfSslMode>())
+                    {
+                        <option value="@mode" selected="@(cf.SslMode == mode)">@mode</option>
+                    }
+                </select>
+                <div class="form-text">
+                    <strong>Full (strict)</strong> is recommended when you have a valid origin certificate.
+                    <strong>Flexible</strong> encrypts only browser↔Cloudflare.
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Minimum TLS version</label>
+                    <select name="minTls" class="form-select">
+                        @foreach (var v in new[] { "1.0", "1.1", "1.2", "1.3" })
+                        {
+                            <option value="@v" selected="@(cf.MinTlsVersion == v)">TLS @v</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex flex-column justify-content-end">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="tls13" value="true" id="tls13" checked="@cf.Tls13" />
+                        <input type="hidden" name="tls13" value="false" />
+                        <label class="form-check-label" for="tls13">TLS 1.3</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="opportunistic" value="true" id="oe" checked="@cf.OpportunisticEncryption" />
+                        <input type="hidden" name="opportunistic" value="false" />
+                        <label class="form-check-label" for="oe">Opportunistic Encryption</label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-sm mt-3"><i class="bi bi-check-lg"></i> Save SSL settings</button>
+        </div></div>
+    </form>
+
+    <div class="card srx-card" style="max-width:720px;"><div class="card-body">
+        <h6 class="text-light mb-2">Certificates</h6>
+        <p class="text-secondary small">
+            <i class="bi bi-patch-check-fill text-success"></i> <strong>Universal SSL</strong> is active — a free certificate
+            covering @cf.Domain?.DomainName and *.@cf.Domain?.DomainName, auto-renewed by Cloudflare.
+        </p>
+        <form method="post" asp-page-handler="OrderCert">
+            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-award"></i> Order Advanced Certificate</button>
+        </form>
+    </div></div>
+}
+else if (tab == "speed")
+{
+    <form method="post" asp-page-handler="Speed" style="max-width:760px;">
+        <div class="card srx-card mb-3"><div class="card-body">
+            <h6 class="text-light mb-3">Optimization</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small">Auto minify</label>
+                    @foreach (var (n, label, on) in new[] { ("minifyCss", "CSS", cf.MinifyCss), ("minifyJs", "JavaScript", cf.MinifyJs), ("minifyHtml", "HTML", cf.MinifyHtml) })
+                    {
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="@n" value="true" id="@n" checked="@on" />
+                            <input type="hidden" name="@n" value="false" />
+                            <label class="form-check-label" for="@n">@label</label>
+                        </div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small">Protocol &amp; compression</label>
+                    @foreach (var (n, label, on) in new[] { ("brotli", "Brotli compression", cf.Brotli), ("http2", "HTTP/2", cf.Http2), ("http3", "HTTP/3 (QUIC)", cf.Http3), ("earlyHints", "Early Hints", cf.EarlyHints) })
+                    {
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="@n" value="true" id="@n" checked="@on" />
+                            <input type="hidden" name="@n" value="false" />
+                            <label class="form-check-label" for="@n">@label</label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <hr class="border-secondary" />
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small">Polish (image optimization)</label>
+                    <select name="polish" class="form-select form-select-sm">
+                        @foreach (var p in Enum.GetValues<CfPolish>())
+                        {
+                            <option value="@p" selected="@(cf.Polish == p)">@p</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="webp" value="true" id="webp" checked="@cf.WebpConversion" />
+                        <input type="hidden" name="webp" value="false" />
+                        <label class="form-check-label small" for="webp">WebP conversion</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="rocketLoader" value="true" id="rl" checked="@cf.RocketLoader" />
+                        <input type="hidden" name="rocketLoader" value="false" />
+                        <label class="form-check-label small" for="rl">Rocket Loader</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-sm mt-3"><i class="bi bi-check-lg"></i> Save speed settings</button>
+        </div></div>
+    </form>
+}
+else if (tab == "caching")
+{
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <form method="post" asp-page-handler="Caching">
+                <div class="card srx-card mb-3"><div class="card-body">
+                    <h6 class="text-light mb-3">Caching configuration</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Cache level</label>
+                        <select name="cacheLevel" class="form-select">
+                            @foreach (var level in Enum.GetValues<CfCacheLevel>())
+                            {
+                                <option value="@level" selected="@(cf.CacheLevel == level)">@level</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Browser cache TTL</label>
+                        <select name="browserTtl" class="form-select">
+                            @foreach (var (secs, label) in new[] { (1800, "30 minutes"), (3600, "1 hour"), (14400, "4 hours"), (86400, "1 day"), (604800, "1 week"), (2592000, "1 month") })
+                            {
+                                <option value="@secs" selected="@(cf.BrowserCacheTtl == secs)">@label</option>
+                            }
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save</button>
+                </div></div>
+            </form>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">Purge cache</h6>
+                <form method="post" asp-page-handler="PurgeAll" class="mb-3"
+                      onsubmit="return confirm('Purge EVERYTHING from the cache for this zone?');">
+                    <button class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-trash"></i> Purge everything</button>
+                </form>
+                <form method="post" asp-page-handler="PurgeUrls">
+                    <label class="form-label small">Purge specific URLs (one per line)</label>
+                    <textarea name="urls" rows="3" class="form-control form-control-sm font-monospace mb-2"
+                              placeholder="https://@cf.Domain?.DomainName/style.css"></textarea>
+                    <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-eraser"></i> Purge these URLs</button>
+                </form>
+            </div></div>
+
+            @if (Model.RecentPurges.Any())
+            {
+                <div class="card srx-card"><div class="card-body">
+                    <h6 class="text-light mb-2">Recent purges</h6>
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            @foreach (var purge in Model.RecentPurges)
+                            {
+                                <tr>
+                                    <td><span class="badge text-bg-secondary">@purge.PurgeType</span></td>
+                                    <td class="text-secondary small">@purge.LastPurgedAt.ToString("MMM dd, HH:mm")</td>
+                                    <td class="text-secondary small">@purge.PurgedBy</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div></div>
+            }
+        </div>
+    </div>
+}
+else if (tab == "firewall")
+{
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <form method="post" asp-page-handler="SecurityLevel">
+                <div class="card srx-card h-100"><div class="card-body">
+                    <h6 class="text-light mb-3">Security level</h6>
+                    <select name="level" class="form-select mb-3" onchange="this.form.submit()">
+                        @foreach (var level in Enum.GetValues<CfSecurityLevel>())
+                        {
+                            <option value="@level" selected="@(cf.SecurityLevel == level)">@level</option>
+                        }
+                    </select>
+                    <div class="text-secondary small">
+                        <strong>Under Attack</strong> shows a JS challenge to everyone — use only during an active attack.
+                    </div>
+                </div></div>
+            </form>
+        </div>
+        <div class="col-lg-6">
+            <div class="card srx-card h-100"><div class="card-body">
+                <h6 class="text-light mb-3">Bot Fight Mode</h6>
+                <form method="post" asp-page-handler="Toggle" class="d-flex justify-content-between align-items-center">
+                    <div class="text-secondary small">Automatically challenge requests from known bots.</div>
+                    <input type="hidden" name="setting" value="bot" />
+                    <input type="hidden" name="value" value="@((!cf.BotFightMode).ToString().ToLowerInvariant())" />
+                    <button class="btn btn-sm @(cf.BotFightMode ? "btn-success" : "btn-outline-secondary")">
+                        @(cf.BotFightMode ? "On" : "Off")
+                    </button>
+                </form>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0">Firewall rules (@Model.FirewallRules.Count)</h6>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addRule"><i class="bi bi-plus-lg"></i> Add rule</button>
+    </div>
+
+    <div class="collapse mb-3" id="addRule">
+        <div class="card srx-card"><div class="card-body">
+            <form method="post" asp-page-handler="AddFirewallRule">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-label small">Description</label>
+                        <input name="description" class="form-control form-control-sm" placeholder="Block bad ASNs" required />
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small">Expression</label>
+                        <input name="expression" class="form-control form-control-sm font-monospace"
+                               placeholder="(ip.geoip.country eq &quot;CN&quot;)" required id="fwExpr" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Action</label>
+                        <select name="action" class="form-select form-select-sm">
+                            <option value="block">Block</option>
+                            <option value="managed_challenge">Challenge</option>
+                            <option value="js_challenge">JS Challenge</option>
+                            <option value="allow">Allow</option>
+                            <option value="log">Log</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label small">&nbsp;</label>
+                        <button class="btn btn-primary btn-sm w-100">Add</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                    <span class="text-secondary small me-1">Presets:</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-preset" data-expr='(ip.geoip.country in {"CN" "RU" "KP"})'>Block countries</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-preset" data-expr='(http.request.uri.path contains "/wp-login.php")'>Protect wp-login</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-preset" data-expr='(cf.threat_score gt 14)'>High threat score</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-preset" data-expr='(not http.request.uri.path contains "/api" and cf.client.bot)'>Block bots (not API)</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="card srx-card"><div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Description</th><th>Expression</th><th>Action</th><th>Hits</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var rule in Model.FirewallRules)
+                {
+                    <tr>
+                        <td class="text-light small">@rule.Description</td>
+                        <td class="text-secondary small font-monospace" style="word-break:break-all;max-width:340px;">@rule.Expression</td>
+                        <td><span class="badge text-bg-secondary">@rule.Action</span></td>
+                        <td class="text-secondary small">@rule.Hits.ToString("N0")</td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="DeleteFirewallRule" class="d-inline" onsubmit="return confirm('Delete this rule?');">
+                                <input type="hidden" name="ruleId" value="@rule.RuleId" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.FirewallRules.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-secondary py-4">No firewall rules yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div></div>
+}
+else if (tab == "analytics")
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0">Analytics — last 14 days</h6>
+        <a asp-page-handler="Export" asp-route-domainId="@Model.DomainId" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-8"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Requests (total vs cached)</h6>
+            <canvas id="requestsChart" height="90"></canvas>
+        </div></div></div>
+        <div class="col-lg-4"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Threats</h6>
+            <canvas id="threatsChart" height="180"></canvas>
+        </div></div></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Top paths</h6>
+            <table class="table table-sm mb-0">
+                <tbody>
+                    @foreach (var path in Model.TopPaths)
+                    {
+                        <tr><td class="text-light small font-monospace">@path.Name</td><td class="text-end text-secondary small">@path.Value.ToString("N0")</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div></div></div>
+        <div class="col-lg-6"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Top countries</h6>
+            <table class="table table-sm mb-0">
+                <tbody>
+                    @foreach (var country in Model.TopCountries)
+                    {
+                        <tr><td class="text-light small">@country.Name</td><td class="text-end text-secondary small">@country.Value.ToString("N0")</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div></div></div>
+    </div>
+}
+else if (tab == "pagerules")
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0">Page rules (@Model.PageRules.Count)</h6>
+        <div class="d-flex gap-2">
+            @if (Model.IsWordPress)
+            {
+                <form method="post" asp-page-handler="WordPressPreset">
+                    <button class="btn btn-sm btn-outline-info"><i class="bi bi-wordpress"></i> Apply WordPress preset</button>
+                </form>
+            }
+            <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addPageRule"><i class="bi bi-plus-lg"></i> Add rule</button>
+        </div>
+    </div>
+
+    <div class="collapse mb-3" id="addPageRule">
+        <div class="card srx-card"><div class="card-body">
+            <form method="post" asp-page-handler="AddPageRule">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small">Name</label>
+                        <input name="name" class="form-control form-control-sm" placeholder="Cache everything" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">URL pattern</label>
+                        <input name="urlPattern" id="prUrl" class="form-control form-control-sm font-monospace"
+                               placeholder="*@cf.Domain?.DomainName/*" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Preset</label>
+                        <select id="prPreset" class="form-select form-select-sm">
+                            <option value="">Custom…</option>
+                            <option value='{"cache_level":"cache_everything"}|Cache everything'>Cache everything</option>
+                            <option value='{"cache_level":"bypass"}|Bypass cache'>Bypass cache</option>
+                            <option value='{"always_use_https":true}|Force HTTPS'>Force HTTPS</option>
+                            <option value='{"security_level":"essentially_off"}|Disable security'>Disable security (API)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary btn-sm w-100">Add</button>
+                    </div>
+                </div>
+                <input type="hidden" name="actionsJson" id="prJson" value='{"cache_level":"cache_everything"}' />
+                <input type="hidden" name="actionsLabel" id="prLabel" value="cache_level=cache_everything" />
+            </form>
+        </div></div>
+    </div>
+
+    <div class="card srx-card"><div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th style="width:60px;">Priority</th><th>Name</th><th>URL pattern</th><th>Actions</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var rule in Model.PageRules)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@rule.Priority</span></td>
+                        <td class="text-light small">@rule.Name</td>
+                        <td class="text-secondary small font-monospace" style="word-break:break-all;">@rule.Expression</td>
+                        <td class="text-secondary small">@rule.Action</td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="DeletePageRule" class="d-inline" onsubmit="return confirm('Delete this page rule?');">
+                                <input type="hidden" name="id" value="@rule.Id" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.PageRules.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-secondary py-4">No page rules yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div></div>
+}
+
+@section Scripts {
+    <script>
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text).then(function () {
+                var original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+                setTimeout(function () { btn.innerHTML = original; }, 1200);
+            });
+        }
+
+        // Firewall expression presets.
+        document.querySelectorAll('.fw-preset').forEach(function (btn) {
+            btn.addEventListener('click', function () { document.getElementById('fwExpr').value = btn.dataset.expr; });
+        });
+
+        // Page rule preset → hidden JSON + label.
+        var prPreset = document.getElementById('prPreset');
+        if (prPreset) {
+            prPreset.addEventListener('change', function () {
+                if (!this.value) return;
+                var parts = this.value.split('|');
+                document.getElementById('prJson').value = parts[0];
+                try {
+                    var obj = JSON.parse(parts[0]);
+                    document.getElementById('prLabel').value = Object.entries(obj).map(function (e) { return e[0] + '=' + e[1]; }).join(', ');
+                } catch (e) { document.getElementById('prLabel').value = parts[1] || ''; }
+            });
+        }
+    </script>
+
+    @if (tab == "analytics")
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Analytics.Select(a => a.Date.ToString("MMM dd"))));
+            var requests = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Analytics.Select(a => a.Requests)));
+            var cached = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Analytics.Select(a => a.CachedRequests)));
+            var threats = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Analytics.Select(a => a.Threats)));
+
+            var grid = { color: '#21262d' }, ticks = { color: '#8b949e' };
+
+            new Chart(document.getElementById('requestsChart'), {
+                type: 'line',
+                data: { labels: labels, datasets: [
+                    { label: 'Total', data: requests, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,.1)', fill: true, tension: .3 },
+                    { label: 'Cached', data: cached, borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,.1)', fill: true, tension: .3 }
+                ] },
+                options: { plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { x: { grid: grid, ticks: ticks }, y: { grid: grid, ticks: ticks } } }
+            });
+
+            new Chart(document.getElementById('threatsChart'), {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Threats', data: threats, backgroundColor: '#ff7b72' }] },
+                options: { plugins: { legend: { display: false } }, scales: { x: { grid: grid, ticks: ticks }, y: { grid: grid, ticks: ticks } } }
+            });
+        </script>
+    }
+}

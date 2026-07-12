@@ -1,0 +1,88 @@
+@page
+@model SRXPanel.Pages.Admin.SubscriptionsModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Subscriptions";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Subscriptions</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Subscriptions</h4>
+    <form method="get">
+        <select name="StatusFilter" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width:160px;">
+            <option value="">All statuses</option>
+            @foreach (var s in Enum.GetNames<SubscriptionStatus>())
+            {
+                if (s == Model.StatusFilter)
+                {
+                    <option value="@s" selected>@s</option>
+                }
+                else
+                {
+                    <option value="@s">@s</option>
+                }
+            }
+        </select>
+    </form>
+</div>
+
+<div class="card srx-card">
+    <div class="card-body">
+        @if (Model.Subscriptions.Any())
+        {
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Customer</th><th>Plan</th><th>Status</th><th>Period End</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var s in Model.Subscriptions)
+                    {
+                        <tr>
+                            <td>@(s.User?.UserName ?? "-")<div class="small text-secondary">@s.User?.Email</div></td>
+                            <td>@(s.Plan?.Name ?? "-")</td>
+                            <td>
+                                @{
+                                    var badge = s.Status switch {
+                                        SubscriptionStatus.Active => "srx-badge-active",
+                                        SubscriptionStatus.Trialing => "text-bg-info",
+                                        SubscriptionStatus.PastDue => "text-bg-warning",
+                                        _ => "srx-badge-suspended" };
+                                }
+                                <span class="badge @badge">@s.Status</span>
+                            </td>
+                            <td>@s.CurrentPeriodEnd.ToString("yyyy-MM-dd")</td>
+                            <td>@s.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="@Model.StripeDashboard(s.StripeCustomerId)" target="_blank" class="btn btn-outline-secondary" title="Stripe customer"><i class="bi bi-box-arrow-up-right"></i></a>
+                                    @if (s.Status != SubscriptionStatus.Active)
+                                    {
+                                        <form method="post" asp-page-handler="Activate" asp-route-id="@s.Id" class="d-inline">
+                                            <button class="btn btn-outline-success" title="Activate"><i class="bi bi-play-circle"></i></button>
+                                        </form>
+                                    }
+                                    @if (s.Status != SubscriptionStatus.Cancelled)
+                                    {
+                                        <form method="post" asp-page-handler="Suspend" asp-route-id="@s.Id" class="d-inline srx-confirm-form" data-confirm-message="Suspend this subscription?">
+                                            <button class="btn btn-outline-warning" title="Suspend"><i class="bi bi-pause-circle"></i></button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-secondary mb-0">No subscriptions found.</p>
+        }
+    </div>
+</div>

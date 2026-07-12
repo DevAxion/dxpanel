@@ -1,0 +1,65 @@
+@page "/Client/Apps/Hosted/Virtualenv/{id:int}"
+@model SRXPanel.Pages.Client.Apps.Hosted.VirtualenvModel
+@{
+    ViewData["Title"] = "Virtualenv";
+    var a = Model.App;
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Index">Hosted Apps</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Detail" asp-route-id="@a.Id">@a.Name</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Virtualenv</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4"><i class="bi bi-filetype-py accent"></i> Virtual Environment — @a.Name</h4>
+
+@if (!a.VirtualenvCreated)
+{
+    <div class="card srx-card"><div class="card-body">
+        <p class="text-secondary">No virtualenv exists for this app yet.</p>
+        <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
+            <div class="col-auto"><label class="form-label text-secondary small">Python version</label>
+                <select name="pythonVersion" class="form-select form-select-sm">
+                    @if (!Model.PythonVersions.Any()) { <option value="3.12.4">3.12.4</option> }
+                    @foreach (var v in Model.PythonVersions) { <option value="@v.Version">@v.Version</option> }
+                </select></div>
+            <div class="col-auto"><button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Create virtualenv</button></div>
+        </form>
+    </div></div>
+}
+else
+{
+    <div class="row g-3 mb-3">
+        <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@a.PythonVersion</div><div class="srx-stat-label">Python</div></div></div>
+        <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Packages.Count</div><div class="srx-stat-label">Packages</div></div></div>
+        <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@Model.VenvSizeMB<span class="fs-6"> MB</span></div><div class="srx-stat-label">Venv size</div></div></div>
+    </div>
+
+    <div class="card srx-card mb-3"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-light mb-0">Installed packages</h6>
+            <div class="d-flex gap-2">
+                <form method="post" asp-page-handler="Install" class="d-flex gap-1">
+                    <input name="package" class="form-control form-control-sm font-monospace" placeholder="requests==2.32.3" style="width:200px" required />
+                    <button class="btn btn-sm btn-primary">Install</button>
+                </form>
+                <form method="post" asp-page-handler="Freeze"><button class="btn btn-sm btn-outline-secondary">pip freeze → requirements.txt</button></form>
+            </div>
+        </div>
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Package</th><th>Version</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var (name, version) in Model.Packages)
+            {
+                <tr>
+                    <td class="font-monospace text-light">@name</td>
+                    <td class="text-secondary">@version</td>
+                    <td class="text-end"><form method="post" asp-page-handler="Uninstall" class="d-inline"><input type="hidden" name="package" value="@name" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div></div>
+}

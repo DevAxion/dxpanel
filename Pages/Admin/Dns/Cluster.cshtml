@@ -1,0 +1,86 @@
+@page
+@model SRXPanel.Pages.Admin.Dns.ClusterModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "DNS Cluster";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Infrastructure</li>
+        <li class="breadcrumb-item active" aria-current="page">DNS Cluster</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi bi-hdd-network accent"></i> DNS Cluster</h4>
+        <div class="text-secondary small">@Model.NameServers.Count nameserver(s) serving @Model.ZoneCount zone(s).</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="Sync">
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-repeat"></i> Sync zones (AXFR)</button>
+        </form>
+        <a asp-page="/Admin/Nodes/Add" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add nameserver</a>
+    </div>
+</div>
+
+@if (!Model.NameServers.Any())
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> No DNS nodes in the fleet.
+        <a asp-page="/Admin/Nodes/Add" class="alert-link">Add a node of type DNS</a>.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @{ var index = 0; }
+        @foreach (var ns in Model.NameServers)
+        {
+            index++;
+            var isPrimary = ns.Id == Model.Primary?.Id;
+            <div class="col-md-6 col-lg-4">
+                <div class="card srx-card h-100"><div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="text-light mb-0"><i class="bi bi-hdd-network accent"></i> ns@(index)</h6>
+                            <div class="text-secondary small">@ns.Hostname</div>
+                        </div>
+                        @if (isPrimary)
+                        {
+                            <span class="badge text-bg-primary">Primary</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-secondary">Secondary</span>
+                        }
+                    </div>
+                    <table class="table table-sm mb-2">
+                        <tbody>
+                            <tr><td class="text-secondary">IP</td><td class="text-light font-monospace">@ns.IpAddress</td></tr>
+                            <tr><td class="text-secondary">Location</td><td class="text-light">@ns.Location</td></tr>
+                            <tr><td class="text-secondary">Status</td><td>
+                                @if (ns.Status == NodeStatus.Online) { <span class="badge text-bg-success">Online</span> }
+                                else { <span class="badge text-bg-danger">@ns.Status</span> }
+                            </td></tr>
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> Zones in sync</span>
+                        <a asp-page="/Admin/Nodes/Detail" asp-route-id="@ns.Id" class="btn btn-sm btn-outline-secondary">Manage</a>
+                    </div>
+                </div></div>
+            </div>
+        }
+    </div>
+
+    <div class="card srx-card mt-4"><div class="card-body">
+        <h6 class="text-light mb-2"><i class="bi bi-info-circle"></i> How zone sync works</h6>
+        <div class="text-secondary small">
+            The primary nameserver (@Model.Primary?.Hostname) is authoritative. Secondaries pull zones via AXFR
+            transfer and reload BIND. Register these hostnames as the nameservers for your domains at the registrar,
+            in order: @string.Join(", ", Model.NameServers.Select((n, i) => $"ns{i + 1}={n.Hostname}")).
+        </div>
+    </div></div>
+}

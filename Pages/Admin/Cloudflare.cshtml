@@ -1,0 +1,80 @@
+@page
+@model SRXPanel.Pages.Admin.CloudflareModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Cloudflare — Admin";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Admin</li>
+        <li class="breadcrumb-item active" aria-current="page">Cloudflare</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3"><i class="bi bi-cloud accent"></i> Cloudflare — all accounts</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="text-secondary small">Connected accounts</div>
+        <div class="fs-3 text-light">@Model.TotalAccounts</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="text-secondary small">Managed zones</div>
+        <div class="fs-3 text-light">@Model.TotalZones</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="text-secondary small">Requests today</div>
+        <div class="fs-3 text-light">@Model.GlobalRequests.ToString("N0")</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="text-secondary small">Threats today</div>
+        <div class="fs-3 text-danger">@Model.GlobalThreats.ToString("N0")</div>
+    </div></div></div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    <h6 class="text-light mb-3">Accounts</h6>
+    @if (!Model.Accounts.Any())
+    {
+        <p class="text-secondary small mb-0">No users have connected Cloudflare yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr><th>User</th><th>Account</th><th>Token</th><th>Zones</th><th>Requests today</th><th>Threats today</th><th>Validated</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Accounts)
+                    {
+                        var stale = row.Account.LastValidatedAt == null || row.Account.LastValidatedAt < DateTime.UtcNow.AddDays(-30);
+                        <tr>
+                            <td class="text-light">@row.UserName</td>
+                            <td class="text-secondary small">@(row.Account.AccountName ?? row.Account.Email ?? "—")</td>
+                            <td>
+                                <code class="small">@row.Account.MaskedToken</code>
+                                @if (stale)
+                                {
+                                    <span class="badge text-bg-warning" title="Not validated recently">stale</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-success">valid</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="text-light">@row.ZoneCount</span>
+                                <span class="text-secondary small">(@row.ActiveZones active)</span>
+                            </td>
+                            <td class="text-secondary small">@row.RequestsToday.ToString("N0")</td>
+                            <td class="@(row.ThreatsToday > 0 ? "text-danger" : "text-secondary") small">@row.ThreatsToday.ToString("N0")</td>
+                            <td class="text-secondary small">@(row.Account.LastValidatedAt?.ToString("MMM dd, HH:mm") ?? "never")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div></div>

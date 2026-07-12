@@ -1,0 +1,86 @@
+@page
+@model SRXPanel.Pages.Admin.Email.QueueModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Global Mail Queue";
+    var c = Model.Counts;
+    (string cls, string text) Badge(EmailQueueStatus s) => s switch
+    {
+        EmailQueueStatus.Sent => ("text-bg-success", "Sent"),
+        EmailQueueStatus.Queued => ("text-bg-info", "Queued"),
+        EmailQueueStatus.Sending => ("text-bg-primary", "Sending"),
+        EmailQueueStatus.Deferred => ("text-bg-warning", "Deferred"),
+        EmailQueueStatus.Failed => ("text-bg-danger", "Failed"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Email/Index">Email</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Queue</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-envelope-paper accent"></i> Global Mail Queue</h4>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="RetryAll"><button class="btn btn-sm btn-outline-secondary">Retry all failed</button></form>
+        <form method="post" asp-page-handler="Flush" class="srx-confirm-form" data-confirm-message="Flush all queued/deferred mail platform-wide?"><button class="btn btn-sm btn-outline-danger">Global flush</button></form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@c.Queued</div><div class="srx-stat-label">Queued</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@c.Sending</div><div class="srx-stat-label">Sending</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@c.SentToday</div><div class="srx-stat-label">Sent today</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@c.Failed</div><div class="srx-stat-label">Failed</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@c.Deferred</div><div class="srx-stat-label">Deferred</div></div></div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    <form method="get" class="mb-3">
+        <select name="status" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+            <option value="">All statuses</option>
+            @foreach (var s in Enum.GetValues<EmailQueueStatus>()) { <option value="@s" selected="@(Model.Status == s)">@s</option> }
+        </select>
+    </form>
+
+    @if (!Model.Queue.Items.Any()) { <p class="text-secondary mb-0">The queue is empty.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-3">
+            <thead><tr><th>From</th><th>To</th><th>Subject</th><th>Status</th><th>Attempts</th><th>Date</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var m in Model.Queue.Items)
+            {
+                var b = Badge(m.Status);
+                <tr>
+                    <td class="small font-monospace text-secondary">@m.FromAddress</td>
+                    <td class="small font-monospace text-secondary">@m.ToAddress</td>
+                    <td class="small text-light">@(m.Subject.Length > 34 ? m.Subject[..34] + "…" : m.Subject)</td>
+                    <td><span class="badge @b.cls">@b.text</span></td>
+                    <td class="text-secondary">@m.Attempts</td>
+                    <td class="text-secondary small">@m.CreatedAt.ToString("MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        @if (m.Status is EmailQueueStatus.Failed or EmailQueueStatus.Deferred)
+                        {
+                            <form method="post" asp-page-handler="Retry" class="d-inline"><input type="hidden" name="id" value="@m.Id" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button></form>
+                        }
+                        <form method="post" asp-page-handler="Delete" class="d-inline"><input type="hidden" name="id" value="@m.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        @if (Model.Queue.TotalPages > 1)
+        {
+            <nav><ul class="pagination pagination-sm mb-0">
+                @for (var p = 1; p <= Math.Min(Model.Queue.TotalPages, 15); p++)
+                {
+                    <li class="page-item @(p == Model.Queue.Page ? "active" : "")"><a class="page-link" asp-route-page="@p" asp-route-status="@Model.Status">@p</a></li>
+                }
+            </ul></nav>
+        }
+    }
+</div></div>

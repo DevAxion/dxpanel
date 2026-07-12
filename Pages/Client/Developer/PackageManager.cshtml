@@ -1,0 +1,271 @@
+@page
+@model SRXPanel.Pages.Client.Developer.PackageManagerModel
+@using SRXPanel.Services.Developer
+@{
+    ViewData["Title"] = "Package Manager";
+
+    string Size(long bytes) => bytes switch
+    {
+        > 1_073_741_824 => $"{bytes / 1073741824.0:0.0} GB",
+        > 1_048_576 => $"{bytes / 1048576.0:0.0} MB",
+        > 1024 => $"{bytes / 1024.0:0.0} KB",
+        _ => $"{bytes} B"
+    };
+
+    var quick = Model.Tab switch
+    {
+        PackageRunner.Composer => new[] { "install", "update", "dump-autoload", "clear-cache", "outdated", "audit" },
+        PackageRunner.Npm => new[] { "install", "ci", "update", "run build", "audit", "outdated" },
+        _ => new[] { "list", "freeze", "check" }
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Package Manager</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-1">Package Manager</h4>
+<p class="text-secondary small">
+    Runs inside your home directory. Only allow-listed sub-commands are accepted — no shell chaining.
+</p>
+
+<ul class="nav nav-tabs mb-3">
+    @foreach (var runner in Enum.GetValues<PackageRunner>())
+    {
+        <li class="nav-item">
+            <a class="nav-link @(Model.Tab == runner ? "active" : "")"
+               asp-page="/Client/Developer/PackageManager" asp-route-tab="@runner" asp-route-workingDir="@Model.WorkingDir">
+                <i class="bi @(runner switch {
+                    PackageRunner.Composer => "bi-filetype-php",
+                    PackageRunner.Npm => "bi-filetype-js",
+                    _ => "bi-filetype-py" })"></i>
+                @(runner == PackageRunner.Pip ? "Python / pip" : runner.ToString())
+            </a>
+        </li>
+    }
+</ul>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <form method="get" class="row g-2 align-items-end mb-3">
+                <input type="hidden" name="tab" value="@Model.Tab" />
+                <div class="col-md-8">
+                    <label class="form-label small">Working directory</label>
+                    <select name="workingDir" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @foreach (var dir in Model.Directories)
+                        {
+                            <option value="@dir" selected="@(dir == Model.WorkingDir)">
+                                ~@(dir == "/" ? "" : dir)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="small text-secondary">
+                        @if (Model.Manifest.Exists)
+                        {
+                            <span class="badge text-bg-success">@Model.Manifest.Name found</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-secondary">no @Model.Manifest.Name</span>
+                        }
+                        @if (Model.LockFileExists)
+                        {
+                            <span class="badge text-bg-info">lock file</span>
+                        }
+                    </div>
+                </div>
+            </form>
+
+            @if (Model.Tab == PackageRunner.Npm)
+            {
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">Node.js version</label>
+                        <select class="form-select form-select-sm" id="nodeVersion">
+                            @foreach (var version in Model.NodeVersions)
+                            {
+                                <option>@version</option>
+                            }
+                        </select>
+                        <div class="form-text">Honours <code>.nvmrc</code> in the working directory when present.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">node_modules size</label>
+                        <div class="text-light">@(Model.DependencySize == 0 ? "not installed" : Size(Model.DependencySize))</div>
+                    </div>
+                </div>
+
+                @if (Model.NpmScripts.Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label small">Scripts in package.json</label>
+                        <div class="d-flex flex-wrap gap-1">
+                            @foreach (var script in Model.NpmScripts)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary quick" data-cmd="run @script">npm run @script</button>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else if (Model.Tab == PackageRunner.Composer && Model.DependencySize > 0)
+            {
+                <div class="mb-3 small text-secondary">vendor/ directory: <span class="text-light">@Size(Model.DependencySize)</span></div>
+            }
+
+            <label class="form-label small">Command</label>
+            <div class="input-group mb-2">
+                <span class="input-group-text font-monospace">
+                    @(Model.Tab == PackageRunner.Composer ? "composer" : Model.Tab == PackageRunner.Npm ? "npm" : "pip")
+                </span>
+                <input id="command" class="form-control font-monospace" placeholder="install" />
+                <button class="btn btn-primary" id="runBtn"><i class="bi bi-play-fill"></i> Run</button>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+                @foreach (var command in quick)
+                {
+                    <button class="btn btn-sm btn-outline-secondary quick" data-cmd="@command">@command</button>
+                }
+            </div>
+            <div class="form-text" id="cmdError"></div>
+
+            <hr class="border-secondary" />
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-light mb-0"><i class="bi bi-terminal"></i> Output</h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('output').textContent = '';">
+                    Clear
+                </button>
+            </div>
+            <pre class="bg-black p-3 rounded small mb-0" style="height:280px;overflow:auto;" id="output"><code class="text-secondary">Output appears here.</code></pre>
+        </div></div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-light mb-0"><i class="bi bi-file-earmark-code"></i> @Model.Manifest.Name</h6>
+                <button class="btn btn-sm btn-primary" id="saveManifest"><i class="bi bi-save"></i> Save</button>
+            </div>
+
+            <form method="post" asp-page-handler="SaveManifest" id="manifestForm">
+                <input type="hidden" name="workingDir" value="@Model.WorkingDir" />
+                <input type="hidden" name="tab" value="@Model.Tab" />
+                <input type="hidden" name="content" id="manifestContent" />
+            </form>
+
+            <div id="editor" style="height:520px; border:1px solid #30363d; border-radius:6px;"></div>
+            <template id="manifestSeed">@Model.Manifest.Content</template>
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <form style="display:none">@Html.AntiForgeryToken()</form>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@@0.47.0/min/vs/loader.js"></script>
+    <script>
+        (function () {
+            var output = document.getElementById('output');
+            var errorEl = document.getElementById('cmdError');
+            var runBtn = document.getElementById('runBtn');
+            var commandInput = document.getElementById('command');
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            var conn = null;
+            if (window.signalR) {
+                conn = new signalR.HubConnectionBuilder().withUrl('/hubs/devtools').build();
+                conn.on('runnerOutput', function (line) { append(line); });
+                conn.on('runnerCompleted', function (exitCode) {
+                    append(exitCode === 0 ? '\n✓ Finished (exit 0)' : '\n✗ Failed (exit ' + exitCode + ')');
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = '<i class="bi bi-play-fill"></i> Run';
+                });
+                conn.start().catch(function () { conn = null; });
+            }
+
+            function append(line) {
+                if (output.firstChild && output.firstChild.classList &&
+                    output.firstChild.classList.contains('text-secondary')) output.textContent = '';
+                output.textContent += line + '\n';
+                output.scrollTop = output.scrollHeight;
+            }
+
+            document.querySelectorAll('.quick').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    commandInput.value = btn.dataset.cmd;
+                    run();
+                });
+            });
+
+            runBtn.addEventListener('click', run);
+            commandInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
+
+            function run() {
+                var command = commandInput.value.trim();
+                if (!command) return;
+
+                errorEl.textContent = '';
+                errorEl.className = 'form-text';
+                runBtn.disabled = true;
+                runBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Running…';
+
+                var body = new URLSearchParams({ command: command });
+                fetch('?handler=Run&workingDir=@Model.WorkingDir&tab=@Model.Tab', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: body
+                })
+                    .then(function (r) {
+                        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error); });
+                        return r.json();
+                    })
+                    .then(function (d) {
+                        append('$ ' + command);
+                        if (conn) conn.invoke('JoinRunner', d.runnerId);
+                        else {
+                            append('(SignalR unavailable — output is not streamed)');
+                            runBtn.disabled = false;
+                            runBtn.innerHTML = '<i class="bi bi-play-fill"></i> Run';
+                        }
+                    })
+                    .catch(function (e) {
+                        errorEl.textContent = e.message;
+                        errorEl.className = 'form-text text-danger';
+                        runBtn.disabled = false;
+                        runBtn.innerHTML = '<i class="bi bi-play-fill"></i> Run';
+                    });
+            }
+
+            // Monaco manifest editor.
+            require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                var seed = document.getElementById('manifestSeed').content.textContent;
+                var language = '@Model.Manifest.Name'.endsWith('.json') ? 'json' : 'plaintext';
+
+                var editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: seed,
+                    language: language,
+                    theme: 'vs-dark',
+                    minimap: { enabled: false },
+                    automaticLayout: true,
+                    fontSize: 13
+                });
+
+                document.getElementById('saveManifest').addEventListener('click', function () {
+                    document.getElementById('manifestContent').value = editor.getValue();
+                    document.getElementById('manifestForm').submit();
+                });
+            });
+        })();
+    </script>
+}

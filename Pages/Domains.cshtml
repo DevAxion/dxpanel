@@ -1,0 +1,90 @@
+@page
+@model SRXPanel.Pages.DomainsModel
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = "Find Your Domain";
+    ViewData["MetaDescription"] = "Search and register the perfect domain name — .com, .net, .org, .az and more.";
+    string Money(decimal d) => $"${d:0.00}";
+}
+
+<section class="text-center" style="padding:64px 0 32px;background:radial-gradient(ellipse at top, #16233b 0%, #0d1117 60%);">
+    <div class="container" style="max-width:760px;">
+        <h1 class="text-light fw-bold">Find your perfect domain</h1>
+        <p class="text-secondary fs-5">Search thousands of domain extensions and claim yours today.</p>
+        <form method="get" class="d-flex gap-2 mt-4">
+            <input name="q" value="@Model.Q" class="form-control form-control-lg" placeholder="Enter a domain name…" autofocus />
+            <button class="btn btn-cta btn-lg px-4" type="submit"><i class="bi bi-search"></i> Search</button>
+        </form>
+    </div>
+</section>
+
+<div class="container pb-5" style="max-width:820px;">
+    @if (!string.IsNullOrWhiteSpace(Model.Q) && Model.Results.Any())
+    {
+        <div class="mt-4">
+            @{
+                var exact = Model.Results.FirstOrDefault();
+            }
+            @if (exact != null && exact.Available)
+            {
+                <div class="d-flex align-items-center justify-content-between p-3 mb-3" style="background:#0f2417;border:1px solid #238636;border-radius:12px;">
+                    <div>
+                        <span class="text-light fw-bold fs-5">@exact.Domain</span>
+                        <span class="badge text-bg-success ms-2">Available</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-light fw-semibold">@Money(exact.Price)/yr</span>
+                        <a href="/register" class="btn btn-cta btn-sm">Add to cart</a>
+                    </div>
+                </div>
+            }
+
+            <h6 class="text-secondary text-uppercase small mt-4 mb-2">Other extensions</h6>
+            @foreach (var r in Model.Results.Skip(exact != null && exact.Available ? 1 : 0))
+            {
+                <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background:#161b22;border:1px solid #30363d;border-radius:10px;">
+                    <div>
+                        <span class="text-light fw-semibold">@r.Domain</span>
+                        @if (r.Available)
+                        {
+                            <span class="badge text-bg-success ms-2">Available</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-secondary ms-2">Taken</span>
+                        }
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-secondary">@Money(r.Price)/yr</span>
+                        @if (r.Available)
+                        {
+                            <a href="/register" class="btn btn-outline-cta btn-sm">Add</a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-secondary btn-sm" disabled>Taken</button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(Model.Q))
+    {
+        <p class="text-secondary text-center mt-4">Enter a valid domain name to check availability.</p>
+    }
+    else
+    {
+        <div class="row g-3 mt-4 text-center">
+            @foreach (var t in new[] { (".com", "12.99"), (".net", "14.99"), (".org", "13.49"), (".az", "29.99") })
+            {
+                <div class="col-6 col-md-3">
+                    <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px;">
+                        <div class="text-light fw-bold fs-4">@t.Item1</div>
+                        <div class="text-secondary small">from $@t.Item2/yr</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

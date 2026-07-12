@@ -1,0 +1,70 @@
+@page
+@model SRXPanel.Pages.Admin.Security.AntivirusModel
+@{
+    ViewData["Title"] = "Antivirus";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Security/Index">Security</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Antivirus</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Antivirus — Global</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.TotalScans</div><div class="text-secondary small">Total scans</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.InfectedCount</div><div class="text-secondary small">Infected files</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.QuarantineCount</div><div class="text-secondary small">Quarantined</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:15px;font-weight:600;color:#fff;padding-top:8px;">@Model.DefinitionsDate.ToString("MMM d")</div><div class="text-secondary small">Definitions</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-arrow-repeat"></i> Definitions</h6>
+            <p class="text-secondary small">Last updated @Model.DefinitionsDate.ToString("MMMM d, yyyy HH:mm") UTC.</p>
+            <form method="post" asp-page-handler="UpdateDefs"><button class="btn btn-primary btn-sm"><i class="bi bi-cloud-download"></i> Update now (freshclam)</button></form>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-calendar-week"></i> Scheduled scans</h6>
+            <form method="post" asp-page-handler="Schedule">
+                <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="scheduleEnabled" value="true" @(Model.Settings.AvScheduleEnabled ? "checked" : "") /><label class="form-check-label">Enable scheduled scans</label></div>
+                <select name="schedule" class="form-select form-select-sm mb-2" style="max-width:200px;">
+                    <option value="daily" selected="@(Model.Settings.AvSchedule == "daily")">Daily</option>
+                    <option value="weekly" selected="@(Model.Settings.AvSchedule == "weekly")">Weekly</option>
+                </select>
+                <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="scanOnUpload" value="true" @(Model.Settings.AvScanOnUpload ? "checked" : "") /><label class="form-check-label">Auto-scan on file upload</label></div>
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-save"></i> Save</button>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-shield-lock"></i> Quarantine (all users)</h6>
+            <div class="table-responsive" style="max-height:400px;overflow:auto;">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>File</th><th>Threat</th><th>User</th><th>When</th></tr></thead>
+                    <tbody>
+                    @if (!Model.Quarantine.Any())
+                    {
+                        <tr><td colspan="4" class="text-secondary text-center py-3">Quarantine is empty.</td></tr>
+                    }
+                    @foreach (var q in Model.Quarantine)
+                    {
+                        <tr>
+                            <td class="small" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@q.OriginalPath">@q.OriginalPath</td>
+                            <td class="small text-danger">@q.ThreatName</td>
+                            <td class="small text-secondary">@q.UserId.Substring(0, Math.Min(8, q.UserId.Length))</td>
+                            <td class="small text-secondary text-nowrap">@q.QuarantinedAt.ToString("MMM d HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div></div>
+    </div>
+</div>

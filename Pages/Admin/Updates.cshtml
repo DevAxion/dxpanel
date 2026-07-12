@@ -1,0 +1,152 @@
+@page
+@model SRXPanel.Pages.Admin.UpdatesModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Updates";
+    var check = Model.Check;
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Admin</li>
+            <li class="breadcrumb-item active" aria-current="page">Updates</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Updates</h4>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-light mb-1"><i class="bi bi-box-seam"></i> Current version</h6>
+                        <span class="display-6 text-light">v@check.CurrentVersion</span>
+                        <div class="text-secondary small">Release channel: <span class="badge text-bg-secondary text-uppercase">@check.Channel</span></div>
+                    </div>
+                    <div class="text-end">
+                        @if (check.UpdateAvailable)
+                        {
+                            <span class="badge text-bg-warning mb-2"><i class="bi bi-arrow-up-circle"></i> Update available</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-success mb-2"><i class="bi bi-check-circle"></i> Up to date</span>
+                        }
+                        <form method="get">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i> Check for updates</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (check.UpdateAvailable)
+        {
+            <div class="card srx-card mb-4 border-primary">
+                <div class="card-body">
+                    <h6 class="text-light"><i class="bi bi-stars text-primary"></i> Version @check.Latest.Version available</h6>
+                    <div class="text-secondary small mb-2">Released @check.Latest.ReleasedAt.ToString("MMM d, yyyy") · @check.Latest.Channel channel</div>
+                    <ul class="text-secondary small">
+                        @foreach (var line in check.Latest.Changelog)
+                        {
+                            <li>@line</li>
+                        }
+                    </ul>
+                    <form method="post" asp-page-handler="Apply" onsubmit="return confirm('Install version @check.Latest.Version now? On a production server this pulls the latest release, applies migrations and restarts the panel.');">
+                        <input type="hidden" name="version" value="@check.Latest.Version" />
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-download"></i> Install v@check.Latest.Version</button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card srx-card mb-4">
+                <div class="card-body">
+                    <h6 class="text-light"><i class="bi bi-journal-text"></i> Latest release (v@check.Latest.Version)</h6>
+                    <ul class="text-secondary small mb-0">
+                        @foreach (var line in check.Latest.Changelog)
+                        {
+                            <li>@line</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Update history</h6>
+                @if (Model.History.Count == 0)
+                {
+                    <p class="text-secondary small mb-0">No updates recorded yet.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead><tr><th>Date</th><th>Change</th><th>Channel</th><th>Status</th><th>By</th></tr></thead>
+                            <tbody>
+                                @foreach (var h in Model.History)
+                                {
+                                    <tr>
+                                        <td class="small text-nowrap">@h.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td class="small">v@h.FromVersion <i class="bi bi-arrow-right"></i> v@h.ToVersion @(h.Simulated ? "(simulated)" : "")</td>
+                                        <td><span class="badge text-bg-secondary text-uppercase">@h.Channel</span></td>
+                                        <td>
+                                            @if (h.Status == UpdateStatus.Success)
+                                            {
+                                                <span class="badge text-bg-success">Success</span>
+                                            }
+                                            else if (h.Status == UpdateStatus.Failed)
+                                            {
+                                                <span class="badge text-bg-danger">Failed</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge text-bg-info">In progress</span>
+                                            }
+                                        </td>
+                                        <td class="small">@h.TriggeredBy</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-gear"></i> Update settings</h6>
+                <form method="post" asp-page-handler="ToggleAuto">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="true" id="autoUpdate"
+                               @(check.AutoUpdate ? "checked" : "") onchange="this.form.submit()" />
+                        <label class="form-check-label" for="autoUpdate">Automatic updates</label>
+                    </div>
+                    <input type="hidden" name="enabled" value="false" />
+                </form>
+                <p class="text-secondary small mb-0">
+                    When enabled, the server applies stable releases automatically during the
+                    nightly maintenance window via <code>scripts/update.sh</code>.
+                </p>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-2"><i class="bi bi-terminal"></i> Manual update</h6>
+                <p class="text-secondary small">Update from the server shell at any time:</p>
+                <pre class="bg-black p-2 rounded small mb-0"><code>curl -fsSL https://get.srxpanel.com/update.sh | bash</code></pre>
+            </div>
+        </div>
+    </div>
+</div>

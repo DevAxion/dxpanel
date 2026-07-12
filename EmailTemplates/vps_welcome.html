@@ -1,0 +1,19 @@
+<h1 style="color:#fff;font-size:24px;margin:0 0 16px;">Your VPS is ready 🚀</h1>
+<p style="line-height:1.6;">Your <strong>{{PLAN}}</strong> server <strong>{{HOSTNAME}}</strong> has been deployed in {{LOCATION}} and is now online. Here are your access details — keep them safe.</p>
+
+<h3 style="color:#fff;font-size:16px;margin:24px 0 8px;">SSH Access</h3>
+<table role="presentation" style="width:100%;font-size:14px;line-height:1.8;">
+  <tr><td style="color:#8b949e;width:150px;">Hostname</td><td style="color:#fff;">{{HOSTNAME}}</td></tr>
+  <tr><td style="color:#8b949e;">IPv4</td><td style="color:#fff;">{{IP}}</td></tr>
+  <tr><td style="color:#8b949e;">IPv6</td><td style="color:#fff;">{{IPV6}}</td></tr>
+  <tr><td style="color:#8b949e;">Username</td><td style="color:#fff;">{{USERNAME}}</td></tr>
+  <tr><td style="color:#8b949e;">Password</td><td style="color:#fff;">{{PASSWORD}}</td></tr>
+  <tr><td style="color:#8b949e;">SSH port</td><td style="color:#fff;">{{SSH_PORT}}</td></tr>
+</table>
+
+<div style="margin:20px 0;padding:12px 16px;background:#0d1117;border-radius:8px;font-family:monospace;color:#3fb950;font-size:14px;">
+  ssh {{USERNAME}}@{{IP}} -p {{SSH_PORT}}
+</div>
+
+<p style="line-height:1.6;color:#8b949e;font-size:13px;">Manage your server — power, console, snapshots, backups and more — from your control panel. For security, change the root password after your first login.</p>
+<p style="color:#8b949e;font-size:13px;">Need help? Just reply to this email.</p>

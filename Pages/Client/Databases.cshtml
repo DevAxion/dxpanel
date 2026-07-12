@@ -1,0 +1,65 @@
+@page
+@model SRXPanel.Pages.Client.DatabasesModel
+@{
+    ViewData["Title"] = "Databases";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Databases</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">MySQL Databases <span class="text-secondary fs-6">(@Model.Databases.Count / @(Model.MaxDatabases == 0 ? "∞" : Model.MaxDatabases.ToString()))</span></h4>
+
+@if (Model.NewPassword != null)
+{
+    <div class="alert alert-success">
+        <strong>@Model.NewDbUser</strong> password (shown once): <code class="ms-2">@Model.NewPassword</code>
+    </div>
+}
+
+<div class="card srx-card mb-4">
+    <div class="card-body">
+        <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
+            <div class="col-md-6"><label class="form-label">New database</label><input name="suffix" class="form-control" placeholder="wordpress" @(Model.AtLimit ? "disabled" : "") /></div>
+            <div class="col-md-6"><button class="btn btn-primary" @(Model.AtLimit ? "disabled" : "")><i class="bi bi-plus-lg"></i> Create Database + User</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="card srx-card">
+    <div class="card-body">
+        @if (Model.Databases.Any())
+        {
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Database</th><th>User</th><th>Size</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var d in Model.Databases)
+                    {
+                        <tr>
+                            <td><code>@d.DbName</code></td>
+                            <td>@d.DbUser</td>
+                            <td>@d.DbSize.ToString("0.0") MB</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/phpmyadmin?db=@d.DbName" target="_blank" class="btn btn-outline-secondary" title="phpMyAdmin"><i class="bi bi-box-arrow-up-right"></i> phpMyAdmin</a>
+                                    <form method="post" asp-page-handler="Backup" asp-route-id="@d.Id"><button class="btn btn-outline-secondary" title="Download SQL dump"><i class="bi bi-download"></i></button></form>
+                                    <form method="post" asp-page-handler="Password" asp-route-id="@d.Id"><button class="btn btn-outline-secondary" title="Reset password"><i class="bi bi-key"></i></button></form>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="srx-confirm-form" data-confirm-message="Delete database '@d.DbName'? All data is lost."><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-secondary mb-0">No databases yet.</p>
+        }
+    </div>
+</div>

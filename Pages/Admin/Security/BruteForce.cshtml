@@ -1,0 +1,148 @@
+@page
+@model SRXPanel.Pages.Admin.Security.BruteForceModel
+@{
+    ViewData["Title"] = "Brute Force";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Security/Index">Security</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Brute Force</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Brute Force Protection</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Report.TotalAttempts</div><div class="text-secondary small">Attempts (7d)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.Report.FailedAttempts</div><div class="text-secondary small">Failed (7d)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.Report.BlockedIps</div><div class="text-secondary small">Blocked (7d)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Blocked.Count</div><div class="text-secondary small">Currently blocked</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-broadcast"></i> Live attempt feed <span class="badge text-bg-secondary" id="liveBadge">connecting…</span></h6>
+            <div class="table-responsive" style="max-height:300px;overflow:auto;">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Time</th><th>IP</th><th>Country</th><th>Type</th><th>User</th><th>Result</th></tr></thead>
+                    <tbody id="feed">
+                    @foreach (var a in Model.RecentAttempts)
+                    {
+                        <tr>
+                            <td class="small text-secondary text-nowrap">@a.Timestamp.ToString("HH:mm:ss")</td>
+                            <td class="small">@a.IP</td>
+                            <td class="small">@a.Country</td>
+                            <td class="small">@a.Type</td>
+                            <td class="small">@a.Username</td>
+                            <td>@(a.Success ? Html.Raw("<span class='badge text-bg-success'>ok</span>") : Html.Raw("<span class='badge text-bg-danger'>fail</span>"))</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-slash-circle"></i> Blocked IPs</h6>
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>IP</th><th>Reason</th><th>Expires</th><th></th></tr></thead>
+                <tbody>
+                @if (!Model.Blocked.Any())
+                {
+                    <tr><td colspan="4" class="text-secondary text-center py-3">No IPs currently blocked.</td></tr>
+                }
+                @foreach (var b in Model.Blocked)
+                {
+                    <tr>
+                        <td class="small text-light">@b.IP <span class="text-secondary">@b.Country</span></td>
+                        <td class="small text-secondary">@b.Reason @(b.IsManual ? "(manual)" : "")</td>
+                        <td class="small text-secondary">@(b.ExpiresAt?.ToString("MMM d HH:mm") ?? "never")</td>
+                        <td class="text-end"><form method="post" asp-page-handler="Unblock"><input type="hidden" name="id" value="@b.Id" /><button class="btn btn-sm btn-outline-secondary py-0">Unblock</button></form></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-hand-index"></i> Manual block</h6>
+            <form method="post" asp-page-handler="Block">
+                <div class="mb-2"><input name="ip" class="form-control form-control-sm" placeholder="IP address" required /></div>
+                <div class="row g-2">
+                    <div class="col-5"><input name="minutes" type="number" value="60" class="form-control form-control-sm" placeholder="Minutes (0=perm)" /></div>
+                    <div class="col-7"><input name="reason" class="form-control form-control-sm" placeholder="Reason" /></div>
+                </div>
+                <button class="btn btn-danger btn-sm mt-2"><i class="bi bi-slash-circle"></i> Block IP</button>
+            </form>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-check-circle"></i> Whitelist (never block)</h6>
+            @foreach (var w in Model.Whitelist)
+            {
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <span class="text-light small">@w.Value</span>
+                    <form method="post" asp-page-handler="RemoveWhitelist"><input type="hidden" name="id" value="@w.Id" /><button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form>
+                </div>
+            }
+            <form method="post" asp-page-handler="Whitelist" class="input-group input-group-sm mt-2">
+                <input name="ip" class="form-control" placeholder="IP address" />
+                <button class="btn btn-outline-secondary">Add</button>
+            </form>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Thresholds</h6>
+            <form method="post" asp-page-handler="Thresholds">
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label small">Max attempts</label><input name="maxAttempts" type="number" value="@Model.Settings.BruteForceMaxAttempts" class="form-control form-control-sm" /></div>
+                    <div class="col-6"><label class="form-label small">Block minutes</label><input name="blockMinutes" type="number" value="@Model.Settings.BruteForceBlockMinutes" class="form-control form-control-sm" /></div>
+                </div>
+                <div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" name="protectPanel" value="true" @(Model.Settings.ProtectPanel ? "checked" : "") /><label class="form-check-label">Protect panel login</label></div>
+                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="protectFtp" value="true" @(Model.Settings.ProtectFtp ? "checked" : "") /><label class="form-check-label">Protect FTP</label></div>
+                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="protectSmtp" value="true" @(Model.Settings.ProtectSmtp ? "checked" : "") /><label class="form-check-label">Protect SMTP</label></div>
+                <button class="btn btn-primary btn-sm mt-2"><i class="bi bi-save"></i> Save</button>
+            </form>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-geo"></i> Top attacking countries</h6>
+            @if (!Model.Report.TopCountries.Any())
+            {
+                <p class="text-secondary mb-0">No data.</p>
+            }
+            else
+            {
+                foreach (var c in Model.Report.TopCountries)
+                {
+                    <div class="d-flex justify-content-between py-1"><span class="text-light small">@c.Country</span><span class="badge text-bg-secondary">@c.Count</span></div>
+                }
+            }
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+        (function () {
+            if (!window.signalR) return;
+            var badge = document.getElementById('liveBadge');
+            var conn = new signalR.HubConnectionBuilder().withUrl("/hubs/security").withAutomaticReconnect().build();
+            conn.on("attempt", function (a) {
+                var tb = document.getElementById('feed');
+                var tr = document.createElement('tr');
+                var t = new Date(a.at).toLocaleTimeString();
+                tr.innerHTML = '<td class="small text-secondary text-nowrap">' + t + '</td><td class="small">' + a.IP + '</td><td class="small">' + (a.Country||'') + '</td><td class="small">' + a.type + '</td><td class="small">' + (a.Username||'') + '</td><td>' + (a.Success ? '<span class="badge text-bg-success">ok</span>' : '<span class="badge text-bg-danger">fail</span>') + '</td>';
+                tb.insertBefore(tr, tb.firstChild);
+                if (tb.rows.length > 50) tb.deleteRow(tb.rows.length - 1);
+            });
+            conn.start().then(function () { conn.invoke("JoinAdminFeed"); badge.textContent = 'live'; badge.className = 'badge text-bg-success'; })
+                .catch(function () { badge.textContent = 'offline'; });
+        })();
+    </script>
+}

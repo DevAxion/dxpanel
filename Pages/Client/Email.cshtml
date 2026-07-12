@@ -1,0 +1,96 @@
+@page
+@model SRXPanel.Pages.Client.EmailModel
+@{
+    ViewData["Title"] = "Email";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Email</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Email <span class="text-secondary fs-6">(@Model.Accounts.Count / @(Model.MaxEmails == 0 ? "∞" : Model.MaxEmails.ToString()))</span></h4>
+    <a href="/webmail" target="_blank" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-up-right"></i> Open Webmail</a>
+</div>
+
+@if (Model.NewPassword != null)
+{
+    <div class="alert alert-success"><strong>@Model.NewEmail</strong> password (shown once): <code class="ms-2">@Model.NewPassword</code></div>
+}
+
+<div class="card srx-card mb-4">
+    <div class="card-body">
+        @if (Model.DomainOptions.Any())
+        {
+            <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
+                <div class="col-md-4"><label class="form-label">Mailbox</label><input name="localPart" class="form-control" placeholder="info" disabled="@(Model.AtLimit ? "disabled" : null)" /></div>
+                <div class="col-md-4"><label class="form-label">Domain</label><select name="domainId" asp-items="Model.DomainOptions" class="form-select" disabled="@(Model.AtLimit ? "disabled" : null)"></select></div>
+                <div class="col-md-4"><button class="btn btn-primary" disabled="@(Model.AtLimit ? "disabled" : null)"><i class="bi bi-plus-lg"></i> Create Mailbox</button></div>
+            </form>
+        }
+        else
+        {
+            <div class="text-secondary">Add a domain first to create email accounts.</div>
+        }
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#accts" type="button">Accounts</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#fwd" type="button">Forwarders (@Model.Forwarders.Count)</button></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="accts">
+        @foreach (var e in Model.Accounts)
+        {
+            <div class="card srx-card mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-light"><i class="bi bi-envelope"></i> @e.EmailAddress <span class="text-secondary small ms-2">@(e.QuotaMB == 0 ? "Unlimited" : $"{e.QuotaMB} MB") @(e.AutoresponderEnabled ? "· auto-reply on" : "")</span></span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#e-@e.Id"><i class="bi bi-gear"></i></button>
+                            <form method="post" asp-page-handler="Password" asp-route-id="@e.Id"><button class="btn btn-outline-secondary"><i class="bi bi-key"></i></button></form>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" class="srx-confirm-form" data-confirm-message="Delete '@e.EmailAddress'?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                        </div>
+                    </div>
+                    <div class="collapse mt-3" id="e-@e.Id">
+                        <form method="post" asp-page-handler="Update" asp-route-id="@e.Id" class="row g-2">
+                            <div class="col-md-3"><label class="form-label small">Quota (MB, 0=∞)</label><input name="quotaMB" value="@e.QuotaMB" class="form-control form-control-sm" /></div>
+                            <div class="col-md-3"><label class="form-label small">Spam threshold</label><input name="spamThreshold" value="@e.SpamThreshold" class="form-control form-control-sm" /></div>
+                            <div class="col-md-6 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="autoresponder" value="true" @(e.AutoresponderEnabled ? "checked" : "") /><label class="form-check-label small">Enable autoresponder</label></div></div>
+                            <div class="col-12"><label class="form-label small">Autoresponder message</label><textarea name="message" class="form-control form-control-sm" rows="2">@e.AutoresponderMessage</textarea></div>
+                            <div class="col-12"><button class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i> Save</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Accounts.Any()) { <p class="text-secondary">No email accounts yet.</p> }
+    </div>
+
+    <div class="tab-pane fade" id="fwd">
+        <div class="card srx-card">
+            <div class="card-body">
+                <form method="post" asp-page-handler="AddForwarder" class="row g-2 mb-3">
+                    <div class="col-md-5"><input name="source" class="form-control form-control-sm" placeholder="info@yourdomain.com" /></div>
+                    <div class="col-md-5"><input name="destination" class="form-control form-control-sm" placeholder="you@gmail.com" /></div>
+                    <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Add</button></div>
+                </form>
+                @foreach (var f in Model.Forwarders)
+                {
+                    <div class="d-flex justify-content-between small py-1 border-bottom border-secondary-subtle">
+                        <span>@f.Source → @f.Destination</span>
+                        <form method="post" asp-page-handler="DeleteForwarder" asp-route-id="@f.Id"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                    </div>
+                }
+                @if (!Model.Forwarders.Any()) { <p class="text-secondary mb-0 small">No forwarders.</p> }
+            </div>
+        </div>
+    </div>
+</div>

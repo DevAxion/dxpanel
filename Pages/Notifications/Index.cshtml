@@ -1,0 +1,66 @@
+@page
+@model SRXPanel.Pages.Notifications.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+@functions {
+    static string IconFor(NotificationType t) => t switch
+    {
+        NotificationType.Success => "bi-check-circle text-success",
+        NotificationType.Warning => "bi-exclamation-triangle text-warning",
+        NotificationType.Error => "bi-x-octagon text-danger",
+        _ => "bi-info-circle text-info"
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Notifications</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Notifications</h4>
+    @if (Model.Items.Any(i => !i.IsRead))
+    {
+        <form method="post" asp-page-handler="MarkAllRead">
+            <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-check2-all"></i> Mark all as read</button>
+        </form>
+    }
+</div>
+
+<div class="card srx-card">
+    <div class="list-group list-group-flush">
+        @if (Model.Items.Any())
+        {
+            @foreach (var n in Model.Items)
+            {
+                <div class="list-group-item bg-transparent d-flex align-items-start gap-3 @(n.IsRead ? "" : "border-start border-3 border-primary")">
+                    <i class="bi @IconFor(n.Type) fs-5"></i>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <strong class="text-light">@n.Title</strong>
+                            <small class="text-secondary">@n.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                        </div>
+                        <div class="text-secondary">@n.Message</div>
+                    </div>
+                    @if (!n.IsRead)
+                    {
+                        <form method="post" asp-page-handler="MarkRead" asp-route-id="@n.Id">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Mark as read"><i class="bi bi-check"></i></button>
+                        </form>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="list-group-item bg-transparent text-secondary">No notifications.</div>
+        }
+    </div>
+</div>

@@ -1,0 +1,154 @@
+@page
+@model SRXPanel.Pages.Admin.ResellersModel
+@{
+    ViewData["Title"] = "Resellers";
+    string Limit(int m) => m == 0 ? "∞" : m.ToString();
+    string LimitL(long m) => m == 0 ? "∞" : m.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Admin</li>
+            <li class="breadcrumb-item active" aria-current="page">Resellers</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Resellers</h4>
+    <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#newReseller"><i class="bi bi-shop"></i> New Reseller</button>
+</div>
+
+<div class="collapse mb-4" id="newReseller">
+    <div class="card srx-card">
+        <div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-shop"></i> Create Reseller</h6>
+            <form method="post" asp-page-handler="Create">
+                <div class="row g-2">
+                    <div class="col-md-6 mb-2"><label class="form-label">Promote existing user</label>
+                        <select asp-for="Input.ExistingUserId" asp-items="Model.ExistingUsers" class="form-select">
+                            <option value="">— Create new user instead —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-2"><label class="form-label">Company Name</label><input asp-for="Input.CompanyName" class="form-control" /></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-4 mb-2"><label class="form-label">New Username</label><input asp-for="Input.NewUserName" class="form-control" placeholder="(if creating new)" /></div>
+                    <div class="col-md-4 mb-2"><label class="form-label">New Email</label><input asp-for="Input.NewEmail" class="form-control" /></div>
+                    <div class="col-md-4 mb-2"><label class="form-label">New Password</label><input asp-for="Input.NewPassword" type="password" class="form-control" /></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-3 mb-2"><label class="form-label">Disk (MB)</label><input asp-for="Input.DiskQuotaMB" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Bandwidth (MB)</label><input asp-for="Input.BandwidthQuotaMB" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Max Clients</label><input asp-for="Input.MaxClients" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Max Domains</label><input asp-for="Input.MaxDomains" type="number" class="form-control" /></div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 my-2">
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" asp-for="Input.AllowEmail" /><label class="form-check-label">Email</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" asp-for="Input.AllowDns" /><label class="form-check-label">DNS</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" asp-for="Input.AllowBackups" /><label class="form-check-label">Backups</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" asp-for="Input.AllowCustomPhp" /><label class="form-check-label">Custom PHP</label></div>
+                </div>
+                <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Create Reseller</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (Model.Edit != null)
+{
+    var e = Model.Edit.Profile;
+    <div class="card srx-card mb-4 border-primary">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Edit @Model.Edit.UserName — @e.CompanyName</h6>
+                <a asp-page="/Admin/Resellers" class="btn-close btn-close-white"></a>
+            </div>
+            <form method="post" asp-page-handler="Update" asp-route-profileId="@e.Id">
+                <div class="row g-2">
+                    <div class="col-md-6 mb-2"><label class="form-label">Company Name</label><input name="Input.CompanyName" value="@e.CompanyName" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Disk (MB)</label><input name="Input.DiskQuotaMB" value="@e.DiskQuotaMB" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Bandwidth (MB)</label><input name="Input.BandwidthQuotaMB" value="@e.BandwidthQuotaMB" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Max Clients</label><input name="Input.MaxClients" value="@e.MaxClients" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Max Domains</label><input name="Input.MaxDomains" value="@e.MaxDomains" type="number" class="form-control" /></div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 my-2">
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="Input.AllowEmail" value="true" @(e.AllowEmail ? "checked" : "") /><label class="form-check-label">Email</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="Input.AllowDns" value="true" @(e.AllowDns ? "checked" : "") /><label class="form-check-label">DNS</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="Input.AllowBackups" value="true" @(e.AllowBackups ? "checked" : "") /><label class="form-check-label">Backups</label></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="Input.AllowCustomPhp" value="true" @(e.AllowCustomPhp ? "checked" : "") /><label class="form-check-label">Custom PHP</label></div>
+                </div>
+                <button class="btn btn-primary btn-sm"><i class="bi bi-save"></i> Save Quotas</button>
+            </form>
+
+            <hr class="border-secondary" />
+            <h6 class="text-light mb-2"><i class="bi bi-people"></i> Clients (@Model.EditClients.Count)</h6>
+            @if (Model.EditClients.Any())
+            {
+                <ul class="list-unstyled mb-0 small">
+                    @foreach (var c in Model.EditClients)
+                    {
+                        <li class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle">
+                            <span class="text-light">@c.UserName <span class="text-secondary">@c.Email</span></span>
+                            <span>@(c.IsActive ? "Active" : "Suspended")</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-secondary small mb-0">No clients.</p>
+            }
+        </div>
+    </div>
+}
+
+<div class="card srx-card">
+    <div class="card-body">
+        @if (Model.Rows.Any())
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Company</th><th>User</th><th>Clients</th><th>Disk</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr>
+                            <td><strong class="text-light">@r.Profile.CompanyName</strong></td>
+                            <td>@r.UserName<div class="small text-secondary">@r.Email</div></td>
+                            <td>@r.ClientCount / @Limit(r.Profile.MaxClients)</td>
+                            <td>@r.DiskUsedMB / @LimitL(r.Profile.DiskQuotaMB) MB</td>
+                            <td>
+                                @if (r.Profile.IsActive)
+                                {
+                                    <span class="badge text-bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Suspended</span>
+                                }
+                            </td>
+                            <td class="text-secondary small">@r.Profile.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td class="text-end text-nowrap">
+                                <a asp-page="/Admin/Resellers" asp-route-edit="@r.Profile.Id" class="btn btn-sm btn-outline-secondary" title="Edit / clients"><i class="bi bi-sliders"></i></a>
+                                <form method="post" asp-page-handler="Impersonate" asp-route-userId="@r.Profile.UserId" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-info" title="Login as reseller"><i class="bi bi-box-arrow-in-right"></i></button>
+                                </form>
+                                <form method="post" asp-page-handler="Suspend" asp-route-profileId="@r.Profile.Id" class="d-inline srx-confirm-form" data-confirm-message="Toggle suspension? This also affects all their clients.">
+                                    <button class="btn btn-sm btn-outline-warning" title="Suspend / reactivate"><i class="bi bi-pause-circle"></i></button>
+                                </form>
+                                <form method="post" asp-page-handler="Delete" asp-route-profileId="@r.Profile.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this reseller AND all @r.ClientCount client(s) with all their data? This cannot be undone.">
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-secondary mb-0">No resellers yet. Click <strong>New Reseller</strong> to add one.</p>
+        }
+    </div>
+</div>

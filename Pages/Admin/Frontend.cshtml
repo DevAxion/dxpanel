@@ -1,0 +1,102 @@
+@page
+@model SRXPanel.Pages.Admin.FrontendModel
+@{
+    ViewData["Title"] = "Frontend";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Website</li>
+            <li class="breadcrumb-item active" aria-current="page">Frontend</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Frontend Customization</h4>
+    <a href="/" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-up-right"></i> View site</a>
+</div>
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-window"></i> Identity &amp; Hero</h6>
+                <div class="mb-2"><label class="form-label">Company name</label><input asp-for="Settings.SiteName" class="form-control" placeholder="Professional Web Hosting" /></div>
+                <div class="mb-2"><label class="form-label">Logo URL <span class="text-secondary small">(shown instead of the name if set)</span></label><input asp-for="Settings.LogoPath" class="form-control" placeholder="/img/logo.png" /></div>
+                <div class="mb-2"><label class="form-label">Tagline</label><input asp-for="Settings.Tagline" class="form-control" /></div>
+                <div class="mb-2"><label class="form-label">Hero headline</label><input asp-for="Settings.HeroHeadline" class="form-control" /></div>
+                <div class="mb-2"><label class="form-label">Hero subheadline</label><textarea asp-for="Settings.HeroSubheadline" class="form-control" rows="2"></textarea></div>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Primary CTA text</label><input asp-for="Settings.HeroCtaPrimaryText" class="form-control" /></div>
+                    <div class="col-6"><label class="form-label">Secondary CTA text</label><input asp-for="Settings.HeroCtaSecondaryText" class="form-control" /></div>
+                </div>
+            </div></div>
+
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-palette"></i> Appearance</h6>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Primary color</label><input asp-for="Settings.PrimaryColor" type="color" class="form-control form-control-color" /></div>
+                    <div class="col-6"><label class="form-label">Secondary color</label><input asp-for="Settings.SecondaryColor" type="color" class="form-control form-control-color" /></div>
+                </div>
+                <div class="mb-2 mt-2"><label class="form-label">Custom CSS</label><textarea asp-for="Settings.CustomCss" class="form-control font-monospace" rows="3" placeholder=".hero { ... }"></textarea></div>
+                <div class="mb-2"><label class="form-label">Custom JavaScript</label><textarea asp-for="Settings.CustomJs" class="form-control font-monospace" rows="3"></textarea></div>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-info-circle"></i> About</h6>
+                <div class="mb-2"><label class="form-label">About content</label><textarea asp-for="Settings.AboutContent" class="form-control" rows="3"></textarea></div>
+                <div class="mb-2"><label class="form-label">Mission statement</label><textarea asp-for="Settings.MissionStatement" class="form-control" rows="2"></textarea></div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-telephone"></i> Contact &amp; Social</h6>
+                <div class="mb-2"><label class="form-label">Contact email</label><input asp-for="Settings.ContactEmail" class="form-control" /></div>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Phone</label><input asp-for="Settings.ContactPhone" class="form-control" /></div>
+                    <div class="col-6"><label class="form-label">Address</label><input asp-for="Settings.ContactAddress" class="form-control" /></div>
+                </div>
+                <div class="mb-2 mt-2"><label class="form-label">Google Maps embed (iframe)</label><textarea asp-for="Settings.GoogleMapsEmbed" class="form-control font-monospace" rows="2"></textarea></div>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Facebook</label><input asp-for="Settings.SocialFacebook" class="form-control" /></div>
+                    <div class="col-6"><label class="form-label">X / Twitter</label><input asp-for="Settings.SocialTwitter" class="form-control" /></div>
+                    <div class="col-6"><label class="form-label">Instagram</label><input asp-for="Settings.SocialInstagram" class="form-control" /></div>
+                    <div class="col-6"><label class="form-label">LinkedIn</label><input asp-for="Settings.SocialLinkedin" class="form-control" /></div>
+                    <div class="col-12"><label class="form-label">GitHub</label><input asp-for="Settings.SocialGithub" class="form-control" /></div>
+                </div>
+            </div></div>
+
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-graph-up"></i> Marketing &amp; SEO</h6>
+                <div class="row g-2">
+                    <div class="col-6"><label class="form-label">Google Analytics ID</label><input asp-for="Settings.GoogleAnalyticsId" class="form-control" placeholder="G-XXXXXXX" /></div>
+                    <div class="col-6"><label class="form-label">Facebook Pixel ID</label><input asp-for="Settings.FacebookPixelId" class="form-control" /></div>
+                </div>
+                <div class="mb-2 mt-2"><label class="form-label">Meta description</label><textarea asp-for="Settings.MetaDescription" class="form-control" rows="2"></textarea></div>
+                <div class="mb-2"><label class="form-label">robots.txt</label><textarea asp-for="Settings.RobotsTxt" class="form-control font-monospace" rows="2"></textarea></div>
+                <div class="mb-2"><label class="form-label">Live chat code (Intercom, Crisp…)</label><textarea asp-for="Settings.LiveChatCode" class="form-control font-monospace" rows="2"></textarea></div>
+                <div class="mb-2"><label class="form-label">Cookie consent text</label><textarea asp-for="Settings.CookieConsentText" class="form-control" rows="2"></textarea></div>
+                <div class="mb-2"><label class="form-label">Money-back guarantee (days)</label><input asp-for="Settings.MoneyBackDays" type="number" class="form-control" /></div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" asp-for="Settings.ShowPoweredBy" />
+                    <label class="form-check-label">Show a "Powered by" credit in the footer <span class="text-secondary small">(off = full white-label)</span></label>
+                </div>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-cone-striped"></i> Maintenance</h6>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" asp-for="Settings.MaintenanceMode" />
+                    <label class="form-check-label">Maintenance mode (public site only; staff can still log in)</label>
+                </div>
+                <div class="mb-0"><label class="form-label">Maintenance message</label><textarea asp-for="Settings.MaintenanceMessage" class="form-control" rows="2"></textarea></div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="mt-4"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Frontend Settings</button></div>
+</form>

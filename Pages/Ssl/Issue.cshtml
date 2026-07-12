@@ -1,0 +1,56 @@
+@page
+@model SRXPanel.Pages.Ssl.IssueModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Issue SSL Certificate";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Ssl/Index">SSL Certificates</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Issue</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Issue SSL Certificate</h4>
+
+<div class="card srx-card" style="max-width: 560px;">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        @if (!Model.DomainOptions.Any())
+        {
+            <div class="alert alert-warning mb-0">No domains available. Add a domain first.</div>
+        }
+        else
+        {
+            <form method="post">
+                <div class="mb-3">
+                    <label asp-for="Input.DomainId" class="form-label"></label>
+                    <select asp-for="Input.DomainId" asp-items="Model.DomainOptions" class="form-select">
+                        <option value="">-- Select domain --</option>
+                    </select>
+                    <span asp-validation-for="Input.DomainId" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Type" class="form-label"></label>
+                    <select asp-for="Input.Type" class="form-select">
+                        <option value="@SslCertType.LetsEncrypt">Let's Encrypt (free, 90 days)</option>
+                        <option value="@SslCertType.SelfSigned">Self-Signed (365 days)</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-shield-plus"></i> Issue Certificate</button>
+                    <a asp-page="/Ssl/Index" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

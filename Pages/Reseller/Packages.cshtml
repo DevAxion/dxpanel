@@ -1,0 +1,110 @@
+@page
+@model SRXPanel.Pages.Reseller.PackagesModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Hosting Packages";
+    string Limit(int m) => m == 0 ? "∞" : m.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Reseller/Dashboard">Reseller</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Packages</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Hosting Packages</h4>
+
+@if (Model.Profile == null)
+{
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Your reseller account has no resource allocation yet.</div>
+    return;
+}
+
+<div class="alert alert-secondary small">
+    <i class="bi bi-info-circle"></i> Your allocation: up to
+    <strong>@(Model.Profile.DiskQuotaMB == 0 ? "∞" : $"{Model.Profile.DiskQuotaMB} MB")</strong> disk per package and
+    <strong>@Limit(Model.Profile.MaxDomains)</strong> domains total.
+    Package limits cannot exceed these.
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-plus-circle"></i> New / Edit Package</h6>
+                <form method="post" asp-page-handler="Save">
+                    <input type="hidden" asp-for="Input.Id" />
+                    <div class="mb-2"><label class="form-label">Name</label><input asp-for="Input.Name" class="form-control" /></div>
+                    <div class="mb-2"><label class="form-label">Description</label><input asp-for="Input.Description" class="form-control" /></div>
+                    <div class="row g-2">
+                        <div class="col-6 mb-2"><label class="form-label">Disk (MB)</label><input asp-for="Input.DiskQuotaMB" type="number" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Bandwidth (MB)</label><input asp-for="Input.BandwidthQuotaMB" type="number" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Max Domains</label><input asp-for="Input.MaxDomains" type="number" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Max Emails</label><input asp-for="Input.MaxEmails" type="number" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Max Databases</label><input asp-for="Input.MaxDatabases" type="number" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Max FTP</label><input asp-for="Input.MaxFtpAccounts" type="number" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Price</label><input asp-for="Input.Price" type="number" step="0.01" class="form-control" /></div>
+                        <div class="col-6 mb-2"><label class="form-label">Billing</label>
+                            <select asp-for="Input.BillingCycle" asp-items="Html.GetEnumSelectList<BillingCycle>()" class="form-select"></select>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" asp-for="Input.IsPublic" />
+                        <label class="form-check-label">Publicly listed</label>
+                    </div>
+                    <button class="btn btn-primary"><i class="bi bi-save"></i> Save Package</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-box-seam"></i> Your Packages</h6>
+                @if (Model.Packages.Any())
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Name</th><th>Disk</th><th>Domains</th><th>Price</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var p in Model.Packages)
+                            {
+                                <tr>
+                                    <td><strong class="text-light">@p.Name</strong><div class="small text-secondary">@p.Description</div></td>
+                                    <td>@(p.DiskQuotaMB == 0 ? "∞" : $"{p.DiskQuotaMB}M")</td>
+                                    <td>@Limit(p.MaxDomains)</td>
+                                    <td>@p.Price.ToString("0.00")/@(p.BillingCycle == BillingCycle.Monthly ? "mo" : "yr")</td>
+                                    <td>
+                                        @if (p.IsPublic)
+                                        {
+                                            <span class="badge text-bg-success">Public</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-secondary">Private</span>
+                                        }
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <form method="post" asp-page-handler="Toggle" asp-route-id="@p.Id" class="d-inline">
+                                            <button class="btn btn-sm btn-outline-secondary" title="Toggle visibility"><i class="bi bi-eye"></i></button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@p.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this package?">
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No packages yet. Create one on the left.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

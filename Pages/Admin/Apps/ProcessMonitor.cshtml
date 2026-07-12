@@ -1,0 +1,56 @@
+@page
+@model SRXPanel.Pages.Admin.Apps.ProcessMonitorModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Process Monitor";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Apps/Hosted">Applications</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Process Monitor</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-cpu accent"></i> Process Monitor</h4>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="Save"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-save"></i> pm2 save</button></form>
+        <form method="post" asp-page-handler="Resurrect"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-repeat"></i> pm2 resurrect</button></form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Processes.Count</div><div class="srx-stat-label">Processes</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalCpu.ToString("0.0")<span class="fs-6">%</span></div><div class="srx-stat-label">Total CPU</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalMemory.ToString("0")<span class="fs-6"> MB</span></div><div class="srx-stat-label">Total memory</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-success"><i class="bi bi-check-circle"></i></div><div class="srx-stat-label">Auto-start on boot</div></div></div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    @if (!Model.Processes.Any()) { <p class="text-secondary mb-0">No running processes.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>PM2 id</th><th>Name</th><th>Owner</th><th>Type</th><th>Mode</th><th>PID</th><th>CPU</th><th>Memory</th><th>Restarts</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var p in Model.Processes)
+            {
+                <tr>
+                    <td class="text-secondary">@(p.Pm2Id?.ToString() ?? "—")</td>
+                    <td class="text-light"><i class="bi @p.TypeIcon"></i> @p.Name</td>
+                    <td class="text-secondary small">@(p.User?.Email ?? p.UserId)</td>
+                    <td class="text-secondary">@p.Type</td>
+                    <td class="text-secondary small">@(p.ClusterMode ? "cluster" : "fork")</td>
+                    <td class="text-secondary">@(p.Pid?.ToString() ?? "—")</td>
+                    <td class="@(p.CpuPercent > 80 ? "text-danger" : "text-secondary") small">@p.CpuPercent.ToString("0.0")%</td>
+                    <td class="text-secondary small">@p.MemoryMB.ToString("0") MB</td>
+                    <td class="text-secondary">@p.RestartCount</td>
+                    <td><span class="badge @(p.Status == HostedAppStatus.Running ? "text-bg-success" : "text-bg-danger")">@p.Status</span></td>
+                    <td class="text-end"><form method="post" asp-page-handler="Kill" class="srx-confirm-form" data-confirm-message="Kill process for @p.Name?"><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-octagon"></i> Kill</button></form></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>

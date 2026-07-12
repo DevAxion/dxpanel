@@ -1,0 +1,84 @@
+@page
+@model SRXPanel.Pages.Dns.IndexModel
+@{
+    ViewData["Title"] = "DNS Zones";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">DNS</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">DNS Zones</h4>
+
+<div class="card srx-card">
+    <div class="card-body">
+        @if (Model.Zones.Any())
+        {
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        @if (Model.ShowOwner)
+                        {
+                            <th>Owner</th>
+                        }
+                        <th>Zone Status</th>
+                        <th>Records</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var z in Model.Zones)
+                    {
+                        <tr>
+                            <td><i class="bi bi-hdd-network me-1"></i>@z.Domain.DomainName</td>
+                            @if (Model.ShowOwner)
+                            {
+                                <td>@(z.OwnerName ?? "-")</td>
+                            }
+                            <td>
+                                @if (z.Zone != null)
+                                {
+                                    <span class="badge srx-badge-active">Zone Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">No Zone</span>
+                                }
+                            </td>
+                            <td>@z.RecordCount</td>
+                            <td class="text-end">
+                                @if (z.Zone != null)
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-page="/Dns/Records" asp-route-domainId="@z.Domain.Id" class="btn btn-outline-primary" title="Manage Records">
+                                            <i class="bi bi-list-ul"></i> Records
+                                        </a>
+                                        <form method="post" asp-page-handler="DeleteZone" asp-route-zoneId="@z.Zone.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete the DNS zone for '@z.Domain.DomainName' and all its records?">
+                                            <button type="submit" class="btn btn-outline-danger" title="Delete Zone"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="CreateZone" asp-route-domainId="@z.Domain.Id" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Create Zone</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-secondary mb-0">No domains available. Add a domain first.</p>
+        }
+    </div>
+</div>

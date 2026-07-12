@@ -1,0 +1,82 @@
+@page
+@model SRXPanel.Pages.Admin.Email.LogsModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Platform Email Logs";
+    var r = Model.Report;
+    (string cls, string text) Badge(EmailLogStatus s) => s switch
+    {
+        EmailLogStatus.Delivered => ("text-bg-success", "Delivered"),
+        EmailLogStatus.Deferred => ("text-bg-warning", "Deferred"),
+        EmailLogStatus.Bounced => ("text-bg-danger", "Bounced"),
+        EmailLogStatus.Spam => ("text-bg-warning", "Spam"),
+        EmailLogStatus.Rejected => ("text-bg-danger", "Rejected"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Email/Index">Email</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Logs</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-journal-text accent"></i> Platform Email Logs</h4>
+    <a asp-page-handler="Export" asp-all-route-data='new Dictionary<string,string>{{"from", Model.From?.ToString("yyyy-MM-dd") ?? ""},{"to", Model.To?.ToString("yyyy-MM-dd") ?? ""},{"domainId", Model.DomainId?.ToString() ?? ""}}' class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Export CSV</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@r.Total</div><div class="srx-stat-label">Total</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@r.Delivered</div><div class="srx-stat-label">Delivered</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@r.Bounced</div><div class="srx-stat-label">Bounced</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@r.Spam</div><div class="srx-stat-label">Spam</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@r.DeliveryRate<span class="fs-6">%</span></div><div class="srx-stat-label">Rate</div></div></div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-auto"><label class="form-label text-secondary small">From</label><input type="date" name="from" value="@Model.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+        <div class="col-auto"><label class="form-label text-secondary small">To</label><input type="date" name="to" value="@Model.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+        <div class="col-auto"><label class="form-label text-secondary small">Status</label>
+            <select name="status" class="form-select form-select-sm"><option value="">All</option>
+                @foreach (var s in Enum.GetValues<EmailLogStatus>()) { <option value="@s" selected="@(Model.Status == s)">@s</option> }</select></div>
+        <div class="col-auto"><label class="form-label text-secondary small">Domain</label>
+            <select name="domainId" class="form-select form-select-sm"><option value="">All</option>
+                @foreach (var d in Model.Domains) { <option value="@d.Id" selected="@(Model.DomainId == d.Id)">@d.DomainName</option> }</select></div>
+        <div class="col"><label class="form-label text-secondary small">Search</label><input name="q" value="@Model.Q" class="form-control form-control-sm" placeholder="email / subject / message-id" /></div>
+        <div class="col-auto"><button class="btn btn-sm btn-primary">Filter</button></div>
+    </form>
+
+    @if (!Model.Logs.Items.Any()) { <p class="text-secondary mb-0">No log entries.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>From</th><th>To</th><th>Subject</th><th>Status</th><th>Spam</th><th>Date</th></tr></thead>
+            <tbody>
+            @foreach (var l in Model.Logs.Items)
+            {
+                var b = Badge(l.Status);
+                <tr>
+                    <td class="small font-monospace text-secondary">@l.FromAddress</td>
+                    <td class="small font-monospace text-secondary">@l.ToAddress</td>
+                    <td class="small text-light">@(l.Subject.Length > 32 ? l.Subject[..32] + "…" : l.Subject)</td>
+                    <td><span class="badge @b.cls">@b.text</span></td>
+                    <td class="small @(l.SpamScore >= 5 ? "text-warning" : "text-secondary")">@l.SpamScore.ToString("0.0")</td>
+                    <td class="text-secondary small">@l.CreatedAt.ToString("MM-dd HH:mm")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        @if (Model.Logs.TotalPages > 1)
+        {
+            <nav class="mt-3"><ul class="pagination pagination-sm mb-0">
+                @for (var p = 1; p <= Math.Min(Model.Logs.TotalPages, 15); p++)
+                {
+                    <li class="page-item @(p == Model.Logs.Page ? "active" : "")"><a class="page-link" asp-route-page="@p" asp-route-status="@Model.Status" asp-route-domainId="@Model.DomainId">@p</a></li>
+                }
+            </ul></nav>
+        }
+    }
+</div></div>

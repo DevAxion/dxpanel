@@ -1,0 +1,199 @@
+@page
+@model SRXPanel.Pages.Client.FileManagerModel
+@{
+    ViewData["Title"] = "File Manager";
+    static string Size(long b){ string[] u={"B","KB","MB","GB"}; double s=b; int i=0; while(s>=1024&&i<u.Length-1){s/=1024;i++;} return $"{s:0.#} {u[i]}"; }
+    var editExt = System.IO.Path.GetExtension(Model.EditFile ?? "").Replace(".", "");
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">File Manager</li>
+        </ol>
+    </nav>
+}
+
+@if (Model.Editing)
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-light mb-0"><i class="bi bi-pencil-square"></i> <code>@Model.EditFile</code></h5>
+        <a asp-page="/Client/FileManager" asp-route-path="@Model.Path" class="btn btn-sm btn-outline-secondary">Back</a>
+    </div>
+    <form method="post" asp-page-handler="SaveFile">
+        <input type="hidden" name="file" value="@Model.EditFile" />
+        <input type="hidden" name="content" id="editorContent" />
+        <div id="monaco" style="height:60vh;border:1px solid #30363d;border-radius:8px;"></div>
+        <textarea id="rawContent" class="d-none">@Model.EditContent</textarea>
+        <div class="mt-3"><button type="submit" class="btn btn-primary" onclick="document.getElementById('editorContent').value = window._getEditorValue ? window._getEditorValue() : document.getElementById('rawContent').value;"><i class="bi bi-save"></i> Save</button></div>
+    </form>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-light mb-0"><i class="bi bi-folder2-open"></i> File Manager</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#mkdirModal"><i class="bi bi-folder-plus"></i> Folder</button>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#mkfileModal"><i class="bi bi-file-earmark-plus"></i> File</button>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#compressModal"><i class="bi bi-file-zip"></i> Compress</button>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="bi bi-upload"></i> Upload</button>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-3">
+            <div class="card srx-card"><div class="card-body p-2" style="max-height:70vh;overflow:auto;">
+                <a asp-page="/Client/FileManager" asp-route-path="" class="d-block text-decoration-none py-1 @(string.IsNullOrEmpty(Model.Path) ? "text-primary" : "text-light")"><i class="bi bi-house"></i> home</a>
+                @foreach (var t in Model.Tree)
+                {
+                    var indent = (t.Permissions?.Length ?? 0);
+                    <a asp-page="/Client/FileManager" asp-route-path="@t.RelativePath" class="d-block text-decoration-none py-1 text-secondary" style="padding-left:@(12 + indent * 14)px;"><i class="bi bi-folder"></i> @t.Name</a>
+                }
+            </div></div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card srx-card mb-2"><div class="card-body py-2 d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a asp-page="/Client/FileManager" asp-route-path=""><i class="bi bi-house"></i></a></li>
+                    @{ var acc = ""; }
+                    @foreach (var seg in Model.Crumbs)
+                    {
+                        acc = string.IsNullOrEmpty(acc) ? seg : $"{acc}/{seg}";
+                        <li class="breadcrumb-item"><a asp-page="/Client/FileManager" asp-route-path="@acc">@seg</a></li>
+                    }
+                </ol></nav>
+                <form method="get" class="d-flex gap-2 align-items-center">
+                    <input type="hidden" name="path" value="@Model.Path" />
+                    <div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" name="ShowHidden" value="true" onchange="this.form.submit()" @(Model.ShowHidden ? "checked" : "") /><label class="form-check-label small">Hidden</label></div>
+                    <input name="Query" value="@Model.Query" class="form-control form-control-sm" placeholder="Search..." style="width:160px;" />
+                </form>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body p-0">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Name</th><th>Size</th><th>Modified</th><th>Perms</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        @if (!string.IsNullOrEmpty(Model.Path))
+                        {
+                            var parent = Model.Path.Contains('/') ? Model.Path[..Model.Path.LastIndexOf('/')] : "";
+                            <tr><td colspan="5"><a asp-page="/Client/FileManager" asp-route-path="@parent" class="text-secondary"><i class="bi bi-arrow-90deg-up"></i> ..</a></td></tr>
+                        }
+                        @foreach (var e in Model.Entries)
+                        {
+                            <tr>
+                                <td>
+                                    @if (e.IsDirectory)
+                                    {
+                                        <a asp-page="/Client/FileManager" asp-route-path="@e.RelativePath" class="text-decoration-none"><i class="bi bi-folder-fill text-warning"></i> @e.Name</a>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-file-earmark text-secondary"></i> @e.Name
+                                    }
+                                </td>
+                                <td>@(e.IsDirectory ? "—" : Size(e.Size))</td>
+                                <td class="small">@e.Modified.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td><code class="small">@e.Permissions</code></td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        @if (!e.IsDirectory && Model.CanEdit(e.Name))
+                                        {
+                                            <a asp-page-handler="Edit" asp-route-file="@e.RelativePath" asp-route-path="@Model.Path" class="btn btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                        }
+                                        @if (!e.IsDirectory)
+                                        {
+                                            <a asp-page-handler="Download" asp-route-file="@e.RelativePath" class="btn btn-outline-secondary" title="Download"><i class="bi bi-download"></i></a>
+                                        }
+                                        @if (!e.IsDirectory && e.Name.EndsWith(".zip"))
+                                        {
+                                            <form method="post" asp-page-handler="Extract" asp-route-path="@Model.Path"><input type="hidden" name="target" value="@e.RelativePath" /><button class="btn btn-outline-secondary" title="Extract"><i class="bi bi-file-zip"></i></button></form>
+                                        }
+                                        <button class="btn btn-outline-secondary chmod-btn" title="Permissions" data-target="@e.RelativePath"><i class="bi bi-shield-lock"></i></button>
+                                        <button class="btn btn-outline-secondary rename-btn" title="Rename" data-target="@e.RelativePath" data-name="@e.Name"><i class="bi bi-input-cursor-text"></i></button>
+                                        <form method="post" asp-page-handler="Delete" asp-route-path="@Model.Path" class="srx-confirm-form" data-confirm-message="Delete '@e.Name'?"><input type="hidden" name="target" value="@e.RelativePath" /><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Entries.Any()) { <tr><td colspan="5" class="text-secondary">Empty.</td></tr> }
+                    </tbody>
+                </table>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="mkdirModal"><div class="modal-dialog"><form method="post" asp-page-handler="NewFolder" asp-route-path="@Model.Path" class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">New Folder</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input name="name" class="form-control" placeholder="Folder name" required /></div>
+        <div class="modal-footer"><button class="btn btn-primary">Create</button></div>
+    </form></div></div>
+    <div class="modal fade" id="mkfileModal"><div class="modal-dialog"><form method="post" asp-page-handler="NewFile" asp-route-path="@Model.Path" class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">New File</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input name="name" class="form-control" placeholder="index.html" required /></div>
+        <div class="modal-footer"><button class="btn btn-primary">Create</button></div>
+    </form></div></div>
+    <div class="modal fade" id="uploadModal"><div class="modal-dialog"><form method="post" asp-page-handler="Upload" asp-route-path="@Model.Path" enctype="multipart/form-data" class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Upload Files</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input type="file" name="uploads" class="form-control" multiple required /><div class="form-text">Multiple files supported. Max 100 MB each.</div></div>
+        <div class="modal-footer"><button class="btn btn-primary">Upload</button></div>
+    </form></div></div>
+    <div class="modal fade" id="compressModal"><div class="modal-dialog"><form method="post" asp-page-handler="Compress" asp-route-path="@Model.Path" class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Compress to ZIP</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input name="zipName" class="form-control mb-2" placeholder="archive.zip" required />
+            <label class="form-label small">Select items:</label>
+            <div style="max-height:200px;overflow:auto;">
+                @foreach (var e in Model.Entries)
+                {
+                    <div class="form-check"><input class="form-check-input" type="checkbox" name="items" value="@e.RelativePath" /><label class="form-check-label small">@e.Name</label></div>
+                }
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">Compress</button></div>
+    </form></div></div>
+    <div class="modal fade" id="renameModal"><div class="modal-dialog"><form method="post" asp-page-handler="Rename" asp-route-path="@Model.Path" class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Rename</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input type="hidden" name="target" id="renameTarget" /><input name="newName" id="renameName" class="form-control" required /></div>
+        <div class="modal-footer"><button class="btn btn-primary">Rename</button></div>
+    </form></div></div>
+    <div class="modal fade" id="chmodModal"><div class="modal-dialog"><form method="post" asp-page-handler="Chmod" asp-route-path="@Model.Path" class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Permissions (chmod)</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><input type="hidden" name="target" id="chmodTarget" /><input name="mode" id="chmodMode" class="form-control" value="755" pattern="[0-7]{3,4}" /><div class="form-text">Octal, e.g. 755 for folders, 644 for files.</div></div>
+        <div class="modal-footer"><button class="btn btn-primary">Apply</button></div>
+    </form></div></div>
+}
+
+@section Scripts {
+    @if (Model.Editing)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+        <text><script>
+            require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                const langMap = { js:'javascript', ts:'typescript', json:'json', html:'html', htm:'html', css:'css', php:'php', xml:'xml', md:'markdown', sql:'sql', yml:'yaml', yaml:'yaml', sh:'shell', conf:'ini', ini:'ini' };
+                const editor = monaco.editor.create(document.getElementById('monaco'), {
+                    value: document.getElementById('rawContent').value,
+                    language: langMap['@editExt'] || 'plaintext',
+                    theme: 'vs-dark', automaticLayout: true, minimap: { enabled: false }
+                });
+                window._getEditorValue = () => editor.getValue();
+            });
+        </script></text>
+    }
+    else
+    {
+        <text><script>
+            document.querySelectorAll('.rename-btn').forEach(b => b.addEventListener('click', () => {
+                document.getElementById('renameTarget').value = b.dataset.target;
+                document.getElementById('renameName').value = b.dataset.name;
+                new bootstrap.Modal(document.getElementById('renameModal')).show();
+            }));
+            document.querySelectorAll('.chmod-btn').forEach(b => b.addEventListener('click', () => {
+                document.getElementById('chmodTarget').value = b.dataset.target;
+                new bootstrap.Modal(document.getElementById('chmodModal')).show();
+            }));
+        </script></text>
+    }
+}

@@ -1,0 +1,80 @@
+@page
+@model SRXPanel.Pages.Client.Email.MailServerModel
+@{
+    ViewData["Title"] = "Mail Server";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Email</li><li class="breadcrumb-item active" aria-current="page">Mail Server</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-server accent"></i> Mail Server</h4>
+    <form method="get"><select name="domainId" class="form-select form-select-sm" onchange="this.form.submit()">
+        @foreach (var d in Model.Domains) { <option value="@d.Id" selected="@(Model.DomainId == d.Id)">@d.DomainName</option> }
+    </select></form>
+</div>
+
+@if (Model.Selected == null || Model.Config == null)
+{
+    <div class="card srx-card"><div class="card-body text-secondary text-center py-4">Add a domain first.</div></div>
+}
+else
+{
+    var cfg = Model.Config;
+    <div class="row g-3">
+        <div class="col-lg-6"><div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Connection details</h6>
+            <table class="table table-sm mb-3">
+                <tbody>
+                <tr><td class="text-secondary">SMTP</td><td class="font-monospace text-light">@cfg.SmtpHost:@cfg.SmtpPort <span class="badge text-bg-secondary">STARTTLS</span></td><td class="text-end"><button class="btn btn-sm btn-outline-secondary copy" data-copy="@cfg.SmtpHost:@cfg.SmtpPort"><i class="bi bi-clipboard"></i></button></td></tr>
+                <tr><td class="text-secondary">IMAP</td><td class="font-monospace text-light">@cfg.ImapHost:@cfg.ImapPort <span class="badge text-bg-secondary">SSL</span></td><td class="text-end"><button class="btn btn-sm btn-outline-secondary copy" data-copy="@cfg.ImapHost:@cfg.ImapPort"><i class="bi bi-clipboard"></i></button></td></tr>
+                <tr><td class="text-secondary">POP3</td><td class="font-monospace text-light">@cfg.Pop3Host:@cfg.Pop3Port <span class="badge text-bg-secondary">SSL</span></td><td class="text-end"><button class="btn btn-sm btn-outline-secondary copy" data-copy="@cfg.Pop3Host:@cfg.Pop3Port"><i class="bi bi-clipboard"></i></button></td></tr>
+                </tbody>
+            </table>
+            <a href="https://@cfg.ImapHost/webmail" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm"><i class="bi bi-box-arrow-up-right"></i> Open Webmail (Roundcube)</a>
+        </div></div></div>
+
+        <div class="col-lg-6"><div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Server status</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div><span class="badge @(Model.Postfix.Running ? "text-bg-success" : "text-bg-danger")">Postfix</span>
+                    <span class="text-secondary small ms-2">queue: @Model.Postfix.QueueSize · @Model.Postfix.Processes procs</span></div>
+                <form method="post" asp-page-handler="Reload"><input type="hidden" name="domainId" value="@Model.Selected.Id" /><input type="hidden" name="service" value="postfix" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Reload</button></form>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div><span class="badge @(Model.Dovecot.Running ? "text-bg-success" : "text-bg-danger")">Dovecot</span>
+                    <span class="text-secondary small ms-2">@Model.Dovecot.Connections conns · @Model.Dovecot.MemoryMB MB</span></div>
+                <form method="post" asp-page-handler="Reload"><input type="hidden" name="domainId" value="@Model.Selected.Id" /><input type="hidden" name="service" value="dovecot" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Reload</button></form>
+            </div>
+        </div></div></div>
+    </div>
+
+    <div class="card srx-card mt-3"><div class="card-body">
+        <h6 class="text-light mb-3">Spam filter</h6>
+        <form method="post" asp-page-handler="Spam" class="row g-3">
+            <input type="hidden" name="domainId" value="@Model.Selected.Id" />
+            <div class="col-md-4">
+                <label class="form-label text-secondary">SpamAssassin threshold: <span id="thVal">@cfg.SpamThreshold.ToString("0.0")</span></label>
+                <input type="range" name="spamThreshold" min="1" max="10" step="0.5" value="@cfg.SpamThreshold" class="form-range" oninput="document.getElementById('thVal').textContent=this.value" />
+                <div class="form-text">Lower = more aggressive.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-secondary">Auto-delete spam after (days)</label>
+                <input type="number" name="spamRetentionDays" min="0" max="365" value="@cfg.SpamRetentionDays" class="form-control" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="quarantineEnabled" value="true" id="quar" @(cfg.QuarantineEnabled ? "checked" : "") /><label class="form-check-label text-secondary" for="quar">Quarantine folder</label></div>
+            </div>
+            <div class="col-12"><button class="btn btn-primary btn-sm">Save spam settings</button></div>
+        </form>
+    </div></div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.copy').forEach(function(b){ b.addEventListener('click', function(){ navigator.clipboard.writeText(b.dataset.copy); b.innerHTML='<i class="bi bi-check"></i>'; setTimeout(function(){ b.innerHTML='<i class="bi bi-clipboard"></i>'; }, 1200); }); });
+    </script>
+}

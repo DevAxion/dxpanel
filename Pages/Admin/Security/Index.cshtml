@@ -1,0 +1,121 @@
+@page
+@model SRXPanel.Pages.Admin.Security.IndexModel
+@{
+    ViewData["Title"] = "Security";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Security</li>
+        <li class="breadcrumb-item active" aria-current="page">Overview</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Security Overview</h4>
+    <a href="/Admin/Reports/Security" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a>
+</div>
+
+<div class="row g-3 mb-4">
+    @{
+        var tiles = new (string Label, string Value, string Icon, string Color, string Link)[]
+        {
+            ("WAF alerts today", Model.AlertsToday.ToString(), "bi-shield-exclamation", "#f85149", "/Admin/Security/Waf"),
+            ("Alerts (7 days)", Model.AlertsWeek.ToString(), "bi-graph-up", "#d29922", "/Admin/Security/Waf"),
+            ("Blocked IPs", Model.BlockedIps.ToString(), "bi-slash-circle", "#f85149", "/Admin/Security/BruteForce"),
+            ("Active threats", Model.ActiveThreats.ToString(), "bi-bug", "#f85149", "/Admin/Security/Malware"),
+            ("WAF-protected domains", Model.WafProtectedDomains.ToString(), "bi-shield-check", "#3fb950", "/Admin/Security/Waf")
+        };
+    }
+    @foreach (var t in tiles)
+    {
+        <div class="col-6 col-lg">
+            <a href="@t.Link" class="text-decoration-none">
+                <div class="card srx-card h-100"><div class="card-body text-center">
+                    <i class="bi @t.Icon" style="font-size:24px;color:@t.Color;"></i>
+                    <div style="font-size:28px;font-weight:800;color:#fff;">@t.Value</div>
+                    <div class="text-secondary small">@t.Label</div>
+                </div></div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-hdd-stack"></i> System security status</h6>
+            @{
+                var services = new (string Name, bool Ok)[] { ("Fail2ban", true), ("ModSecurity (WAF)", Model.WafProtectedDomains > 0), ("ClamAV", true), ("UFW Firewall", true) };
+            }
+            @foreach (var svc in services)
+            {
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <span class="text-light">@svc.Name</span>
+                    <span class="badge @(svc.Ok ? "text-bg-success" : "text-bg-secondary")">@(svc.Ok ? "Active" : "Inactive")</span>
+                </div>
+            }
+            <div class="d-flex justify-content-between align-items-center py-1">
+                <span class="text-light">ClamAV definitions</span>
+                <span class="text-secondary small">@Model.ClamAvDate.ToString("MMM d, yyyy")</span>
+            </div>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-fire"></i> Top threats (WAF rules)</h6>
+            @if (!Model.TopThreats.Any())
+            {
+                <p class="text-secondary mb-0">No WAF alerts recorded.</p>
+            }
+            else
+            {
+                foreach (var t in Model.TopThreats)
+                {
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-light small"><code>@t.Rule</code> @t.Message</span>
+                        <span class="badge text-bg-danger">@t.Count</span>
+                    </div>
+                }
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-person-exclamation"></i> Users with low security score</h6>
+            @if (!Model.LowScoreUsers.Any())
+            {
+                <p class="text-secondary mb-0">All users have a healthy security score.</p>
+            }
+            else
+            {
+                foreach (var u in Model.LowScoreUsers)
+                {
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <span class="text-light">@u.User</span>
+                        <span class="badge @(u.Score < 40 ? "text-bg-danger" : "text-bg-warning")">@u.Score / 100</span>
+                    </div>
+                }
+            }
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-exclamation-octagon"></i> Recent critical events</h6>
+            @if (!Model.CriticalEvents.Any())
+            {
+                <p class="text-secondary mb-0">No critical malware events.</p>
+            }
+            else
+            {
+                foreach (var e in Model.CriticalEvents)
+                {
+                    <div class="py-1 border-bottom border-secondary">
+                        <span class="badge @(e.Severity == MalwareSeverity.Critical ? "text-bg-danger" : "text-bg-warning")">@e.Severity</span>
+                        <span class="text-light small">@e.ThreatType — @e.FilePath</span>
+                        <div class="text-secondary" style="font-size:12px;">@e.DetectedAt.ToString("MMM d, HH:mm")</div>
+                    </div>
+                }
+            }
+        </div></div>
+    </div>
+</div>

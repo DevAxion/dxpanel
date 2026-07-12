@@ -1,0 +1,106 @@
+@page
+@model SRXPanel.Pages.Affiliate.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Affiliate Program";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item active" aria-current="page">Affiliate</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Affiliate Program <span class="text-secondary fs-6">(@Model.Affiliate.CommissionPercent% commission)</span></h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Stats.Clicks</div><div class="srx-stat-label"><i class="bi bi-cursor"></i> Clicks</div></div></div>
+    <div class="col-md-3 col-6"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Stats.Signups</div><div class="srx-stat-label"><i class="bi bi-person-plus"></i> Signups</div></div></div>
+    <div class="col-md-3 col-6"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Stats.Conversions</div><div class="srx-stat-label"><i class="bi bi-graph-up-arrow"></i> Conversions</div></div></div>
+    <div class="col-md-3 col-6"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Stats.TotalEarned.ToString("0.00")</div><div class="srx-stat-label"><i class="bi bi-cash"></i> Total Earned</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card srx-card mb-4">
+            <div class="card-body text-center">
+                <h6 class="text-light mb-3"><i class="bi bi-link-45deg"></i> Your Referral Link</h6>
+                <div class="input-group mb-3">
+                    <input id="reflink" class="form-control" value="@Model.ReferralLink" readonly />
+                    <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('reflink').value)"><i class="bi bi-clipboard"></i></button>
+                </div>
+                <div id="qr" class="d-inline-block bg-white p-2 rounded"></div>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-wallet2"></i> Payout</h6>
+                <div class="d-flex justify-content-between mb-1"><span class="text-secondary">Pending</span><strong class="text-warning">@Model.Stats.PendingBalance.ToString("0.00")</strong></div>
+                <div class="d-flex justify-content-between mb-3"><span class="text-secondary">Paid out</span><strong class="text-success">@Model.Stats.PaidBalance.ToString("0.00")</strong></div>
+                <form method="post" asp-page-handler="RequestPayout">
+                    <div class="mb-2"><label class="form-label small">Method</label>
+                        <select name="method" class="form-select form-select-sm"><option>PayPal</option><option>Bank Transfer</option><option>Account Credit</option></select>
+                    </div>
+                    <div class="mb-2"><label class="form-label small">Details</label><input name="details" class="form-control form-control-sm" placeholder="PayPal email / IBAN" /></div>
+                    <button class="btn btn-primary btn-sm w-100">Request Payout (min @Model.MinPayout.ToString("0.00"))</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-list-check"></i> Commission History</h6>
+                @if (Model.Referrals.Any())
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Date</th><th class="text-end">Commission</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @foreach (var r in Model.Referrals)
+                            {
+                                <tr>
+                                    <td class="small text-secondary">@r.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td class="text-end">@r.CommissionAmount.ToString("0.00")</td>
+                                    <td><span class="badge @(r.Status == AffiliateReferralStatus.Paid ? "text-bg-success" : r.Status == AffiliateReferralStatus.Approved ? "text-bg-info" : r.Status == AffiliateReferralStatus.Rejected ? "text-bg-danger" : "text-bg-warning")">@r.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No referrals yet. Share your link to start earning.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-megaphone"></i> Marketing Materials</h6>
+                <div class="mb-2">
+                    <label class="form-label small">Banner (728×90) — HTML</label>
+                    <textarea class="form-control form-control-sm font-monospace" rows="2" readonly>&lt;a href="@Model.ReferralLink"&gt;&lt;img src="@(Request.Scheme)://@(Request.Host)/img/affiliate-728x90.png" alt="Get hosting"&gt;&lt;/a&gt;</textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Text link</label>
+                    <textarea class="form-control form-control-sm font-monospace" rows="1" readonly>&lt;a href="@Model.ReferralLink"&gt;Fast, reliable hosting — try it free&lt;/a&gt;</textarea>
+                </div>
+                <div>
+                    <label class="form-label small">Email snippet</label>
+                    <textarea class="form-control form-control-sm" rows="2" readonly>I've been using this hosting panel and love it. Sign up with my link and get started: @Model.ReferralLink</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        new QRCode(document.getElementById("qr"), { text: "@Model.ReferralLink", width: 140, height: 140 });
+    </script>
+}

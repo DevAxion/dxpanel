@@ -1,0 +1,90 @@
+services:
+  srxpanel:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: srxpanel:latest
+    container_name: srxpanel
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+      # SQLite lives on the named volume by default. To use the MySQL service
+      # instead, point the connection string at it here.
+      ConnectionStrings__DefaultConnection: "Data Source=/app/data/srxpanel.db"
+      Version: "1.0.0"
+      UpdateChannel: "stable"
+      SimulationMode: "false"
+      Panel__Hostname: "${PANEL_DOMAIN}"
+      Panel__LetsEncryptEmail: "${LETSENCRYPT_EMAIL}"
+      Panel__MySql__Host: "mysql"
+      Panel__MySql__RootUser: "root"
+      Panel__MySql__RootPassword: "${MYSQL_ROOT_PASSWORD}"
+      Stripe__PublishableKey: "${STRIPE_PUBLISHABLE_KEY}"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET}"
+    volumes:
+      - srx_data:/app/data
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  mysql:
+    image: mysql:8
+    container_name: srxpanel-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-srxpanel}"
+      MYSQL_USER: "${MYSQL_USER:-srxpanel}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    volumes:
+      - srx_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nginx:
+    image: nginx:alpine
+    container_name: srxpanel-nginx
+    restart: unless-stopped
+    depends_on:
+      - srxpanel
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - srx_certs:/etc/letsencrypt
+      - srx_certbot_www:/var/www/certbot
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  certbot:
+    image: certbot/certbot
+    container_name: srxpanel-certbot
+    restart: unless-stopped
+    volumes:
+      - srx_certs:/etc/letsencrypt
+      - srx_certbot_www:/var/www/certbot
+    # Renew every 12h; nginx picks up new certs on reload.
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  srx_data:
+  srx_mysql:
+  srx_certs:
+  srx_certbot_www:

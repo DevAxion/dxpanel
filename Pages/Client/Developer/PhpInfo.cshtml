@@ -1,0 +1,200 @@
+@page
+@model SRXPanel.Pages.Client.Developer.PhpInfoModel
+@using SRXPanel.Services.Developer
+@{
+    ViewData["Title"] = "PHP Configuration";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">PHP Configuration</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">PHP Configuration</h4>
+
+@if (!Model.Domains.Any() || Model.Domain == null)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        Add a domain first — PHP settings are configured per domain.
+        <a asp-page="/Client/Domains" class="alert-link">Add a domain</a>
+    </div>
+}
+else
+{
+
+<form method="get" class="mb-4" style="max-width:400px;">
+    <label class="form-label small">Domain</label>
+    <select name="domainId" class="form-select form-select-sm" onchange="this.form.submit()">
+        @foreach (var domain in Model.Domains)
+        {
+            <option value="@domain.Id" selected="@(Model.DomainId == domain.Id)">
+                @domain.DomainName — PHP @domain.PhpVersion
+            </option>
+        }
+    </select>
+</form>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Editable settings</h6>
+            <p class="text-secondary small">
+                Written to <code>~/.php.ini</code> and picked up by your PHP-FPM pool. Values are capped
+                at the limits shared hosting allows.
+            </p>
+
+            <form method="post" asp-page-handler="Save">
+                <input type="hidden" name="domainId" value="@Model.Domain!.Id" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">memory_limit</label>
+                        <input name="memoryLimit" value="@Model.Config.MemoryLimit" class="form-control form-control-sm font-monospace" />
+                        <div class="form-text">Max @(PhpConfigService.MaxMemoryLimitMB)M</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">max_execution_time</label>
+                        <input name="maxExecutionTime" type="number" min="5" max="@PhpConfigService.MaxExecutionTime"
+                               value="@Model.Config.MaxExecutionTime" class="form-control form-control-sm font-monospace" />
+                        <div class="form-text">Max @PhpConfigService.MaxExecutionTime seconds</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">upload_max_filesize</label>
+                        <input name="uploadMaxFilesize" value="@Model.Config.UploadMaxFilesize" class="form-control form-control-sm font-monospace" />
+                        <div class="form-text">Max @(PhpConfigService.MaxUploadMB)M</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">post_max_size</label>
+                        <input name="postMaxSize" value="@Model.Config.PostMaxSize" class="form-control form-control-sm font-monospace" />
+                        <div class="form-text">Max @(PhpConfigService.MaxUploadMB)M</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">max_input_vars</label>
+                        <input name="maxInputVars" type="number" min="100" max="@PhpConfigService.MaxInputVars"
+                               value="@Model.Config.MaxInputVars" class="form-control form-control-sm font-monospace" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">date.timezone</label>
+                        <select name="timezone" class="form-select form-select-sm">
+                            @foreach (var zone in Model.Timezones)
+                            {
+                                <option value="@zone" selected="@(Model.Config.Timezone == zone)">@zone</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small">error_reporting</label>
+                        <select name="errorReporting" class="form-select form-select-sm font-monospace">
+                            @foreach (var level in Model.ErrorLevels)
+                            {
+                                <option value="@level" selected="@(Model.Config.ErrorReporting == level)">@level</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="displayErrors" value="true"
+                                   id="displayErrors" checked="@Model.Config.DisplayErrors" />
+                            <input type="hidden" name="displayErrors" value="false" />
+                            <label class="form-check-label" for="displayErrors">
+                                display_errors
+                                <span class="text-secondary small d-block">
+                                    Shows PHP errors in the browser. Turn this off on a live site — it leaks paths and queries.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-sm mt-4"><i class="bi bi-check-lg"></i> Save &amp; reload PHP-FPM</button>
+            </form>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-puzzle"></i> Loaded extensions (@Model.Extensions.Count(e => e.Enabled))</h6>
+            <div class="d-flex flex-wrap gap-1" style="max-height:220px;overflow:auto;">
+                @foreach (var extension in Model.Extensions.OrderByDescending(e => e.Enabled).ThenBy(e => e.Name))
+                {
+                    <span class="badge @(extension.Enabled ? "text-bg-secondary" : "text-bg-dark border border-secondary")"
+                          title="@(extension.Enabled ? $"v{extension.Version}" : "not loaded")">
+                        @extension.Name
+                    </span>
+                }
+            </div>
+            <div class="form-text mt-2">Need another extension? Open a support ticket.</div>
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-list-columns"></i> Effective configuration</h6>
+            <div class="table-responsive" style="max-height:280px;overflow:auto;">
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        @foreach (var directive in Model.Directives)
+                        {
+                            <tr>
+                                <td class="text-secondary small font-monospace">@directive.Name</td>
+                                <td class="text-light small font-monospace" style="word-break:break-all;">@directive.Value</td>
+                                <td class="text-end">
+                                    @if (directive.Editable)
+                                    {
+                                        <span class="badge text-bg-secondary" style="font-size:10px;">editable</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-dark border border-secondary" style="font-size:10px;">locked</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-1"><i class="bi bi-info-circle"></i> phpinfo()</h6>
+            <p class="text-secondary small">
+                A filtered view. Environment variables, loaded .ini paths and server variables are omitted —
+                they expose host details that do not belong in a shared panel.
+            </p>
+
+            <div class="accordion accordion-flush" id="phpInfoAccordion">
+                @{ var index = 0; }
+                @foreach (var (sectionName, directives) in Model.PhpInfo)
+                {
+                    index++;
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#section-@index">
+                                @sectionName
+                            </button>
+                        </h2>
+                        <div id="section-@index" class="accordion-collapse collapse" data-bs-parent="#phpInfoAccordion">
+                            <div class="accordion-body p-0">
+                                <table class="table table-sm mb-0">
+                                    <tbody>
+                                        @foreach (var directive in directives)
+                                        {
+                                            <tr>
+                                                <td class="text-secondary small font-monospace">@directive.Name</td>
+                                                <td class="text-light small font-monospace">@directive.Value</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div></div>
+    </div>
+</div>
+
+}

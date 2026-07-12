@@ -1,0 +1,64 @@
+@page
+@model SRXPanel.Pages.Client.StatsModel
+@{
+    ViewData["Title"] = "Statistics";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Statistics</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Usage Statistics</h4>
+
+<div class="row g-4">
+    <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">Bandwidth (last 30 days, MB)</h6><canvas id="bwChart" height="140"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">Disk Usage History (MB)</h6><canvas id="diskChart" height="140"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">HTTP Requests (last 24h)</h6><canvas id="reqChart" height="140"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">Error Rate % (last 24h)</h6><canvas id="errChart" height="140"></canvas></div></div></div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Top Pages</h6>
+            <table class="table table-sm mb-0"><tbody>
+                @foreach (var (p, v) in Model.TopPages)
+                {
+                    <tr><td><code>@p</code></td><td class="text-end text-light">@v.ToString("N0") views</td></tr>
+                }
+            </tbody></table>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Visitors by Country</h6>
+            <table class="table table-sm mb-0"><tbody>
+                @foreach (var (c, v) in Model.Countries)
+                {
+                    <tr><td><i class="bi bi-geo-alt"></i> @c</td><td class="text-end text-light">@v.ToString("N0")</td></tr>
+                }
+            </tbody></table>
+            <div class="form-text mt-2">Country data requires GeoIP; showing sample data in simulation mode.</div>
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        Chart.defaults.color = '#8b949e';
+        Chart.defaults.borderColor = '#30363d';
+        const line = (id, labels, data, color, label) => new Chart(document.getElementById(id), {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: label, data: data, borderColor: color, backgroundColor: color + '33', fill: true, tension: 0.3, pointRadius: 0 }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+        line('bwChart', @Html.Raw(Model.LabelsJson), @Html.Raw(Model.BandwidthJson), '#3b82f6', 'MB');
+        line('diskChart', @Html.Raw(Model.LabelsJson), @Html.Raw(Model.DiskJson), '#22c55e', 'MB');
+        line('reqChart', @Html.Raw(Model.RequestLabelsJson), @Html.Raw(Model.RequestsJson), '#a855f7', 'Requests');
+        line('errChart', @Html.Raw(Model.RequestLabelsJson), @Html.Raw(Model.ErrorRateJson), '#ef4444', 'Error %');
+    </script>
+}

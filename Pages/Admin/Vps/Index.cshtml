@@ -1,0 +1,94 @@
+@page
+@model SRXPanel.Pages.Admin.Vps.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "VPS Instances";
+    (string cls, string text) Badge(VpsStatus s) => s switch
+    {
+        VpsStatus.Running => ("text-bg-success", "Running"),
+        VpsStatus.Building => ("text-bg-info", "Building"),
+        VpsStatus.Stopped => ("text-bg-secondary", "Stopped"),
+        VpsStatus.Suspended => ("text-bg-warning", "Suspended"),
+        VpsStatus.Error => ("text-bg-danger", "Error"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item active" aria-current="page">VPS</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-hdd-rack accent"></i> VPS Instances</h4>
+    <a asp-page="/Admin/Proxmox" class="btn btn-outline-secondary"><i class="bi bi-hdd-stack"></i> Proxmox Nodes</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalRunning</div><div class="srx-stat-label"><i class="bi bi-play-circle"></i> Running</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalBuilding</div><div class="srx-stat-label"><i class="bi bi-gear"></i> Building</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalSuspended</div><div class="srx-stat-label"><i class="bi bi-pause-circle"></i> Suspended</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Instances.Count</div><div class="srx-stat-label"><i class="bi bi-list"></i> Shown</div></div></div>
+</div>
+
+<div class="card srx-card mb-3"><div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-auto"><label class="form-label text-secondary small">Status</label>
+            <select name="status" class="form-select form-select-sm">
+                <option value="">All</option>
+                @foreach (var s in Enum.GetValues<VpsStatus>().Where(s => s != VpsStatus.Deleted))
+                {
+                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                }
+            </select></div>
+        <div class="col-auto"><label class="form-label text-secondary small">Node</label>
+            <select name="nodeFilter" class="form-select form-select-sm">
+                <option value="">All</option>
+                @foreach (var n in Model.Nodes)
+                {
+                    <option value="@n.Id" selected="@(Model.NodeFilter == n.Id)">@n.Name</option>
+                }
+            </select></div>
+        <div class="col-auto"><label class="form-label text-secondary small">Search</label>
+            <input name="q" value="@Model.Q" class="form-control form-control-sm" placeholder="hostname or IP" /></div>
+        <div class="col-auto"><button class="btn btn-sm btn-primary">Filter</button></div>
+    </form>
+</div></div>
+
+<form method="post" asp-page-handler="Bulk">
+    <div class="card srx-card"><div class="card-body">
+        <div class="d-flex gap-2 mb-3">
+            <button name="action" value="suspend" class="btn btn-sm btn-outline-warning srx-confirm-form" data-confirm-message="Suspend selected VPS?"><i class="bi bi-pause-circle"></i> Suspend</button>
+            <button name="action" value="resume" class="btn btn-sm btn-outline-success srx-confirm-form" data-confirm-message="Resume selected VPS?"><i class="bi bi-play-circle"></i> Resume</button>
+            <button name="action" value="delete" class="btn btn-sm btn-outline-danger srx-confirm-form" data-confirm-message="Delete selected VPS? This destroys them."><i class="bi bi-trash"></i> Delete</button>
+        </div>
+        @if (!Model.Instances.Any()) { <p class="text-secondary mb-0">No instances.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr>
+                    <th><input type="checkbox" onclick="document.querySelectorAll('.rowck').forEach(c=>c.checked=this.checked)" /></th>
+                    <th>Hostname</th><th>Owner</th><th>IP</th><th>Node</th><th>Resources</th><th>Bandwidth</th><th>Status</th><th></th>
+                </tr></thead>
+                <tbody>
+                @foreach (var v in Model.Instances)
+                {
+                    var b = Badge(v.Status);
+                    <tr>
+                        <td><input class="rowck" type="checkbox" name="ids" value="@v.Id" /></td>
+                        <td class="text-light">@v.Hostname</td>
+                        <td class="text-secondary small">@(v.User?.Email ?? v.UserId)</td>
+                        <td class="font-monospace small">@(v.IpAddress ?? "—")</td>
+                        <td class="text-secondary small">@(v.Node?.Name ?? "—")</td>
+                        <td class="text-secondary small">@v.CpuCores / @(v.RamMB / 1024)G / @v.DiskGB G</td>
+                        <td class="text-secondary small">@v.BandwidthPercent%</td>
+                        <td><span class="badge @b.cls">@b.text</span></td>
+                        <td class="text-end"><a asp-page="/Admin/Vps/Detail" asp-route-id="@v.Id" class="btn btn-sm btn-outline-secondary">Manage</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+</form>

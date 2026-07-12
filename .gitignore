@@ -1,0 +1,37 @@
+# .NET build output
+bin/
+obj/
+publish/
+*.user
+*.suo
+
+# Local databases & data
+*.db
+*.db-shm
+*.db-wal
+App_Data/
+/var/
+
+# Secrets & local config
+appsettings.Production.json
+appsettings.*.local.json
+docker/.env
+/etc/srxpanel/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+.claude/
+
+.claude/

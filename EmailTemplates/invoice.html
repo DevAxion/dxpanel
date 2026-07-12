@@ -1,0 +1,14 @@
+<h1 style="color:#fff;font-size:24px;margin:0 0 16px;">Payment received ✓</h1>
+<p style="line-height:1.6;">Thanks, {{NAME}} — we've received your payment for the <strong>{{PLAN}}</strong> plan.</p>
+
+<table role="presentation" style="width:100%;font-size:14px;line-height:2;margin:20px 0;border-top:1px solid #30363d;border-bottom:1px solid #30363d;padding:12px 0;">
+  <tr><td style="color:#8b949e;">Invoice</td><td style="text-align:right;color:#fff;">{{INVOICE_NUMBER}}</td></tr>
+  <tr><td style="color:#8b949e;">Amount</td><td style="text-align:right;color:#fff;font-weight:700;">{{AMOUNT}}</td></tr>
+  <tr><td style="color:#8b949e;">Date</td><td style="text-align:right;color:#fff;">{{DATE}}</td></tr>
+  <tr><td style="color:#8b949e;">Status</td><td style="text-align:right;"><span style="color:#3fb950;">PAID</span></td></tr>
+</table>
+
+<div style="margin:24px 0;">
+  <a href="{{PDF_URL}}" style="background:#21262d;border:1px solid #30363d;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;">Download PDF Receipt</a>
+</div>
+<p style="color:#8b949e;font-size:13px;">Your next billing date is {{NEXT_BILLING}}.</p>

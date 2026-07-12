@@ -1,0 +1,152 @@
+@page "/Client/Apps/Manage/{id:int}"
+@model SRXPanel.Pages.Client.Apps.ManageModel
+@using SRXPanel.Models
+@{
+    var i = Model.Installation;
+    var app = i.AppDefinition!;
+    ViewData["Title"] = i.SiteTitle;
+    string Size(long b) => b >= 1024 * 1024 ? $"{b / 1024.0 / 1024:0.#} MB" : $"{b / 1024.0:0.#} KB";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@i.SiteTitle</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+    <div class="d-flex gap-3">
+        <i class="bi @app.IconPath accent" style="font-size:42px;"></i>
+        <div>
+            <h4 class="text-light mb-0">@i.SiteTitle @if (i.IsStaging) { <span class="badge text-bg-info">Staging</span> }</h4>
+            <span class="text-secondary">@app.Name @i.InstalledVersion · @i.SiteUrl</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@i.SiteUrl" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-up-right"></i> Visit</a>
+        <a href="@i.AdminUrl" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-speedometer2"></i> Admin</a>
+        @if (app.Slug is "wordpress" or "woocommerce")
+        {
+            <a href="/Client/Apps/WordPress/@i.Id" class="btn btn-primary btn-sm"><i class="bi bi-wordpress"></i> WordPress Manager</a>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-info-circle"></i> Installation details</h6>
+            <table class="table table-sm align-middle mb-0">
+                <tbody>
+                    <tr><td class="text-secondary">Application</td><td class="text-light">@app.Name @i.InstalledVersion</td></tr>
+                    <tr><td class="text-secondary">Domain / path</td><td class="text-light">@i.Domain?.DomainName @i.InstallPath</td></tr>
+                    <tr><td class="text-secondary">Status</td><td>
+                        @switch (i.Status)
+                        {
+                            case AppInstallStatus.Active: <span class="badge text-bg-success">Active</span> break;
+                            case AppInstallStatus.UpdateAvailable: <span class="badge text-bg-warning">Update to @i.AvailableVersion</span> break;
+                            case AppInstallStatus.Installing: <span class="badge text-bg-info">Installing</span> break;
+                            default: <span class="badge text-bg-danger">Error</span> break;
+                        }
+                    </td></tr>
+                    @if (!string.IsNullOrEmpty(i.DatabaseName))
+                    {
+                        <tr><td class="text-secondary">Database</td><td class="text-light font-monospace">@i.DatabaseName</td></tr>
+                        <tr><td class="text-secondary">Table prefix</td><td class="text-light font-monospace">@i.TablePrefix</td></tr>
+                    }
+                    <tr><td class="text-secondary">PHP version</td><td class="text-light">PHP @i.PhpVersion</td></tr>
+                    <tr><td class="text-secondary">Admin user</td><td class="text-light">@i.AdminUser</td></tr>
+                    <tr><td class="text-secondary">Installed</td><td class="text-light">@i.InstalledAt.ToString("MMM d, yyyy HH:mm")</td></tr>
+                    @if (i.LastUpdatedAt != null)
+                    {
+                        <tr><td class="text-secondary">Last updated</td><td class="text-light">@i.LastUpdatedAt.Value.ToString("MMM d, yyyy HH:mm")</td></tr>
+                    }
+                </tbody>
+            </table>
+            <div class="d-flex gap-2 mt-3">
+                <a href="/Client/Databases" class="btn btn-outline-secondary btn-sm"><i class="bi bi-database"></i> Database Manager</a>
+                <a href="/Client/FileManager" class="btn btn-outline-secondary btn-sm"><i class="bi bi-files"></i> File Manager</a>
+            </div>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Restore points</h6>
+            <p class="text-secondary small">A restore point is created automatically before every update and uninstall. The most recent @(Model.RestorePoints.Count) are kept.</p>
+            @if (!Model.RestorePoints.Any())
+            {
+                <p class="text-secondary mb-0">No restore points yet.</p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Label</th><th>Size</th><th>Created</th></tr></thead>
+                    <tbody>
+                    @foreach (var b in Model.RestorePoints)
+                    {
+                        <tr>
+                            <td class="text-light small">@b.Label</td>
+                            <td class="text-secondary small">@Size(b.SizeBytes)</td>
+                            <td class="text-secondary small">@b.CreatedAt.ToString("MMM d HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-5">
+        @if (i.Status == AppInstallStatus.UpdateAvailable)
+        {
+            <div class="card srx-card mb-4 border-warning"><div class="card-body">
+                <h6 class="text-light mb-2"><i class="bi bi-arrow-up-circle text-warning"></i> Update available</h6>
+                <p class="text-secondary small">Version <strong>@i.AvailableVersion</strong> is available. A full restore point is created before updating.</p>
+                <form method="post" asp-page-handler="Update" onsubmit="return confirm('Update to @i.AvailableVersion? A restore point labelled &quot;Before @app.Name @i.AvailableVersion update&quot; will be created first.');">
+                    <input type="hidden" name="id" value="@i.Id" />
+                    <button class="btn btn-warning w-100"><i class="bi bi-arrow-up-circle"></i> Update with backup</button>
+                </form>
+            </div></div>
+        }
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-files"></i> Staging clone</h6>
+            <p class="text-secondary small">Create a full copy of this site (files + database) to test changes safely.</p>
+            <form method="post" asp-page-handler="Clone">
+                <input type="hidden" name="id" value="@i.Id" />
+                <div class="mb-2">
+                    <label class="form-label small">Target domain</label>
+                    <select name="targetDomainId" class="form-select form-select-sm">
+                        @foreach (var d in Model.Domains)
+                        {
+                            <option value="@d.Id" selected="@(d.Id == i.DomainId)">@d.DomainName</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-2"><label class="form-label small">Path</label><input name="path" value="/staging" class="form-control form-control-sm" /></div>
+                <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-files"></i> Create staging clone</button>
+            </form>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-key"></i> Change admin password</h6>
+            <form method="post" asp-page-handler="ChangePassword">
+                <input type="hidden" name="id" value="@i.Id" />
+                <div class="input-group input-group-sm">
+                    <input name="newPassword" type="password" class="form-control" placeholder="New password" />
+                    <button class="btn btn-outline-secondary">Update</button>
+                </div>
+                <div class="form-text">Changes the <strong>@i.AdminUser</strong> account inside @app.Name.</div>
+            </form>
+        </div></div>
+
+        <div class="card srx-card border-danger"><div class="card-body">
+            <h6 class="text-light mb-2"><i class="bi bi-trash text-danger"></i> Uninstall</h6>
+            <p class="text-secondary small">Removes all files and the database. A restore point is created first.</p>
+            <form method="post" asp-page-handler="Uninstall" onsubmit="return confirm('Uninstall @i.SiteTitle? All files and the database will be deleted. A restore point will be created first.');">
+                <input type="hidden" name="id" value="@i.Id" />
+                <button class="btn btn-outline-danger w-100"><i class="bi bi-trash"></i> Uninstall @app.Name</button>
+            </form>
+        </div></div>
+    </div>
+</div>

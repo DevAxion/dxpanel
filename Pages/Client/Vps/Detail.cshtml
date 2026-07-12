@@ -1,0 +1,423 @@
+@page "/Client/Vps/Detail/{id:int}"
+@model SRXPanel.Pages.Client.Vps.DetailModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = $"VPS — {Model.Vps.Hostname}";
+    var v = Model.Vps;
+    var tab = Model.Tab;
+    string Money(decimal d) => $"${d:0.00}";
+
+    (string cls, string text) Badge(VpsStatus s) => s switch
+    {
+        VpsStatus.Running => ("text-bg-success", "Running"),
+        VpsStatus.Building => ("text-bg-info", "Building"),
+        VpsStatus.Stopped => ("text-bg-secondary", "Stopped"),
+        VpsStatus.Suspended => ("text-bg-warning", "Suspended"),
+        VpsStatus.Error => ("text-bg-danger", "Error"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+    var badge = Badge(v.Status);
+
+    (string href, string icon, string label)[] tabs =
+    {
+        ("overview", "bi-speedometer2", "Overview"),
+        ("power", "bi-power", "Power"),
+        ("console", "bi-terminal", "Console"),
+        ("snapshots", "bi-camera", "Snapshots"),
+        ("backups", "bi-archive", "Backups"),
+        ("rebuild", "bi-arrow-repeat", "Rebuild"),
+        ("resize", "bi-arrows-angle-expand", "Resize"),
+        ("network", "bi-hdd-network", "Network"),
+        ("settings", "bi-gear", "Settings")
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Vps/Index">VPS</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@v.Hostname</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi bi-hdd-rack accent"></i> @v.Hostname <span id="statusBadge" class="badge @badge.cls">@badge.text</span></h4>
+        <div class="text-secondary small">
+            <span class="font-monospace">@(v.IpAddress ?? "—")</span>
+            @if (v.Node != null) { <text>· @v.Node.Location · @v.Node.Name</text> }
+            · @v.CpuCores vCPU / @(v.RamMB / 1024) GB / @v.DiskGB GB · @v.OsTemplate
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    @foreach (var (href, icon, label) in tabs)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(tab == href ? "active" : "")" asp-page="/Client/Vps/Detail" asp-route-id="@v.Id" asp-route-tab="@href">
+                <i class="bi @icon"></i> @label
+            </a>
+        </li>
+    }
+</ul>
+
+@if (tab == "overview")
+{
+    @if (v.Status == VpsStatus.Building)
+    {
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light"><i class="bi bi-gear-wide-connected"></i> Provisioning</h6>
+            <div class="progress my-2" style="height:10px;"><div id="provBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:5%"></div></div>
+            <div id="provStep" class="text-secondary small">Starting…</div>
+            <pre id="provLog" class="mt-2 p-2 rounded" style="background:#0d1117;color:#8b949e;max-height:180px;overflow:auto;font-size:.8rem;"></pre>
+        </div></div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+            <div class="text-secondary small">CPU</div><div id="cpuVal" class="fs-3 fw-bold text-light">0<span class="fs-6">%</span></div>
+            <div class="progress mt-1" style="height:5px;"><div id="cpuBar" class="progress-bar bg-info" style="width:0"></div></div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+            <div class="text-secondary small">RAM</div><div id="ramVal" class="fs-3 fw-bold text-light">0<span class="fs-6">%</span></div>
+            <div class="progress mt-1" style="height:5px;"><div id="ramBar" class="progress-bar bg-primary" style="width:0"></div></div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+            <div class="text-secondary small">Disk</div><div id="diskVal" class="fs-3 fw-bold text-light">0<span class="fs-6">%</span></div>
+            <div class="progress mt-1" style="height:5px;"><div id="diskBar" class="progress-bar bg-warning" style="width:0"></div></div>
+        </div></div></div>
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+            <div class="text-secondary small">Bandwidth (cycle)</div>
+            <div id="bwVal" class="fs-3 fw-bold text-light">@v.BandwidthUsed.ToString("0.0")<span class="fs-6"> / @v.BandwidthGB GB</span></div>
+            <div class="progress mt-1" style="height:5px;"><div id="bwBar" class="progress-bar bg-success" style="width:@v.BandwidthPercent%"></div></div>
+        </div></div></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Network (last samples)</h6>
+            <canvas id="netChart" height="90"></canvas>
+        </div></div></div>
+        <div class="col-lg-4"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Server info</h6>
+            <table class="table table-sm text-secondary mb-0">
+                <tr><td>IPv4</td><td class="text-end font-monospace text-light">@(v.IpAddress ?? "—")</td></tr>
+                <tr><td>IPv6</td><td class="text-end font-monospace text-light small">@(v.Ipv6Address ?? "—")</td></tr>
+                <tr><td>MAC</td><td class="text-end font-monospace text-light small">@(v.MacAddress ?? "—")</td></tr>
+                <tr><td>SSH port</td><td class="text-end text-light">@v.SshPort</td></tr>
+                <tr><td>Created</td><td class="text-end text-light">@v.CreatedAt.ToString("yyyy-MM-dd")</td></tr>
+                <tr><td>Renews</td><td class="text-end text-light">@(v.ExpiresAt?.ToString("yyyy-MM-dd") ?? "—")</td></tr>
+            </table>
+            @if (!string.IsNullOrEmpty(v.RootPassword))
+            {
+                <div class="alert alert-secondary mt-3 mb-0 small">Root password: <span class="font-monospace">@v.RootPassword</span></div>
+            }
+        </div></div></div>
+    </div>
+}
+else if (tab == "power")
+{
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Power controls</h6>
+        <p class="text-secondary">Current state: <span class="badge @badge.cls">@badge.text</span></p>
+        <form method="post" asp-page-handler="Power" class="d-flex flex-wrap gap-2">
+            <button name="action" value="start" class="btn btn-outline-success srx-confirm-form" data-confirm-message="Start this VPS?" @(v.Status == VpsStatus.Running ? "disabled" : "")><i class="bi bi-play-circle"></i> Start</button>
+            <button name="action" value="shutdown" class="btn btn-outline-warning srx-confirm-form" data-confirm-message="Gracefully shut down this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-power"></i> Shutdown</button>
+            <button name="action" value="stop" class="btn btn-outline-danger srx-confirm-form" data-confirm-message="Force stop this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-stop-circle"></i> Force stop</button>
+            <button name="action" value="restart" class="btn btn-outline-secondary srx-confirm-form" data-confirm-message="Restart this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-arrow-clockwise"></i> Restart</button>
+        </form>
+    </div></div>
+}
+else if (tab == "console")
+{
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Web console (noVNC)</h6>
+        <p class="text-secondary">Open an out-of-band VNC console to your server — useful if SSH is unavailable.</p>
+        <button id="openConsole" class="btn btn-primary"><i class="bi bi-terminal"></i> Open Console</button>
+        <div id="consoleFrameWrap" class="mt-3 d-none">
+            <iframe id="consoleFrame" style="width:100%;height:520px;border:1px solid #30363d;border-radius:8px;background:#000;"></iframe>
+        </div>
+    </div></div>
+}
+else if (tab == "snapshots")
+{
+    <div class="card srx-card mb-3"><div class="card-body">
+        <form method="post" asp-page-handler="SnapshotCreate" class="row g-2 align-items-end">
+            <div class="col-auto"><label class="form-label text-secondary small">Snapshot name</label>
+                <input name="name" class="form-control" placeholder="before-upgrade" required /></div>
+            <div class="col-auto"><button class="btn btn-primary"><i class="bi bi-camera"></i> Create snapshot</button></div>
+        </form>
+    </div></div>
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Snapshots</h6>
+        @if (!Model.Snapshots.Any()) { <p class="text-secondary mb-0">No snapshots.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Name</th><th>Status</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                @foreach (var s in Model.Snapshots)
+                {
+                    <tr>
+                        <td class="text-light">@s.Name</td>
+                        <td><span class="badge text-bg-secondary">@s.Status</span></td>
+                        <td class="text-secondary small">@s.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="SnapshotRestore" class="d-inline srx-confirm-form" data-confirm-message="Roll back to @s.Name? Current state will be lost.">
+                                <input type="hidden" name="snapshotId" value="@s.Id" />
+                                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
+                            </form>
+                            <form method="post" asp-page-handler="SnapshotDelete" class="d-inline srx-confirm-form" data-confirm-message="Delete snapshot @s.Name?">
+                                <input type="hidden" name="snapshotId" value="@s.Id" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+}
+else if (tab == "backups")
+{
+    <div class="card srx-card mb-3"><div class="card-body d-flex justify-content-between align-items-center">
+        <div><h6 class="text-light mb-0">Backups</h6><small class="text-secondary">Full VM backups stored on the node.</small></div>
+        <form method="post" asp-page-handler="BackupCreate"><button class="btn btn-primary"><i class="bi bi-archive"></i> Create backup</button></form>
+    </div></div>
+    <div class="card srx-card"><div class="card-body">
+        @if (!Model.Backups.Any()) { <p class="text-secondary mb-0">No backups.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>File</th><th>Size</th><th>Status</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                @foreach (var bk in Model.Backups)
+                {
+                    <tr>
+                        <td class="font-monospace small text-light">@System.IO.Path.GetFileName(bk.StoragePath)</td>
+                        <td class="text-secondary">@(bk.SizeMB >= 1024 ? $"{bk.SizeMB / 1024.0:0.0} GB" : $"{bk.SizeMB} MB")</td>
+                        <td><span class="badge text-bg-secondary">@bk.Status</span></td>
+                        <td class="text-secondary small">@bk.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="BackupRestore" class="d-inline srx-confirm-form" data-confirm-message="Restore this backup? Current data will be overwritten.">
+                                <input type="hidden" name="backupId" value="@bk.Id" />
+                                <button class="btn btn-sm btn-outline-warning" @(bk.Status == VpsBackupStatus.Ready ? "" : "disabled")><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
+                            </form>
+                            <form method="post" asp-page-handler="BackupDelete" class="d-inline srx-confirm-form" data-confirm-message="Delete this backup?">
+                                <input type="hidden" name="backupId" value="@bk.Id" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+}
+else if (tab == "rebuild")
+{
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Rebuild server</h6>
+        <div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Rebuilding <strong>erases all data</strong> and reinstalls the OS from scratch.</div>
+        <form method="post" asp-page-handler="Rebuild">
+            <div class="mb-3">
+                <label class="form-label text-secondary">Operating system</label>
+                <select name="templateId" class="form-select" required>
+                    @foreach (var t in Model.Templates)
+                    {
+                        <option value="@t.Id">@t.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary">New root password</label>
+                <input name="newPassword" type="password" class="form-control" minlength="8" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary">Type <span class="text-danger fw-bold">REBUILD</span> to confirm</label>
+                <input name="confirm" class="form-control" placeholder="REBUILD" required />
+            </div>
+            <button class="btn btn-danger"><i class="bi bi-arrow-repeat"></i> Rebuild server</button>
+        </form>
+    </div></div>
+}
+else if (tab == "resize")
+{
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Resize / upgrade</h6>
+        <p class="text-secondary">Current: <span class="text-light">@Model.CurrentPlan?.Name</span> — @v.CpuCores vCPU / @(v.RamMB / 1024) GB / @v.DiskGB GB. A restart may be required to apply changes.</p>
+        @if (!Model.UpgradePlans.Any()) { <p class="text-secondary mb-0">No larger plans available.</p> }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var p in Model.UpgradePlans)
+                {
+                    var diff = p.Price - (Model.CurrentPlan?.Price ?? 0);
+                    <div class="col-md-4">
+                        <div class="card srx-card h-100"><div class="card-body">
+                            <h6 class="text-light">@p.Name</h6>
+                            <ul class="list-unstyled text-secondary small mb-3">
+                                <li><i class="bi bi-cpu accent"></i> @p.CpuCores vCPU</li>
+                                <li><i class="bi bi-memory accent"></i> @(p.RamMB / 1024) GB RAM</li>
+                                <li><i class="bi bi-hdd accent"></i> @p.DiskGB GB</li>
+                            </ul>
+                            <div class="mb-2 text-light">@Money(p.Price)/mo <span class="text-success small">(+@Money(diff))</span></div>
+                            <form method="post" asp-page-handler="Resize" class="srx-confirm-form" data-confirm-message="Resize to @p.Name?">
+                                <input type="hidden" name="targetPlanId" value="@p.Id" />
+                                <button class="btn btn-sm btn-primary w-100">Upgrade</button>
+                            </form>
+                        </div></div>
+                    </div>
+                }
+            </div>
+        }
+    </div></div>
+}
+else if (tab == "network")
+{
+    <div class="row g-3">
+        <div class="col-lg-5"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Addresses</h6>
+            <table class="table table-sm text-secondary mb-3">
+                <tr><td>Primary IPv4</td><td class="text-end font-monospace text-light">@(v.IpAddress ?? "—")</td></tr>
+                <tr><td>IPv6</td><td class="text-end font-monospace text-light small">@(v.Ipv6Address ?? "—")</td></tr>
+                <tr><td>Gateway</td><td class="text-end font-monospace text-light">@(v.IpAddress != null ? string.Join('.', v.IpAddress.Split('.').Take(3)) + ".1" : "—")</td></tr>
+            </table>
+            <form method="post" asp-page-handler="Rdns">
+                <label class="form-label text-secondary small">Reverse DNS (PTR)</label>
+                <div class="input-group">
+                    <input name="reverseDns" class="form-control font-monospace" value="@v.ReverseDns" placeholder="host.example.com" />
+                    <button class="btn btn-outline-primary">Save</button>
+                </div>
+            </form>
+        </div></div></div>
+        <div class="col-lg-7"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Firewall</h6>
+            <form method="post" asp-page-handler="FirewallAdd" class="row g-2 align-items-end mb-3">
+                <div class="col-auto"><label class="form-label text-secondary small">Action</label>
+                    <select name="action" class="form-select form-select-sm"><option value="allow">Allow</option><option value="deny">Deny</option></select></div>
+                <div class="col-auto"><label class="form-label text-secondary small">Proto</label>
+                    <select name="protocol" class="form-select form-select-sm"><option value="tcp">TCP</option><option value="udp">UDP</option></select></div>
+                <div class="col-auto"><label class="form-label text-secondary small">Port</label>
+                    <input name="port" type="number" min="1" max="65535" class="form-control form-control-sm" style="width:90px" required /></div>
+                <div class="col-auto"><label class="form-label text-secondary small">Source</label>
+                    <input name="source" class="form-control form-control-sm" placeholder="any" style="width:130px" /></div>
+                <div class="col-auto"><button class="btn btn-sm btn-primary">Add</button></div>
+            </form>
+            @if (!Model.FirewallRules.Any()) { <p class="text-secondary mb-0">No custom rules — default policy applies.</p> }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Action</th><th>Proto</th><th>Port</th><th>Source</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var r in Model.FirewallRules)
+                    {
+                        <tr>
+                            <td><span class="badge @(r.Action == VpsFirewallAction.Allow ? "text-bg-success" : "text-bg-danger")">@r.Action</span></td>
+                            <td class="text-secondary">@r.Protocol.ToUpper()</td>
+                            <td class="text-light">@r.Port</td>
+                            <td class="text-secondary font-monospace small">@r.Source</td>
+                            <td class="text-end"><form method="post" asp-page-handler="FirewallDelete" class="d-inline">
+                                <input type="hidden" name="ruleId" value="@r.Id" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div></div>
+    </div>
+}
+else if (tab == "settings")
+{
+    <div class="card srx-card mb-3"><div class="card-body">
+        <h6 class="text-light mb-3">Settings</h6>
+        <form method="post" asp-page-handler="Settings">
+            <div class="mb-3"><label class="form-label text-secondary">Hostname</label>
+                <input name="hostname" class="form-control" value="@v.Hostname" /></div>
+            <div class="mb-3"><label class="form-label text-secondary">Notes</label>
+                <textarea name="notes" class="form-control" rows="2">@v.Notes</textarea></div>
+            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="notifyBandwidth" value="true" id="nb" @(v.NotifyBandwidth ? "checked" : "") /><label class="form-check-label text-secondary" for="nb">Notify me about bandwidth usage</label></div>
+            <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="notifyPower" value="true" id="np" @(v.NotifyPower ? "checked" : "") /><label class="form-check-label text-secondary" for="np">Notify me about power events</label></div>
+            <button class="btn btn-primary">Save settings</button>
+        </form>
+    </div></div>
+    <div class="card srx-card border-danger"><div class="card-body">
+        <h6 class="text-danger mb-2"><i class="bi bi-exclamation-octagon"></i> Cancel VPS</h6>
+        <p class="text-secondary small">This destroys the server and all its data permanently.</p>
+        <form method="post" asp-page-handler="Cancel" class="row g-2 align-items-end srx-confirm-form" data-confirm-message="Permanently destroy this VPS? This cannot be undone.">
+            <div class="col-auto"><label class="form-label text-secondary small">Type the hostname <span class="font-monospace">@v.Hostname</span> to confirm</label>
+                <input name="confirm" class="form-control" required /></div>
+            <div class="col-auto"><button class="btn btn-danger">Cancel VPS</button></div>
+        </form>
+    </div></div>
+}
+
+@section Scripts {
+    @if (tab == "overview")
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+        <script>
+            var histLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.Timestamp.ToString("HH:mm"))));
+            var histIn = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.NetworkInMbps)));
+            var histOut = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.NetworkOutMbps)));
+            var grid = { color: '#21262d' }, ticks = { color: '#8b949e' };
+            var netChart = new Chart(document.getElementById('netChart'), {
+                type: 'line',
+                data: { labels: histLabels, datasets: [
+                    { label: 'In (Mbps)', data: histIn, borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,.1)', fill: true, tension: .3 },
+                    { label: 'Out (Mbps)', data: histOut, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,.1)', fill: true, tension: .3 } ] },
+                options: { plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { x: { grid: grid, ticks: ticks }, y: { grid: grid, ticks: ticks } } }
+            });
+            function apply(d) {
+                document.getElementById('cpuVal').innerHTML = Math.round(d.cpu) + '<span class="fs-6">%</span>';
+                document.getElementById('ramVal').innerHTML = Math.round(d.ram) + '<span class="fs-6">%</span>';
+                document.getElementById('diskVal').innerHTML = Math.round(d.disk) + '<span class="fs-6">%</span>';
+                document.getElementById('cpuBar').style.width = d.cpu + '%';
+                document.getElementById('ramBar').style.width = d.ram + '%';
+                document.getElementById('diskBar').style.width = d.disk + '%';
+                if (d.bwUsed != null) {
+                    document.getElementById('bwVal').innerHTML = (Math.round(d.bwUsed * 10) / 10) + '<span class="fs-6"> / @v.BandwidthGB GB</span>';
+                    document.getElementById('bwBar').style.width = d.bwPct + '%';
+                }
+                netChart.data.labels.push(new Date().toLocaleTimeString().slice(0,5));
+                netChart.data.datasets[0].data.push(d.netIn);
+                netChart.data.datasets[1].data.push(d.netOut);
+                if (netChart.data.labels.length > 60) { netChart.data.labels.shift(); netChart.data.datasets.forEach(function(ds){ds.data.shift();}); }
+                netChart.update('none');
+            }
+            var vpsId = @v.Id, conn = null;
+            if (window.signalR) {
+                conn = new signalR.HubConnectionBuilder().withUrl('/hubs/vps').build();
+                conn.on('stats', apply);
+                conn.on('status', function(s){ location.reload(); });
+                conn.on('progress', function(pct, step, log){
+                    var b = document.getElementById('provBar'); if (b) b.style.width = pct + '%';
+                    var st = document.getElementById('provStep'); if (st) st.textContent = step;
+                    var lg = document.getElementById('provLog'); if (lg) { lg.textContent += log + '\n'; lg.scrollTop = lg.scrollHeight; }
+                });
+                conn.on('completed', function(ok, msg, ip){ location.reload(); });
+                conn.start().then(function(){ conn.invoke('JoinVps', vpsId); }).catch(pollLoop);
+            } else { pollLoop(); }
+            function pollLoop() {
+                setInterval(function(){ fetch('?handler=Stats').then(function(r){return r.json();}).then(apply).catch(function(){}); }, 30000);
+                @if (v.Status == VpsStatus.Building) { <text>setTimeout(function(){ location.reload(); }, 12000);</text> }
+            }
+        </script>
+    }
+    else if (tab == "console")
+    {
+        <script>
+            document.getElementById('openConsole').addEventListener('click', function(){
+                var f = new FormData(); f.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+                fetch('?handler=Console', { method:'POST', body:f }).then(function(r){return r.json();}).then(function(d){
+                    if (d.url) { document.getElementById('consoleFrameWrap').classList.remove('d-none'); document.getElementById('consoleFrame').src = d.url; }
+                });
+            });
+        </script>
+        <form style="display:none">@Html.AntiForgeryToken()</form>
+    }
+}

@@ -1,0 +1,74 @@
+@page
+@model SRXPanel.Pages.Client.Email.BouncesModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Bounces";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Email</li><li class="breadcrumb-item active" aria-current="page">Bounces</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-arrow-return-left accent"></i> Bounces</h4>
+    <form method="get" class="d-flex gap-2">
+        <select name="domainId" class="form-select form-select-sm" onchange="this.form.submit()">
+            @foreach (var d in Model.Domains) { <option value="@d.Id" selected="@(Model.DomainId == d.Id)">@d.DomainName</option> }
+        </select>
+    </form>
+</div>
+
+@if (Model.Selected == null)
+{
+    <div class="card srx-card"><div class="card-body text-secondary text-center py-4">Add a domain first.</div></div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@Model.Stats.Hard</div><div class="srx-stat-label">Hard bounces</div></div></div>
+        <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@Model.Stats.Soft</div><div class="srx-stat-label">Soft bounces</div></div></div>
+        <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Stats.Blacklisted</div><div class="srx-stat-label">Suppressed</div></div></div>
+        <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Stats.Total</div><div class="srx-stat-label">Total</div></div></div>
+    </div>
+
+    <div class="card srx-card"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="btn-group btn-group-sm">
+                <a asp-route-domainId="@Model.Selected.Id" class="btn @(Model.Type == null ? "btn-primary" : "btn-outline-secondary")">All</a>
+                <a asp-route-domainId="@Model.Selected.Id" asp-route-type="Hard" class="btn @(Model.Type == BounceType.Hard ? "btn-primary" : "btn-outline-secondary")">Hard</a>
+                <a asp-route-domainId="@Model.Selected.Id" asp-route-type="Soft" class="btn @(Model.Type == BounceType.Soft ? "btn-primary" : "btn-outline-secondary")">Soft</a>
+            </div>
+            <div class="d-flex gap-2">
+                <form method="post" asp-page-handler="AutoToggle" class="d-flex align-items-center">
+                    <input type="hidden" name="domainId" value="@Model.Selected.Id" />
+                    <div class="form-check form-switch me-2"><input class="form-check-input" type="checkbox" name="autoBlacklist" value="true" id="auto" onchange="this.form.submit()" @(Model.Config?.AutoBlacklistBounces == true ? "checked" : "") /><label class="form-check-label text-secondary small" for="auto">Auto-suppress 3+ hard</label></div>
+                </form>
+                <a asp-page-handler="Export" asp-route-domainId="@Model.Selected.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> Export</a>
+                <form method="post" asp-page-handler="BlacklistAll"><input type="hidden" name="domainId" value="@Model.Selected.Id" /><button class="btn btn-sm btn-outline-warning">Suppress all hard</button></form>
+                <form method="post" asp-page-handler="Clear" class="srx-confirm-form" data-confirm-message="Clear all bounce records?"><input type="hidden" name="domainId" value="@Model.Selected.Id" /><button class="btn btn-sm btn-outline-danger">Clear</button></form>
+            </div>
+        </div>
+
+        @if (!Model.Bounces.Any()) { <p class="text-secondary mb-0">No bounces recorded.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Email</th><th>Type</th><th>Reason</th><th>Date</th><th>Suppressed</th></tr></thead>
+                <tbody>
+                @foreach (var b in Model.Bounces)
+                {
+                    <tr>
+                        <td class="font-monospace small text-light">@b.EmailAddress</td>
+                        <td><span class="badge @(b.BounceType == BounceType.Hard ? "text-bg-danger" : "text-bg-warning")">@b.BounceType</span></td>
+                        <td class="text-secondary small">@b.BounceReason</td>
+                        <td class="text-secondary small">@b.OccurredAt.ToString("MM-dd HH:mm")</td>
+                        <td>@if (b.IsBlacklisted) { <i class="bi bi-check-circle-fill text-warning"></i> }</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+}

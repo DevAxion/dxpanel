@@ -1,0 +1,159 @@
+@page "/Client/Vps/Console/{vmId:int}"
+@model SRXPanel.Pages.Client.Vps.ConsoleModel
+@{
+    Layout = null;
+    var token = Model.Token ?? "";
+}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VPS Console — VM @Model.VmId</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        html, body { height: 100%; margin: 0; background: #0d1117; color: #c9d1d9; }
+        .vnc-wrap { display: flex; flex-direction: column; height: 100vh; }
+        .vnc-toolbar { display: flex; align-items: center; gap: .5rem; padding: .4rem .7rem; background: #161b22; border-bottom: 1px solid #30363d; flex-wrap: wrap; }
+        .vnc-status { font-size: .8rem; }
+        .vnc-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #8b949e; margin-right: .3rem; }
+        .vnc-dot.connected { background: #3fb950; }
+        .vnc-dot.connecting { background: #d29922; }
+        .vnc-dot.error { background: #f85149; }
+        #screen { flex: 1; min-height: 0; background: #000; position: relative; }
+        #novnc-canvas { width: 100%; height: 100%; }
+        #terminal { position: absolute; inset: 0; padding: .75rem 1rem; overflow: auto; white-space: pre-wrap;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: .85rem; color: #3fb950; line-height: 1.35; }
+        .kbd-help { font-size: .78rem; color: #8b949e; }
+        kbd { background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 0 .3rem; color: #c9d1d9; }
+    </style>
+</head>
+<body>
+<div class="vnc-wrap">
+    <div class="vnc-toolbar">
+        <span class="vnc-status"><span id="dot" class="vnc-dot"></span><span id="statusText">Disconnected</span></span>
+        <div class="vTitle ms-2 text-secondary small">VM #@Model.VmId</div>
+        <div class="ms-auto d-flex gap-1">
+            <button id="btnConnect" class="btn btn-success btn-sm"><i class="bi bi-plug"></i> Connect</button>
+            <button id="btnDisconnect" class="btn btn-outline-secondary btn-sm" disabled><i class="bi bi-plug-fill"></i> Disconnect</button>
+            <div class="btn-group btn-group-sm">
+                <button id="btnCad" class="btn btn-outline-warning btn-sm" title="Send Ctrl+Alt+Del"><i class="bi bi-exclamation-triangle"></i> Ctrl+Alt+Del</button>
+                <button id="btnFullscreen" class="btn btn-outline-info btn-sm" title="Toggle fullscreen"><i class="bi bi-arrows-fullscreen"></i></button>
+                <button id="btnHelp" class="btn btn-outline-light btn-sm" data-bs-toggle="collapse" data-bs-target="#kbdHelp" title="Keyboard shortcuts"><i class="bi bi-keyboard"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="kbdHelp" class="collapse">
+        <div class="kbd-help px-3 py-2 border-bottom" style="border-color:#30363d;">
+            <strong class="text-light">Keyboard shortcuts:</strong>
+            <span class="ms-2"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Del</kbd> reboot signal</span>
+            <span class="ms-3"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F2</kbd> switch TTY</span>
+            <span class="ms-3"><kbd>F11</kbd> fullscreen</span>
+            <span class="ms-3"><kbd>Ctrl</kbd>+<kbd>C</kbd> interrupt</span>
+            <span class="ms-3 text-secondary">Click the screen to capture keyboard input.</span>
+        </div>
+    </div>
+
+    <div id="screen">
+        <canvas id="novnc-canvas" class="d-none"></canvas>
+        <div id="terminal">Click <strong>Connect</strong> to open the console for VM @Model.VmId…</div>
+    </div>
+</div>
+
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        const vmId = @Model.VmId;
+        const token = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(token));
+        const dot = document.getElementById('dot');
+        const statusText = document.getElementById('statusText');
+        const terminal = document.getElementById('terminal');
+        const btnConnect = document.getElementById('btnConnect');
+        const btnDisconnect = document.getElementById('btnDisconnect');
+        const screen = document.getElementById('screen');
+        let ws = null;
+
+        function setStatus(state, text) {
+            dot.className = 'vnc-dot ' + state;
+            statusText.textContent = text;
+        }
+
+        function wsUrl() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${proto}//${location.host}/ws/vnc/${vmId}?token=${encodeURIComponent(token)}`;
+        }
+
+        function connect() {
+            if (ws) return;
+            terminal.textContent = '';
+            setStatus('connecting', 'Connecting…');
+            btnConnect.disabled = true;
+
+            try {
+                ws = new WebSocket(wsUrl());
+            } catch (e) {
+                setStatus('error', 'Connection failed');
+                btnConnect.disabled = false;
+                return;
+            }
+
+            ws.binaryType = 'arraybuffer';
+            ws.onopen = () => {
+                setStatus('connected', 'Connected');
+                btnConnect.disabled = true;
+                btnDisconnect.disabled = false;
+                terminal.focus();
+            };
+            ws.onmessage = (ev) => {
+                let text = typeof ev.data === 'string'
+                    ? ev.data
+                    : new TextDecoder().decode(new Uint8Array(ev.data));
+                // Strip ANSI colour codes for the lightweight terminal view.
+                text = text.replace(/\x1b\[[0-9;]*m/g, '');
+                terminal.textContent += text;
+                terminal.scrollTop = terminal.scrollHeight;
+            };
+            ws.onclose = () => {
+                setStatus('', 'Disconnected');
+                btnConnect.disabled = false;
+                btnDisconnect.disabled = true;
+                ws = null;
+            };
+            ws.onerror = () => setStatus('error', 'Connection error');
+        }
+
+        function disconnect() {
+            if (ws) { ws.close(); ws = null; }
+        }
+
+        function send(text) {
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(text);
+        }
+
+        // Capture keystrokes on the screen and forward them to the console.
+        screen.setAttribute('tabindex', '0');
+        screen.addEventListener('keydown', (e) => {
+            if (!ws) return;
+            // Ctrl+Alt+Del
+            if (e.ctrlKey && e.altKey && (e.key === 'Delete')) { e.preventDefault(); send('\x1b[3~'); return; }
+            if (e.key.length === 1) { send(e.key); e.preventDefault(); }
+            else if (e.key === 'Enter') { send('\r'); e.preventDefault(); }
+            else if (e.key === 'Backspace') { send('\x7f'); e.preventDefault(); }
+        });
+
+        btnConnect.addEventListener('click', connect);
+        btnDisconnect.addEventListener('click', disconnect);
+        document.getElementById('btnCad').addEventListener('click', () => send('\x1b[3~'));
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        });
+
+        // Auto-connect when a ticket is present.
+        if (token) connect();
+    })();
+</script>
+</body>
+</html>

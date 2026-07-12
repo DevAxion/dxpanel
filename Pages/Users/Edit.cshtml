@@ -1,0 +1,66 @@
+@page "{id}"
+@model SRXPanel.Pages.Users.EditModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Users/Index">Users</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Edit User</h4>
+
+<div class="card srx-card" style="max-width: 640px;">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Input.FullName" class="form-label"></label>
+                    <input asp-for="Input.FullName" class="form-control" />
+                    <span asp-validation-for="Input.FullName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" class="form-control" />
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.PackageId" class="form-label"></label>
+                    <select asp-for="Input.PackageId" asp-items="Model.PackageOptions" class="form-select">
+                        <option value="">-- Custom quotas --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Input.DiskQuotaMB" class="form-label"></label>
+                    <input asp-for="Input.DiskQuotaMB" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Input.BandwidthQuotaMB" class="form-label"></label>
+                    <input asp-for="Input.BandwidthQuotaMB" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.NewPassword" class="form-label"></label>
+                    <input asp-for="Input.NewPassword" class="form-control" />
+                    <span asp-validation-for="Input.NewPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button>
+                <a asp-page="/Users/Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

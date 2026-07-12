@@ -1,0 +1,114 @@
+@page "/Client/Apps/Hosted/Create"
+@model SRXPanel.Pages.Client.Apps.Hosted.CreateModel
+@using SRXPanel.Models
+@using SRXPanel.Services.AppHosting
+@{
+    ViewData["Title"] = "New Hosted App";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Index">Hosted Apps</a></li>
+        <li class="breadcrumb-item active" aria-current="page">New</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4"><i class="bi bi-rocket-takeoff accent"></i> New Hosted App</h4>
+
+<form method="post">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">1. Runtime</h6>
+                <div class="row g-2 mb-3">
+                    @foreach (var t in new[] { AppRuntimeType.NodeJs, AppRuntimeType.Python, AppRuntimeType.Ruby, AppRuntimeType.Go })
+                    {
+                        <div class="col-6 col-md-3">
+                            <input type="radio" class="btn-check" name="type" id="type@(t)" value="@t" autocomplete="off" @(t == AppRuntimeType.NodeJs ? "checked" : "") />
+                            <label class="btn btn-outline-secondary w-100" for="type@(t)">
+                                <i class="bi @(t == AppRuntimeType.NodeJs ? "bi-node-plus" : t == AppRuntimeType.Python ? "bi-filetype-py" : t == AppRuntimeType.Ruby ? "bi-gem" : "bi-google")"></i>
+                                @(t == AppRuntimeType.NodeJs ? "Node.js" : t.ToString())
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <label class="form-label text-secondary small">Quick template (optional)</label>
+                <div class="row g-2">
+                    @foreach (var tpl in Model.Templates)
+                    {
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 text-start tpl"
+                                    data-type="@tpl.Type" data-entry="@tpl.EntryPoint" data-start="@tpl.StartCommand" data-name="@tpl.Key"
+                                    title="@tpl.Description · @tpl.InstallHint">
+                                @tpl.Name
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div></div>
+
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">2. Configure</h6>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label text-secondary">App name</label><input name="name" id="name" class="form-control" placeholder="my-api" required /></div>
+                    <div class="col-md-6"><label class="form-label text-secondary">Domain</label>
+                        <select name="domainId" class="form-select"><option value="">None</option>
+                            @foreach (var d in Model.Domains) { <option value="@d.Id">@d.DomainName</option> }</select></div>
+                    <div class="col-md-6"><label class="form-label text-secondary">Runtime version</label>
+                        <select name="runtimeId" class="form-select"><option value="">Platform default</option>
+                            @foreach (var r in Model.Runtimes) { <option value="@r.Id">@r.Name</option> }</select></div>
+                    <div class="col-md-6"><label class="form-label text-secondary">App path</label><input name="appPath" class="form-control font-monospace" placeholder="/home/user/apps/my-api" required /></div>
+                    <div class="col-md-6"><label class="form-label text-secondary">Entry point</label><input name="entryPoint" id="entryPoint" class="form-control font-monospace" placeholder="app.js" /></div>
+                    <div class="col-md-6"><label class="form-label text-secondary">Start command (optional)</label><input name="startCommand" id="startCommand" class="form-control font-monospace" placeholder="auto" /></div>
+                    <div class="col-md-4"><label class="form-label text-secondary">Port</label><input class="form-control" value="auto (3000-9999)" disabled /></div>
+                    <div class="col-md-4"><label class="form-label text-secondary">Processes</label>
+                        <select name="processCount" class="form-select"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+                    <div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="autoRestart" value="true" id="ar" checked /><label class="form-check-label text-secondary" for="ar">Auto-restart</label></div></div>
+                </div>
+
+                <label class="form-label text-secondary mt-3">Environment variables</label>
+                <div class="row g-2">
+                    <div class="col-6"><textarea name="envKeys" class="form-control font-monospace" rows="3" placeholder="KEY_ONE&#10;KEY_TWO"></textarea><div class="form-text">Keys, one per line</div></div>
+                    <div class="col-6"><textarea name="envValues" class="form-control font-monospace" rows="3" placeholder="value one&#10;value two"></textarea><div class="form-text">Values, one per line</div></div>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">3. Deploy</h6>
+                <div class="mb-3">
+                    <div class="form-check"><input class="form-check-input" type="radio" name="deploySource" value="existing" id="src-existing" checked /><label class="form-check-label" for="src-existing">Use existing files in path</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="deploySource" value="git" id="src-git" @(Model.Repos.Any() ? "" : "disabled") /><label class="form-check-label" for="src-git">Deploy from Git repo</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="deploySource" value="upload" id="src-upload" /><label class="form-check-label" for="src-upload">Upload archive later</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="deploySource" value="none" id="src-none" /><label class="form-check-label" for="src-none">Just create (don't start)</label></div>
+                </div>
+                @if (Model.Repos.Any())
+                {
+                    <div class="mb-3"><label class="form-label text-secondary small">Git repository</label>
+                        <select name="gitRepoId" class="form-select form-select-sm">
+                            @foreach (var r in Model.Repos) { <option value="@r.Id">@r.ShortName (@r.Branch)</option> }
+                        </select></div>
+                }
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-rocket-takeoff"></i> Create app</button>
+                <div class="form-text mt-2">Dependencies install automatically (npm / pip / bundle).</div>
+            </div></div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.tpl').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                document.querySelector('input[name="type"][value="'+btn.dataset.type+'"]').checked = true;
+                document.getElementById('entryPoint').value = btn.dataset.entry;
+                document.getElementById('startCommand').value = btn.dataset.start;
+                if (!document.getElementById('name').value) document.getElementById('name').value = btn.dataset.name + '-app';
+                document.querySelectorAll('.tpl').forEach(function(b){ b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary'); });
+                btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-primary');
+            });
+        });
+    </script>
+}

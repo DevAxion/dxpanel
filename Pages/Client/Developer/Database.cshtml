@@ -1,0 +1,300 @@
+@page "/Client/Developer/Database/{dbId:int?}"
+@model SRXPanel.Pages.Client.Developer.DatabaseModel
+@using SRXPanel.Services.Developer
+@{
+    ViewData["Title"] = "Database Tools";
+
+    string Size(long bytes) => bytes switch
+    {
+        > 1_073_741_824 => $"{bytes / 1073741824.0:0.0} GB",
+        > 1_048_576 => $"{bytes / 1048576.0:0.0} MB",
+        > 1024 => $"{bytes / 1024.0:0.0} KB",
+        _ => $"{bytes} B"
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Database Tools</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">Database Tools</h4>
+
+@if (!Model.Databases.Any())
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> You have no databases yet.
+        <a asp-page="/Client/Databases" class="alert-link">Create one</a>
+    </div>
+}
+else if (Model.Selected is not null)
+{
+    var selected = Model.Selected;
+
+    <div class="row g-2 align-items-end mb-4">
+        <div class="col-md-5">
+            <label class="form-label small">Database</label>
+            <select class="form-select form-select-sm" onchange="window.location='/Client/Developer/Database/' + this.value">
+                @foreach (var database in Model.Databases)
+                {
+                    <option value="@database.Id" selected="@(selected.Id == database.Id)">@database.DbName</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-7 text-md-end">
+            <span class="badge text-bg-secondary">@Model.Tables.Count tables</span>
+            <span class="badge text-bg-secondary">@Model.TotalRows.ToString("N0") rows</span>
+            <span class="badge text-bg-secondary">@Size(Model.TotalBytes)</span>
+
+            <div class="btn-group btn-group-sm ms-2">
+                @foreach (var format in Enum.GetValues<ExportFormat>())
+                {
+                    <form method="post" asp-page-handler="Export" class="d-inline">
+                        <input type="hidden" name="dbId" value="@selected.Id" />
+                        <input type="hidden" name="format" value="@format" />
+                        <button class="btn btn-outline-secondary"><i class="bi bi-download"></i> @format.ToString().ToUpperInvariant()</button>
+                    </form>
+                }
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload"></i> Import
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-table"></i> Tables</h6>
+                <div class="table-responsive" style="max-height:380px;overflow:auto;">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead><tr><th>Table</th><th class="text-end">Rows</th><th class="text-end">Size</th><th></th></tr></thead>
+                        <tbody>
+                            @foreach (var table in Model.Tables)
+                            {
+                                <tr>
+                                    <td>
+                                        <a href="#" class="text-light text-decoration-none select-table" data-table="@table.Name">@table.Name</a>
+                                        <div class="text-secondary" style="font-size:11px;">@table.Engine · @table.Collation</div>
+                                    </td>
+                                    <td class="text-end text-secondary small">@table.Rows.ToString("N0")</td>
+                                    <td class="text-end text-secondary small">@Size(table.TotalBytes)</td>
+                                    <td class="text-end">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                @foreach (var operation in Enum.GetValues<TableOperation>())
+                                                {
+                                                    var destructive = operation == TableOperation.Truncate;
+                                                    <li>
+                                                        <form method="post" asp-page-handler="TableOp"
+                                                              data-confirm="@(destructive ? $"TRUNCATE {table.Name}? Every row is deleted permanently." : null)">
+                                                            <input type="hidden" name="dbId" value="@selected.Id" />
+                                                            <input type="hidden" name="tableName" value="@table.Name" />
+                                                            <input type="hidden" name="operation" value="@operation" />
+                                                            <button class="dropdown-item @(destructive ? "text-danger" : "")">
+                                                                @operation
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                }
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="Export">
+                                                        <input type="hidden" name="dbId" value="@selected.Id" />
+                                                        <input type="hidden" name="format" value="@ExportFormat.Csv" />
+                                                        <input type="hidden" name="tableName" value="@table.Name" />
+                                                        <button class="dropdown-item">Export as CSV</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-lightbulb"></i> Query suggestions</h6>
+                @foreach (var suggestion in Model.Suggestions)
+                {
+                    <div class="border-start border-3 border-secondary ps-3 mb-3">
+                        <code class="small text-light d-block mb-1">@suggestion.Query</code>
+                        <div class="text-secondary small">@suggestion.Suggestion</div>
+                        @if (suggestion.AvgMs > 0)
+                        {
+                            <span class="badge text-bg-warning mt-1">~@suggestion.AvgMs ms</span>
+                        }
+                    </div>
+                }
+            </div></div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-light mb-0"><i class="bi bi-code-square"></i> SQL query</h6>
+                    <button class="btn btn-sm btn-primary" id="runQuery"><i class="bi bi-play-fill"></i> Run (Ctrl+Enter)</button>
+                </div>
+
+                <form method="post" asp-page-handler="Query" id="queryForm">
+                    <input type="hidden" name="dbId" value="@selected.Id" />
+                    <input type="hidden" name="sql" id="sqlField" />
+                    <input type="hidden" name="page" id="pageField" value="@Model.Page_" />
+                </form>
+
+                <div id="editor" style="height:180px; border:1px solid #30363d; border-radius:6px;"></div>
+                <template id="sqlSeed">@(Model.Sql ?? "SELECT * FROM users LIMIT 10;")</template>
+
+                <div class="form-text">
+                    Only statements against this database are allowed. <code>GRANT</code>, <code>INTO OUTFILE</code>
+                    and other cross-schema statements are rejected.
+                </div>
+            </div></div>
+
+            @if (Model.QueryResult is QueryResult result)
+            {
+                <div class="card srx-card"><div class="card-body">
+                    @if (result.Error != null)
+                    {
+                        <div class="alert alert-danger mb-0">
+                            <i class="bi bi-x-octagon"></i> @result.Error
+                        </div>
+                    }
+                    else if (result.AffectedRows is int affected)
+                    {
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            Statement executed in @result.ElapsedMs ms. @affected row(s) affected.
+                            @if (result.Simulated) { <span class="badge text-bg-secondary">simulated</span> }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-light mb-0">Results</h6>
+                            <span class="text-secondary small">
+                                @result.Rows.Count rows in @result.ElapsedMs ms
+                                @if (result.Simulated) { <span class="badge text-bg-secondary">simulated</span> }
+                            </span>
+                        </div>
+
+                        <div class="table-responsive" style="max-height:340px;overflow:auto;">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead><tr>@foreach (var column in result.Columns) { <th class="small">@column</th> }</tr></thead>
+                                <tbody>
+                                    @foreach (var row in result.Rows)
+                                    {
+                                        <tr>
+                                            @foreach (var cell in row)
+                                            {
+                                                <td class="small font-monospace @(cell == null ? "text-secondary fst-italic" : "text-light")">
+                                                    @(cell ?? "NULL")
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" id="prevPage" @(Model.Page_ <= 1 ? "disabled" : "")>
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </button>
+                            <span class="text-secondary small">Page @Model.Page_</span>
+                            <button class="btn btn-sm btn-outline-secondary" id="nextPage" @(result.Rows.Count < 50 ? "disabled" : "")>
+                                Next <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    }
+                </div></div>
+            }
+        </div>
+    </div>
+
+    <div class="modal fade" id="importModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="Import" enctype="multipart/form-data">
+                    <input type="hidden" name="dbId" value="@selected.Id" />
+                    <div class="modal-header">
+                        <h6 class="modal-title text-light"><i class="bi bi-upload"></i> Import SQL into @selected.DbName</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning small">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            The dump runs against your existing data. Export a backup first if you are unsure.
+                        </div>
+                        <input type="file" name="sqlFile" accept=".sql" class="form-control" required />
+                        <div class="form-text">
+                            The file is executed one statement at a time, so large dumps stream rather than load into memory.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> Import</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@@0.47.0/min/vs/loader.js"></script>
+    <script>
+        // Destructive table operations confirm before submitting.
+        document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                if (!confirm(form.dataset.confirm)) e.preventDefault();
+            });
+        });
+
+        (function () {
+            var seedEl = document.getElementById('sqlSeed');
+            if (!seedEl) return;
+
+            require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                var editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: seedEl.content.textContent.trim(),
+                    language: 'sql',
+                    theme: 'vs-dark',
+                    minimap: { enabled: false },
+                    automaticLayout: true,
+                    fontSize: 13
+                });
+
+                function submit(page) {
+                    document.getElementById('sqlField').value = editor.getValue();
+                    document.getElementById('pageField').value = page;
+                    document.getElementById('queryForm').submit();
+                }
+
+                document.getElementById('runQuery').addEventListener('click', function () { submit(1); });
+                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function () { submit(1); });
+
+                var prev = document.getElementById('prevPage');
+                var next = document.getElementById('nextPage');
+                if (prev) prev.addEventListener('click', function () { submit(@Model.Page_ - 1); });
+                if (next) next.addEventListener('click', function () { submit(@Model.Page_ + 1); });
+
+                document.querySelectorAll('.select-table').forEach(function (link) {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        editor.setValue('SELECT * FROM `' + link.dataset.table + '` LIMIT 50;');
+                    });
+                });
+            });
+        })();
+    </script>
+}

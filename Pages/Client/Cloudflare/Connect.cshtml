@@ -1,0 +1,193 @@
+@page
+@model SRXPanel.Pages.Client.Cloudflare.ConnectModel
+@{
+    ViewData["Title"] = "Connect Cloudflare";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Cloudflare/Index">Cloudflare</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Connect</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Connect Cloudflare</h4>
+
+<div class="d-flex gap-2 mb-4" style="max-width:640px;">
+    <div class="flex-fill text-center">
+        <div class="badge rounded-pill @(Model.Step >= 1 ? "text-bg-primary" : "text-bg-secondary")" style="width:32px;height:32px;line-height:24px;">1</div>
+        <div class="small @(Model.Step == 1 ? "text-light" : "text-secondary")">API Token</div>
+    </div>
+    <div class="flex-fill text-center">
+        <div class="badge rounded-pill @(Model.Step >= 2 ? "text-bg-primary" : "text-bg-secondary")" style="width:32px;height:32px;line-height:24px;">2</div>
+        <div class="small @(Model.Step == 2 ? "text-light" : "text-secondary")">Link zones</div>
+    </div>
+    <div class="flex-fill text-center">
+        <div class="badge rounded-pill text-bg-secondary" style="width:32px;height:32px;line-height:24px;">3</div>
+        <div class="small text-secondary">DNS migration</div>
+    </div>
+</div>
+
+@if (Model.Step == 1)
+{
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Step 1 — Enter your API token</h6>
+                <form method="post" asp-page-handler="Connect">
+                    <div class="mb-3">
+                        <label class="form-label">Cloudflare API Token</label>
+                        <div class="input-group">
+                            <input name="apiToken" id="apiToken" class="form-control font-monospace"
+                                   placeholder="Paste your scoped token" required autocomplete="off" />
+                            <button class="btn btn-outline-secondary" type="button" id="testBtn"><i class="bi bi-plug"></i> Test</button>
+                        </div>
+                        <div class="form-text" id="testResult">The token is stored encrypted and used only for API calls.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Account email <span class="text-secondary">(optional)</span></label>
+                        <input name="email" type="email" class="form-control" placeholder="you@example.com" />
+                    </div>
+                    <button class="btn btn-primary" id="saveBtn"><i class="bi bi-check-lg"></i> Connect</button>
+                </form>
+            </div></div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-info-circle"></i> How to create a token</h6>
+                <ol class="text-secondary small ps-3">
+                    <li class="mb-2">Go to <strong>Cloudflare Dashboard → My Profile → API Tokens</strong>.</li>
+                    <li class="mb-2">Click <strong>Create Token</strong> → <strong>Create Custom Token</strong>.</li>
+                    <li class="mb-2">Add these permissions:</li>
+                </ol>
+                <ul class="list-unstyled small ms-3">
+                    <li><span class="badge text-bg-secondary">Zone · DNS · Edit</span></li>
+                    <li class="mt-1"><span class="badge text-bg-secondary">Zone · Zone · Edit</span></li>
+                    <li class="mt-1"><span class="badge text-bg-secondary">Zone · Cache Purge · Purge</span></li>
+                    <li class="mt-1"><span class="badge text-bg-secondary">Zone · Analytics · Read</span></li>
+                    <li class="mt-1"><span class="badge text-bg-secondary">Zone · Zone Settings · Edit</span></li>
+                    <li class="mt-1"><span class="badge text-bg-secondary">Zone · Firewall Services · Edit</span></li>
+                </ul>
+                <p class="text-secondary small mb-0">
+                    Set <strong>Zone Resources</strong> to <em>All zones</em> (or the specific zones you want to manage),
+                    then create and copy the token.
+                </p>
+            </div></div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Step 2 — Link a domain to a Cloudflare zone</h6>
+
+                @if (!Model.Linkable.Any())
+                {
+                    <p class="text-secondary small mb-0">
+                        Every panel domain is already linked, or you have no domains yet.
+                        <a asp-page="/Client/Cloudflare/Index">Back to overview</a>.
+                    </p>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="Link">
+                        <div class="mb-3">
+                            <label class="form-label">Panel domain</label>
+                            <select name="domainId" class="form-select" required>
+                                @foreach (var domain in Model.Linkable)
+                                {
+                                    <option value="@domain.Id">@domain.DomainName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cloudflare zone</label>
+                            <select name="zoneId" class="form-select">
+                                <option value="">➕ Create a new zone in Cloudflare</option>
+                                @foreach (var zone in Model.RemoteZones)
+                                {
+                                    <option value="@zone.ZoneId">@zone.Name — @zone.Status</option>
+                                }
+                            </select>
+                            <div class="form-text">
+                                Pick an existing zone, or create one. New zones start <em>Pending</em> until you
+                                point your nameservers to Cloudflare.
+                            </div>
+                        </div>
+                        <button class="btn btn-primary"><i class="bi bi-link-45deg"></i> Link &amp; review DNS</button>
+                    </form>
+                }
+            </div></div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Zones in your account (@Model.RemoteZones.Count)</h6>
+                @if (!Model.RemoteZones.Any())
+                {
+                    <p class="text-secondary small mb-0">No zones found in this Cloudflare account.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            @foreach (var zone in Model.RemoteZones)
+                            {
+                                var linked = Model.Linked.Any(l => l.ZoneId == zone.ZoneId);
+                                <tr>
+                                    <td class="text-light small">@zone.Name</td>
+                                    <td><span class="badge @(zone.Status == "active" ? "text-bg-success" : "text-bg-warning")">@zone.Status</span></td>
+                                    <td class="text-end">
+                                        @if (linked)
+                                        {
+                                            <span class="badge text-bg-secondary">linked</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div></div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <form style="display:none">@Html.AntiForgeryToken()</form>
+    <script>
+        (function () {
+            var testBtn = document.getElementById('testBtn');
+            if (!testBtn) return;
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            testBtn.addEventListener('click', function () {
+                var value = document.getElementById('apiToken').value;
+                var result = document.getElementById('testResult');
+                result.className = 'form-text text-secondary';
+                result.textContent = 'Testing…';
+
+                var body = new URLSearchParams({ apiToken: value });
+                fetch('?handler=Test', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token, 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        result.className = 'form-text ' + (d.valid ? 'text-success' : 'text-danger');
+                        result.textContent = d.valid
+                            ? '✓ Valid — ' + (d.account || 'account found') + (d.scopes && d.scopes.length ? ' · ' + d.scopes.join(', ') : '')
+                            : (d.error || 'Token rejected.');
+                    })
+                    .catch(function () {
+                        result.className = 'form-text text-danger';
+                        result.textContent = 'Test failed.';
+                    });
+            });
+        })();
+    </script>
+}

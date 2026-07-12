@@ -1,0 +1,63 @@
+@page
+@model SRXPanel.Pages.Admin.Email.BouncesModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Platform Bounces";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Email/Index">Email</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Bounces</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4"><i class="bi bi-arrow-return-left accent"></i> Platform Bounces</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@Model.TotalHard</div><div class="srx-stat-label">Hard</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@Model.TotalSoft</div><div class="srx-stat-label">Soft</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalSuppressed</div><div class="srx-stat-label">Suppressed</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@(Model.TotalHard + Model.TotalSoft)</div><div class="srx-stat-label">Total</div></div></div>
+</div>
+
+<div class="card srx-card mb-3"><div class="card-body">
+    <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle text-warning"></i> High hard-bounce domains</h6>
+    @if (!Model.HighBounceDomains.Any()) { <p class="text-secondary mb-0">No hard bounces recorded.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Domain</th><th>Hard bounces</th></tr></thead>
+            <tbody>
+            @foreach (var (domain, hard, _) in Model.HighBounceDomains)
+            {
+                <tr><td class="text-light">@domain</td><td><span class="badge text-bg-danger">@hard</span></td></tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>
+
+<div class="card srx-card"><div class="card-body">
+    <h6 class="text-light mb-3">Recent bounces</h6>
+    @if (!Model.Recent.Any()) { <p class="text-secondary mb-0">No bounces recorded.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Email</th><th>Type</th><th>Domain</th><th>Reason</th><th>Date</th><th>Suppressed</th></tr></thead>
+            <tbody>
+            @foreach (var b in Model.Recent)
+            {
+                <tr>
+                    <td class="font-monospace small text-light">@b.EmailAddress</td>
+                    <td><span class="badge @(b.BounceType == BounceType.Hard ? "text-bg-danger" : "text-bg-warning")">@b.BounceType</span></td>
+                    <td class="text-secondary small">@(b.Domain?.DomainName ?? "—")</td>
+                    <td class="text-secondary small">@b.BounceReason</td>
+                    <td class="text-secondary small">@b.OccurredAt.ToString("MM-dd HH:mm")</td>
+                    <td>@if (b.IsBlacklisted) { <i class="bi bi-check-circle-fill text-warning"></i> }</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>

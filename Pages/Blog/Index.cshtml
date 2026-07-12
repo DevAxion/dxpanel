@@ -1,0 +1,69 @@
+@page
+@model SRXPanel.Pages.Blog.IndexModel
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = "Blog";
+    ViewData["MetaDescription"] = "News, guides and tips to get the most out of your hosting.";
+}
+
+<section class="text-center" style="padding:56px 0 24px;">
+    <div class="container">
+        <h1 class="text-light fw-bold">The Blog</h1>
+        <p class="text-secondary fs-5">News, guides and tips to get the most out of your hosting.</p>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            @if (!Model.Posts.Any())
+            {
+                <p class="text-secondary">No posts yet. Check back soon!</p>
+            }
+            else
+            {
+                foreach (var p in Model.Posts)
+                {
+                    <article class="mb-4" style="background:#161b22;border:1px solid #30363d;border-radius:14px;overflow:hidden;">
+                        @if (!string.IsNullOrEmpty(p.FeaturedImage))
+                        {
+                            <img src="@p.FeaturedImage" alt="@p.Title" style="width:100%;height:220px;object-fit:cover;" loading="lazy" />
+                        }
+                        <div class="p-4">
+                            <div class="d-flex gap-2 align-items-center mb-2">
+                                @if (p.Category != null)
+                                {
+                                    <a href="/blog?category=@p.Category.Slug" class="badge text-bg-primary text-decoration-none">@p.Category.Name</a>
+                                }
+                                <span class="text-secondary small">@(p.PublishedAt?.ToString("MMM d, yyyy"))</span>
+                            </div>
+                            <h3 class="text-light"><a href="/blog/@p.Slug" class="text-light text-decoration-none">@p.Title</a></h3>
+                            <p class="text-secondary">@p.Excerpt</p>
+                            <a href="/blog/@p.Slug" class="accent text-decoration-none">Read more <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+
+        <aside class="col-lg-4">
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:22px;margin-bottom:20px;">
+                <h6 class="text-light mb-3">Categories</h6>
+                <a href="/blog" class="d-block text-decoration-none py-1 @(string.IsNullOrEmpty(Model.Category) ? "accent" : "text-secondary")">All posts</a>
+                @foreach (var c in Model.Categories)
+                {
+                    <a href="/blog?category=@c.Slug" class="d-block text-decoration-none py-1 @(Model.Category == c.Slug ? "accent" : "text-secondary")">@c.Name</a>
+                }
+            </div>
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:22px;">
+                <h6 class="text-light mb-3">Tags</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var t in Model.Tags)
+                    {
+                        <a href="/blog?tag=@t.Slug" class="badge text-decoration-none @(Model.Tag == t.Slug ? "text-bg-primary" : "")" style="@(Model.Tag == t.Slug ? "" : "background:#0d1117;border:1px solid #30363d;color:#c9d1d9;")">#@t.Name</a>
+                    }
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

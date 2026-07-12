@@ -1,0 +1,242 @@
+@page
+@model SRXPanel.Pages.Client.Developer.TerminalModel
+@{
+    ViewData["Title"] = "Terminal";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Terminal</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h4 class="text-light mb-0">Terminal</h4>
+        <div class="text-secondary small">
+            Signed in as <code>@Model.Username</code> — never root. Sessions end after 30 minutes of inactivity.
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-secondary" id="sessionBadge">@Model.ActiveSessions / @Model.MaxSessions sessions</span>
+
+        <select id="theme" class="form-select form-select-sm" style="width:auto;">
+            <option value="dark" selected>Dark</option>
+            <option value="light">Light</option>
+            <option value="solarized">Solarized</option>
+        </select>
+
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" id="fontDown" title="Smaller font"><i class="bi bi-dash-lg"></i></button>
+            <button class="btn btn-outline-secondary" id="fontUp" title="Larger font"><i class="bi bi-plus-lg"></i></button>
+        </div>
+
+        <button class="btn btn-sm btn-outline-secondary" id="downloadBtn" title="Download session log">
+            <i class="bi bi-download"></i>
+        </button>
+        <button class="btn btn-sm btn-primary" id="connectBtn">
+            <i class="bi bi-plug"></i> Connect
+        </button>
+    </div>
+</div>
+
+@if (!Model.SshEnabled)
+{
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-info-circle"></i>
+            SSH access is currently disabled for your account. The browser terminal still works — it does not use sshd.
+        </span>
+        <a asp-page="/Client/Developer/Ssh" class="btn btn-sm btn-outline-info">SSH settings</a>
+    </div>
+}
+
+<div class="card srx-card">
+    <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <span class="small text-secondary">
+            <span class="badge text-bg-secondary" id="status">Disconnected</span>
+            <span id="statusDetail" class="ms-2"></span>
+        </span>
+        <span class="small text-secondary">
+            <i class="bi bi-info-circle"></i> Ctrl+C interrupts · type <code>help</code> for commands
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div id="terminal" style="height:520px; padding:8px;"></div>
+    </div>
+</div>
+
+@section Scripts {
+    @* The script reads this token as soon as it runs, so it must be in the DOM first. *@
+    <form style="display:none">@Html.AntiForgeryToken()</form>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@xterm/xterm@@5.5.0/css/xterm.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@@xterm/xterm@@5.5.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@xterm/addon-fit@@0.10.0/lib/addon-fit.min.js"></script>
+    <script>
+        (function () {
+            var THEMES = {
+                dark: { background: '#0d1117', foreground: '#c9d1d9', cursor: '#58a6ff', selectionBackground: '#264f78' },
+                light: { background: '#ffffff', foreground: '#24292f', cursor: '#0969da', selectionBackground: '#b6d7ff' },
+                solarized: { background: '#002b36', foreground: '#839496', cursor: '#93a1a1', selectionBackground: '#073642' }
+            };
+
+            var fontSize = parseInt(localStorage.getItem('srx.term.font') || '14', 10);
+            var themeName = localStorage.getItem('srx.term.theme') || 'dark';
+
+            var term = new Terminal({
+                fontSize: fontSize,
+                fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                theme: THEMES[themeName],
+                cursorBlink: true,
+                scrollback: 5000,
+                convertEol: false
+            });
+
+            var fit = new FitAddon.FitAddon();
+            term.loadAddon(fit);
+            term.open(document.getElementById('terminal'));
+            fit.fit();
+
+            document.getElementById('theme').value = themeName;
+
+            var socket = null;
+            var sessionLog = '';
+            var history = [];      // browser session only, never persisted
+            var historyIndex = -1;
+            var currentLine = '';
+
+            var statusEl = document.getElementById('status');
+            var detailEl = document.getElementById('statusDetail');
+            var connectBtn = document.getElementById('connectBtn');
+
+            function setStatus(text, cls, detail) {
+                statusEl.className = 'badge ' + cls;
+                statusEl.textContent = text;
+                detailEl.textContent = detail || '';
+            }
+
+            function connect() {
+                setStatus('Connecting…', 'text-bg-info');
+
+                fetch('?handler=Ticket', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
+                })
+                    .then(function (r) {
+                        if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || 'Could not start a session.'); });
+                        return r.json();
+                    })
+                    .then(function (d) { openSocket(d.token); })
+                    .catch(function (e) {
+                        setStatus('Disconnected', 'text-bg-danger', e.message);
+                        term.writeln('\r\n\x1b[31m' + e.message + '\x1b[0m');
+                    });
+            }
+
+            function openSocket(token) {
+                var scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+                socket = new WebSocket(scheme + '://' + location.host + '/ws/terminal/' + token);
+
+                socket.onopen = function () {
+                    setStatus('Connected', 'text-bg-success');
+                    connectBtn.innerHTML = '<i class="bi bi-x-lg"></i> Disconnect';
+                    term.focus();
+                };
+
+                socket.onmessage = function (event) {
+                    term.write(event.data);
+                    sessionLog += event.data;
+                };
+
+                socket.onclose = function (event) {
+                    setStatus('Disconnected', 'text-bg-secondary', event.reason || '');
+                    connectBtn.innerHTML = '<i class="bi bi-plug"></i> Connect';
+                    socket = null;
+
+                    // Reconnect once automatically unless the server closed us deliberately.
+                    if (event.reason === 'idle timeout' || event.reason === 'terminated by admin' ||
+                        event.reason === 'user exited' || event.reason === 'eof') return;
+                    term.writeln('\r\n\x1b[33mConnection lost. Reconnecting in 3s…\x1b[0m');
+                    setTimeout(connect, 3000);
+                };
+
+                socket.onerror = function () {
+                    setStatus('Error', 'text-bg-danger', 'WebSocket failed');
+                };
+            }
+
+            function disconnect() {
+                if (socket) socket.close(1000, 'user exited');
+            }
+
+            connectBtn.addEventListener('click', function () {
+                if (socket) disconnect(); else connect();
+            });
+
+            // Send keystrokes; keep a local history buffer for the arrow keys.
+            term.onData(function (data) {
+                if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+                if (data === '\x1b[A' || data === '\x1b[B') {   // up / down
+                    if (history.length === 0) return;
+                    historyIndex = data === '\x1b[A'
+                        ? Math.max(0, historyIndex - 1)
+                        : Math.min(history.length, historyIndex + 1);
+
+                    var replacement = history[historyIndex] || '';
+                    for (var i = 0; i < currentLine.length; i++) socket.send('\x7f');
+                    socket.send(replacement);
+                    currentLine = replacement;
+                    return;
+                }
+
+                if (data === '\r') {
+                    if (currentLine.trim()) { history.push(currentLine); historyIndex = history.length; }
+                    currentLine = '';
+                } else if (data === '\x7f') {
+                    currentLine = currentLine.slice(0, -1);
+                } else if (data >= ' ') {
+                    currentLine += data;
+                }
+
+                socket.send(data);
+            });
+
+            // Resize handling.
+            window.addEventListener('resize', function () { fit.fit(); });
+
+            // Theme + font controls.
+            document.getElementById('theme').addEventListener('change', function () {
+                themeName = this.value;
+                term.options.theme = THEMES[themeName];
+                localStorage.setItem('srx.term.theme', themeName);
+            });
+
+            function setFont(size) {
+                fontSize = Math.min(24, Math.max(10, size));
+                term.options.fontSize = fontSize;
+                localStorage.setItem('srx.term.font', fontSize);
+                fit.fit();
+            }
+            document.getElementById('fontUp').addEventListener('click', function () { setFont(fontSize + 1); });
+            document.getElementById('fontDown').addEventListener('click', function () { setFont(fontSize - 1); });
+
+            // Session log download — strips ANSI escapes so the file is readable.
+            document.getElementById('downloadBtn').addEventListener('click', function () {
+                var plain = sessionLog.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
+                var blob = new Blob([plain], { type: 'text/plain' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'terminal-session-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '') + '.log';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+
+            term.writeln('\x1b[90mPress "Connect" to open a shell session.\x1b[0m');
+            connect();
+        })();
+    </script>
+}

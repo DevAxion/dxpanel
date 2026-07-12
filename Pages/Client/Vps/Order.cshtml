@@ -1,0 +1,124 @@
+@page "/Client/Vps/Order/{planId:int}"
+@model SRXPanel.Pages.Client.Vps.OrderModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Deploy VPS";
+    var p = Model.Plan;
+    string Money(decimal d) => $"${d:0.00}";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Vps/Index">VPS</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Deploy</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4"><i class="bi bi-hdd-rack accent"></i> Deploy @p.Name</h4>
+
+<form method="post">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">1. Configure</h6>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Hostname</label>
+                    <input name="hostname" class="form-control font-monospace" placeholder="my-server.example.com" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Operating system</label>
+                    <div class="row g-2">
+                        @foreach (var t in Model.Templates)
+                        {
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="templateId" id="tpl@(t.Id)" value="@t.Id" autocomplete="off" @(t == Model.Templates.First() ? "checked" : "") />
+                                <label class="btn btn-outline-secondary w-100 text-start" for="tpl@(t.Id)">
+                                    <i class="bi @t.IconClass accent"></i> @t.Name
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    @if (!Model.Templates.Any())
+                    {
+                        <div class="text-warning small">No OS templates are configured yet. Ask an administrator to add one.</div>
+                    }
+                </div>
+
+                @if (Model.Nodes.Count > 1)
+                {
+                    <div class="mb-3">
+                        <label class="form-label text-secondary">Location</label>
+                        <select name="nodeId" class="form-select">
+                            <option value="">Auto (least loaded)</option>
+                            @foreach (var n in Model.Nodes)
+                            {
+                                <option value="@n.Id">@n.Location — @n.Name</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Root password</label>
+                    <input name="rootPassword" id="rootPassword" type="password" class="form-control" oninput="meter()" placeholder="Strong password" />
+                    <div class="progress mt-2" style="height:5px;"><div id="pwBar" class="progress-bar" style="width:0"></div></div>
+                    <div class="form-text">Leave blank if you select an SSH key below.</div>
+                </div>
+
+                @if (Model.SshKeys.Any())
+                {
+                    <div class="mb-2">
+                        <label class="form-label text-secondary">SSH key (optional)</label>
+                        <select name="sshKeyId" class="form-select">
+                            <option value="">None — use password</option>
+                            @foreach (var k in Model.SshKeys)
+                            {
+                                <option value="@k.Id">@k.Label (@k.KeyType)</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-secondary small">Tip: add an SSH key under <a asp-page="/Client/Developer/Ssh">Developer → SSH Keys</a> for key-based login.</div>
+                }
+            </div></div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">2. Review &amp; deploy</h6>
+                <table class="table table-sm text-secondary mb-3">
+                    <tr><td>Plan</td><td class="text-end text-light">@p.Name</td></tr>
+                    <tr><td>vCPU</td><td class="text-end text-light">@p.CpuCores</td></tr>
+                    <tr><td>RAM</td><td class="text-end text-light">@(p.RamMB / 1024) GB</td></tr>
+                    <tr><td>Disk</td><td class="text-end text-light">@p.DiskGB GB NVMe</td></tr>
+                    <tr><td>Bandwidth</td><td class="text-end text-light">@(p.BandwidthGB / 1000) TB</td></tr>
+                    <tr><td>Billing</td><td class="text-end text-light">@p.BillingCycle</td></tr>
+                </table>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary">Total</span>
+                    <span class="fs-4 fw-bold text-light">@Money(p.Price)<span class="fs-6 text-secondary">/mo</span></span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" @(Model.Templates.Any() ? "" : "disabled")>
+                    <i class="bi bi-rocket-takeoff"></i> Deploy now
+                </button>
+                <div class="form-text text-center mt-2">Billed to your account on file.</div>
+            </div></div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function meter() {
+            var v = document.getElementById('rootPassword').value, s = 0;
+            if (v.length >= 8) s++; if (/[A-Z]/.test(v)) s++; if (/[0-9]/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v)) s++;
+            var bar = document.getElementById('pwBar');
+            bar.style.width = (s * 25) + '%';
+            bar.className = 'progress-bar ' + (s <= 1 ? 'bg-danger' : s === 2 ? 'bg-warning' : s === 3 ? 'bg-info' : 'bg-success');
+        }
+    </script>
+}

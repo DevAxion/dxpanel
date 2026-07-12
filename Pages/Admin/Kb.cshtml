@@ -1,0 +1,69 @@
+@page
+@model SRXPanel.Pages.Admin.KbModel
+@{
+    ViewData["Title"] = "Knowledge Base";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Website</li>
+            <li class="breadcrumb-item active" aria-current="page">Knowledge Base</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Knowledge Base</h4>
+    <a href="/Admin/KbEdit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New article</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card"><div class="card-body">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Views</th><th>Helpful</th><th></th></tr></thead>
+                <tbody>
+                @if (!Model.Articles.Any())
+                {
+                    <tr><td colspan="6" class="text-secondary text-center py-3">No articles yet.</td></tr>
+                }
+                @foreach (var a in Model.Articles)
+                {
+                    <tr>
+                        <td><a href="/Admin/KbEdit?id=@a.Id" class="text-light text-decoration-none">@a.Title</a></td>
+                        <td class="text-secondary small">@(a.Category?.Name ?? "—")</td>
+                        <td>@if (a.IsPublished) { <span class="badge text-bg-success">Live</span> } else { <span class="badge text-bg-secondary">Hidden</span> }</td>
+                        <td class="text-secondary">@a.Views</td>
+                        <td class="text-secondary small"><i class="bi bi-hand-thumbs-up"></i> @a.HelpfulYes / <i class="bi bi-hand-thumbs-down"></i> @a.HelpfulNo</td>
+                        <td class="text-end text-nowrap">
+                            <a href="/Admin/KbEdit?id=@a.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                            <form method="post" asp-page-handler="Delete" class="d-inline" onsubmit="return confirm('Delete this article?');"><input type="hidden" name="id" value="@a.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-collection"></i> Categories</h6>
+            @foreach (var c in Model.Categories)
+            {
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <span class="text-light"><i class="bi @c.Icon accent"></i> @c.Name</span>
+                    <form method="post" asp-page-handler="DeleteCategory"><input type="hidden" name="id" value="@c.Id" /><button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form>
+                </div>
+            }
+            <form method="post" asp-page-handler="AddCategory" class="border-top pt-3 mt-2">
+                <input name="name" class="form-control form-control-sm mb-2" placeholder="Category name" required />
+                <input name="icon" class="form-control form-control-sm mb-2" placeholder="bi-journal-text" />
+                <input name="description" class="form-control form-control-sm mb-2" placeholder="Description" />
+                <input name="sortOrder" type="number" value="0" class="form-control form-control-sm mb-2" />
+                <button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add category</button>
+            </form>
+        </div></div>
+    </div>
+</div>

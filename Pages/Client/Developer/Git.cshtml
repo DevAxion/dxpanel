@@ -1,0 +1,230 @@
+@page
+@model SRXPanel.Pages.Client.Developer.GitModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Git Deployment";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Git Deployment</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0">Git Deployment</h4>
+        <div class="text-secondary small">Pull from GitHub, GitLab or Bitbucket and run your build on every push.</div>
+    </div>
+    @if (Model.Domains.Any())
+    {
+        <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addRepo">
+            <i class="bi bi-plus-lg"></i> Add repository
+        </button>
+    }
+</div>
+
+@if (!Model.Domains.Any())
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        Add a domain first — a repository deploys into a domain's document root.
+        <a asp-page="/Client/Domains" class="alert-link">Add a domain</a>
+    </div>
+}
+
+<div class="collapse @(Model.Domains.Any() && !Model.Repositories.Any() ? "show" : "")" id="addRepo">
+    <div class="card srx-card mb-4"><div class="card-body">
+        <h6 class="text-light mb-3">Add a repository</h6>
+        <form method="post" asp-page-handler="Create">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Repository URL</label>
+                    <div class="input-group">
+                        <input name="repoUrl" id="repoUrl" class="form-control font-monospace"
+                               placeholder="git@@github.com:octocat/hello-world.git" required />
+                        <button class="btn btn-outline-secondary" type="button" id="testBtn">
+                            <i class="bi bi-plug"></i> Test
+                        </button>
+                    </div>
+                    <div class="form-text" id="testResult">
+                        HTTPS for public repositories, <code>git@@…</code> with a deploy key for private ones.
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Branch</label>
+                    <input name="branch" id="branch" class="form-control" value="main" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Domain</label>
+                    <select name="domainId" class="form-select" required>
+                        @foreach (var domain in Model.Domains)
+                        {
+                            <option value="@domain.Id">@domain.DomainName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Deploy path</label>
+                    <input name="deployPath" class="form-control font-monospace" value="/" required />
+                    <div class="form-text">Relative to the domain's document root.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Deploy key</label>
+                    <select name="sshKeyId" class="form-select">
+                        <option value="0">None (public repository)</option>
+                        @foreach (var key in Model.SshKeys)
+                        {
+                            <option value="@key.Id">@key.Label — @key.KeyType</option>
+                        }
+                    </select>
+                    <div class="form-text">
+                        Private repositories need a key. <a asp-page="/Client/Developer/Ssh">Manage SSH keys</a>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" name="autoDeploy" value="true" id="autoDeploy" checked />
+                        <input type="hidden" name="autoDeploy" value="false" />
+                        <label class="form-check-label" for="autoDeploy">Auto-deploy on push</label>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Post-deploy commands</label>
+                    <textarea name="postDeployCommands" rows="3" class="form-control font-monospace small"
+                              placeholder="composer install --no-dev&#10;php artisan migrate --force&#10;npm run build"></textarea>
+                    <div class="form-text">One command per line. They run in the deploy path after every successful pull.</div>
+                    <div class="d-flex flex-wrap gap-1 mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary snippet" data-cmd="composer install --no-dev --optimize-autoloader">composer install</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary snippet" data-cmd="php artisan migrate --force">artisan migrate</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary snippet" data-cmd="php artisan config:cache">artisan config:cache</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary snippet" data-cmd="npm ci">npm ci</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary snippet" data-cmd="npm run build">npm run build</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary mt-4"><i class="bi bi-check-lg"></i> Add repository</button>
+        </form>
+    </div></div>
+</div>
+
+@if (!Model.Repositories.Any() && Model.Domains.Any())
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-git text-secondary" style="font-size:48px;"></i>
+        <h5 class="text-light mt-3">No repositories connected</h5>
+        <p class="text-secondary mb-0">Connect a repository to deploy your site straight from git.</p>
+    </div></div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var repo in Model.Repositories)
+        {
+            var last = Model.LastDeployments.GetValueOrDefault(repo.Id);
+            <div class="col-lg-6">
+                <div class="card srx-card h-100"><div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="text-light mb-0"><i class="bi bi-git accent"></i> @repo.ShortName</h6>
+                            <div class="text-secondary small">
+                                <span class="badge text-bg-secondary">@repo.Branch</span>
+                                → @repo.Domain?.DomainName@(repo.DeployPath == "/" ? "" : repo.DeployPath)
+                            </div>
+                        </div>
+                        @switch (repo.Status)
+                        {
+                            case GitRepoStatus.Deploying:
+                                <span class="badge text-bg-info"><i class="bi bi-arrow-repeat"></i> Deploying</span>
+                                break;
+                            case GitRepoStatus.Failed:
+                                <span class="badge text-bg-danger">Failed</span>
+                                break;
+                            default:
+                                <span class="badge text-bg-success">Idle</span>
+                                break;
+                        }
+                    </div>
+
+                    @if (repo.LastCommitHash != null)
+                    {
+                        <div class="small text-secondary mb-3">
+                            <code class="text-light">@repo.LastCommitHash[..Math.Min(7, repo.LastCommitHash.Length)]</code>
+                            @repo.LastCommitMessage
+                            <div>Deployed @(repo.LastDeployAt?.ToString("MMM dd, HH:mm") ?? "—")
+                                @if (last != null)
+                                {
+                                    <span class="badge @(last.Status == GitDeployStatus.Success ? "text-bg-success" : "text-bg-danger")">@last.Status</span>
+                                    <span class="badge text-bg-secondary">@last.TriggerType</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-secondary small mb-3">Never deployed.</p>
+                    }
+
+                    <div class="d-flex gap-1 flex-wrap">
+                        <form method="post" asp-page-handler="Deploy" class="d-inline">
+                            <input type="hidden" name="id" value="@repo.Id" />
+                            <button class="btn btn-sm btn-primary" @(repo.Status == GitRepoStatus.Deploying ? "disabled" : "")>
+                                <i class="bi bi-rocket-takeoff"></i> Deploy now
+                            </button>
+                        </form>
+                        <a asp-page="/Client/Developer/GitRepo" asp-route-id="@repo.Id" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-gear"></i> Settings &amp; history
+                        </a>
+                        <form method="post" asp-page-handler="Delete" class="d-inline"
+                              onsubmit="return confirm('Remove @repo.ShortName? Deployed files stay on disk.');">
+                            <input type="hidden" name="id" value="@repo.Id" />
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div></div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var snippets = document.querySelectorAll('.snippet');
+            var textarea = document.querySelector('textarea[name="postDeployCommands"]');
+            snippets.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var value = textarea.value.trim();
+                    textarea.value = (value ? value + '\n' : '') + btn.dataset.cmd;
+                });
+            });
+
+            var testBtn = document.getElementById('testBtn');
+            if (testBtn) {
+                testBtn.addEventListener('click', function () {
+                    var url = document.getElementById('repoUrl').value;
+                    var result = document.getElementById('testResult');
+                    result.className = 'form-text text-secondary';
+                    result.textContent = 'Testing connection…';
+
+                    fetch('?handler=Validate&repoUrl=' + encodeURIComponent(url))
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) {
+                            result.className = 'form-text ' + (d.reachable ? 'text-success' : 'text-danger');
+                            result.textContent = d.message;
+                            if (d.reachable && d.branch) document.getElementById('branch').value = d.branch;
+                        })
+                        .catch(function () {
+                            result.className = 'form-text text-danger';
+                            result.textContent = 'Connection test failed.';
+                        });
+                });
+            }
+        })();
+    </script>
+}

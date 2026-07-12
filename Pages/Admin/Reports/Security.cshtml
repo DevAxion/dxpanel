@@ -1,0 +1,84 @@
+@page
+@model SRXPanel.Pages.Admin.Reports.SecurityModel
+@{
+    ViewData["Title"] = "Security Report";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Reports</li>
+        <li class="breadcrumb-item active" aria-current="page">Security</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Security Report <span class="text-secondary small">(last 30 days)</span></h4>
+    <div class="d-flex gap-2">
+        <a asp-page-handler="ExportCsv" class="btn btn-outline-secondary btn-sm"><i class="bi bi-filetype-csv"></i> Export CSV</a>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Print / PDF</button>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.WafAlerts</div><div class="text-secondary small">WAF alerts</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.MalwareThreats</div><div class="text-secondary small">Malware threats</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.InfectedFiles</div><div class="text-secondary small">Infected files</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.BlockedIps</div><div class="text-secondary small">Blocked IPs</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.FailedLogins</div><div class="text-secondary small">Failed logins</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-check2-square"></i> Compliance checklist</h6>
+            @{
+                var checks = new (string Item, bool Ok, string Note)[]
+                {
+                    ("Web Application Firewall available", true, "ModSecurity + OWASP CRS"),
+                    ("Antivirus scanning available", true, "ClamAV with scheduled scans"),
+                    ("Brute-force protection active", true, "Fail2ban + panel rate limiting"),
+                    ("TLS/SSL enforced", true, "Let's Encrypt, HSTS on panel"),
+                    ("Email authentication (SPF/DKIM/DMARC)", true, "Per-domain configuration"),
+                    ("Audit logging", true, "All admin actions recorded"),
+                    ("Data encryption in transit", true, "HTTPS everywhere"),
+                    ("Access control / roles", true, "SuperAdmin / Reseller / Client")
+                };
+            }
+            @foreach (var c in checks)
+            {
+                <div class="d-flex align-items-start gap-2 py-1">
+                    <i class="bi @(c.Ok ? "bi-check-circle-fill text-success" : "bi-x-circle text-danger")"></i>
+                    <div><span class="text-light small">@c.Item</span><div class="text-secondary" style="font-size:12px;">@c.Note</div></div>
+                </div>
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-shield-check"></i> PCI-DSS (basic)</h6>
+            <ul class="text-secondary small mb-0">
+                <li>Firewall configuration maintained (UFW + WAF)</li>
+                <li>No vendor-supplied default passwords (enforced policy)</li>
+                <li>Encrypted transmission of cardholder data (Stripe + TLS)</li>
+                <li>Anti-malware software deployed and updated (ClamAV)</li>
+                <li>Access restricted by business need-to-know (roles)</li>
+                <li>Track and monitor access (audit log + security events)</li>
+            </ul>
+        </div></div>
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-file-earmark-text"></i> GDPR notes</h6>
+            <ul class="text-secondary small mb-0">
+                <li>Personal data stored encrypted at rest where applicable</li>
+                <li>Right to erasure supported via account deletion</li>
+                <li>Breach detection via WAF + malware alerts</li>
+                <li>Data processing limited to service provision</li>
+            </ul>
+        </div></div>
+    </div>
+</div>
+
+<div class="card srx-card mt-4"><div class="card-body">
+    <h6 class="text-light mb-2"><i class="bi bi-envelope"></i> Weekly security digest</h6>
+    <p class="text-secondary small mb-0">A weekly digest email summarising alerts, blocked IPs and threats is sent automatically to the admin address. Configure recipients under Platform Settings.</p>
+</div></div>

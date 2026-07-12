@@ -1,0 +1,112 @@
+@page
+@model SRXPanel.Pages.Reseller.BrandingModel
+@{
+    ViewData["Title"] = "White-Label Branding";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Reseller/Dashboard">Reseller</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Branding</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">White-Label Branding</h4>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <h6 class="text-light mb-3"><i class="bi bi-type"></i> Identity</h6>
+                    <div class="mb-2"><label class="form-label">Panel Title</label><input asp-for="Input.PanelTitle" class="form-control" id="f-title" /></div>
+
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2"><label class="form-label">Logo (PNG/JPG/SVG, ≤2MB)</label><input asp-for="Logo" type="file" class="form-control" accept=".png,.jpg,.jpeg,.svg" /></div>
+                        <div class="col-md-6 mb-2"><label class="form-label">Favicon</label><input asp-for="Favicon" type="file" class="form-control" accept=".png,.jpg,.jpeg,.svg" /></div>
+                    </div>
+                    @if (Model.Branding.LogoPath != null)
+                    {
+                        <div class="mb-3"><img src="@Model.Branding.LogoPath" alt="logo" style="max-height:40px" class="bg-white p-1 rounded" /></div>
+                    }
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-palette"></i> Colors</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-4"><label class="form-label small">Primary</label><input asp-for="Input.PrimaryColor" type="color" class="form-control form-control-color w-100" id="f-primary" /></div>
+                        <div class="col-4"><label class="form-label small">Secondary</label><input asp-for="Input.SecondaryColor" type="color" class="form-control form-control-color w-100" id="f-secondary" /></div>
+                        <div class="col-4"><label class="form-label small">Accent</label><input asp-for="Input.AccentColor" type="color" class="form-control form-control-color w-100" id="f-accent" /></div>
+                    </div>
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-image"></i> Login Page</h6>
+                    <div class="mb-2"><label class="form-label">Background color or image URL</label><input asp-for="Input.LoginBackground" class="form-control" placeholder="#0c0f14 or leave blank" id="f-bg" /></div>
+                    <div class="mb-3"><label class="form-label">Upload background image (optional)</label><input asp-for="Background" type="file" class="form-control" accept=".png,.jpg,.jpeg,.svg" /></div>
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-window"></i> Footer &amp; Domain</h6>
+                    <div class="mb-2"><label class="form-label">Footer Text</label><input asp-for="Input.FooterText" class="form-control" id="f-footer" /></div>
+                    <div class="mb-3"><label class="form-label">Custom Panel Domain</label><input asp-for="Input.CustomDomain" class="form-control" placeholder="panel.myhost.az" /></div>
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-envelope"></i> Email Sender</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6"><label class="form-label">Sender Name</label><input asp-for="Input.EmailSenderName" class="form-control" placeholder="MyHost Support" /></div>
+                        <div class="col-md-6"><label class="form-label">Sender Address</label><input asp-for="Input.EmailSenderAddress" type="email" class="form-control" placeholder="support@myhost.az" /></div>
+                    </div>
+
+                    <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Save &amp; Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-eye"></i> Live Login Preview</h6>
+                <div id="preview-wrap" style="border-radius:.75rem; padding:2rem; display:flex; align-items:center; justify-content:center; min-height:340px; background:radial-gradient(circle at top,#1b2230 0%,#0c0f14 70%);">
+                    <div style="width:100%; max-width:300px; background:#1a2029; border:1px solid #262d3a; border-radius:.75rem; padding:1.75rem;">
+                        <div id="pv-title" style="font-weight:700; font-size:1.5rem; color:#fff; text-align:center;">Hosting Panel</div>
+                        <p class="text-secondary small text-center mb-3">Sign in to your account</p>
+                        <input class="form-control form-control-sm mb-2" placeholder="Username" disabled />
+                        <input class="form-control form-control-sm mb-3" placeholder="Password" disabled />
+                        <button id="pv-btn" class="btn btn-sm w-100 text-white" style="background:#2563eb; border:none;">Sign In</button>
+                        <div id="pv-footer" class="text-center text-secondary small mt-3"></div>
+                    </div>
+                </div>
+                <p class="text-secondary small mt-2 mb-0">Changes apply to the whole panel after saving.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const wrap = document.getElementById('preview-wrap');
+            const title = document.getElementById('pv-title');
+            const btn = document.getElementById('pv-btn');
+            const footer = document.getElementById('pv-footer');
+            function sync() {
+                title.textContent = document.getElementById('f-title').value || 'Hosting Panel';
+                const primary = document.getElementById('f-primary').value;
+                const accent = document.getElementById('f-accent').value;
+                btn.style.background = primary;
+                title.style.color = accent;
+                footer.textContent = document.getElementById('f-footer').value || '';
+                const bg = document.getElementById('f-bg').value.trim();
+                if (bg && (bg.startsWith('#') || bg.startsWith('rgb'))) {
+                    wrap.style.background = bg;
+                } else if (bg && (bg.startsWith('/') || bg.startsWith('http'))) {
+                    wrap.style.background = `center/cover no-repeat url("${bg}")`;
+                } else {
+                    wrap.style.background = 'radial-gradient(circle at top,#1b2230 0%,#0c0f14 70%)';
+                }
+            }
+            ['f-title', 'f-primary', 'f-secondary', 'f-accent', 'f-bg', 'f-footer'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', sync);
+            });
+            sync();
+        })();
+    </script>
+}

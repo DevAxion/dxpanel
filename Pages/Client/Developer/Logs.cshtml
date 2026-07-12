@@ -1,0 +1,194 @@
+@page
+@model SRXPanel.Pages.Client.Developer.LogsModel
+@using SRXPanel.Services.Developer
+@{
+    ViewData["Title"] = "Logs";
+
+    string Size(long bytes) => bytes switch
+    {
+        0 => "—",
+        > 1_048_576 => $"{bytes / 1048576.0:0.0} MB",
+        > 1024 => $"{bytes / 1024.0:0.0} KB",
+        _ => $"{bytes} B"
+    };
+
+    string LevelClass(LogLevelFilter level) => level switch
+    {
+        LogLevelFilter.Error => "text-danger",
+        LogLevelFilter.Warning => "text-warning",
+        LogLevelFilter.Notice => "text-info",
+        _ => "text-secondary"
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Logs</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">Logs</h4>
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="card srx-card"><div class="list-group list-group-flush">
+            @foreach (var source in Model.Sources)
+            {
+                <a asp-page="/Client/Developer/Logs" asp-route-source="@source.Id"
+                   class="list-group-item list-group-item-action @(Model.Source == source.Id ? "active" : "")">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="small">@source.Name</div>
+                            @if (source.DomainName != null)
+                            {
+                                <div class="text-secondary" style="font-size:11px;">@source.DomainName</div>
+                            }
+                        </div>
+                        <span class="badge text-bg-secondary" style="font-size:10px;">@Size(source.SizeBytes)</span>
+                    </div>
+                </a>
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-9">
+        @if (Model.Selected == null)
+        {
+            <div class="card srx-card"><div class="card-body text-center py-5">
+                <i class="bi bi-journal-text text-secondary" style="font-size:40px;"></i>
+                <p class="text-secondary mt-3 mb-0">Select a log on the left.</p>
+            </div></div>
+        }
+        else
+        {
+            <div class="card srx-card"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div>
+                        <h6 class="text-light mb-0">@Model.Selected.Name</h6>
+                        <div class="text-secondary small">
+                            @Size(Model.Selected.SizeBytes)
+                            @if (Model.Selected.Modified is DateTime modified)
+                            {
+                                <span>· last written @modified.ToString("MMM dd, HH:mm")</span>
+                            }
+                            · @Model.Lines.Count lines shown
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" />
+                            <label class="form-check-label small" for="autoRefresh">Live tail</label>
+                        </div>
+                        <a class="btn btn-sm btn-outline-secondary"
+                           asp-page-handler="Download" asp-route-source="@Model.Selected.Id">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                        @if (Model.Selected.Clearable)
+                        {
+                            <form method="post" asp-page-handler="Clear"
+                                  onsubmit="return confirm('Clear this log? The file is truncated and its contents are gone.');">
+                                <input type="hidden" name="source" value="@Model.Selected.Id" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-eraser"></i> Clear</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+
+                <form method="get" class="row g-2 mb-3">
+                    <input type="hidden" name="source" value="@Model.Selected.Id" />
+                    <div class="col-md-4">
+                        <input name="search" value="@Model.Search" class="form-control form-control-sm"
+                               placeholder="Filter lines (grep)…" />
+                    </div>
+                    <div class="col-md-2">
+                        <select name="level" class="form-select form-select-sm">
+                            @foreach (var level in Enum.GetValues<LogLevelFilter>())
+                            {
+                                <option value="@level" selected="@(Model.Level == level)">
+                                    @(level == LogLevelFilter.All ? "All levels" : level.ToString())
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="from" value="@Model.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="to" value="@Model.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" />
+                    </div>
+                    <div class="col-md-2 d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-secondary flex-grow-1"><i class="bi bi-funnel"></i> Filter</button>
+                        <a asp-page="/Client/Developer/Logs" asp-route-source="@Model.Selected.Id"
+                           class="btn btn-sm btn-outline-secondary" title="Reset filters"><i class="bi bi-x-lg"></i></a>
+                    </div>
+                </form>
+
+                @if (!Model.Lines.Any())
+                {
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-inbox" style="font-size:32px;"></i>
+                        <p class="mt-2 mb-0">Nothing matches the current filter.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-black p-3 rounded" style="height:480px;overflow:auto;" id="logBox">
+                        @foreach (var line in Model.Lines)
+                        {
+                            <div class="font-monospace @LevelClass(line.Level)" style="font-size:12px;white-space:pre-wrap;word-break:break-all;">@line.Text</div>
+                        }
+                    </div>
+                }
+            </div></div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.Selected != null)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+        <script>
+            (function () {
+                var box = document.getElementById('logBox');
+                var toggle = document.getElementById('autoRefresh');
+                var source = '@Model.Selected.Id';
+                var timer = null;
+
+                if (box) box.scrollTop = box.scrollHeight;
+
+                var LEVEL_CLASS = {
+                    Error: 'text-danger', Warning: 'text-warning', Notice: 'text-info', Info: 'text-secondary', All: 'text-secondary'
+                };
+
+                function refresh() {
+                    fetch('?handler=Tail&source=' + encodeURIComponent(source))
+                        .then(function (r) { return r.json(); })
+                        .then(function (lines) {
+                            if (!box) return;
+                            box.innerHTML = '';
+                            lines.forEach(function (line) {
+                                var div = document.createElement('div');
+                                div.className = 'font-monospace ' + (LEVEL_CLASS[line.level] || 'text-secondary');
+                                div.style.cssText = 'font-size:12px;white-space:pre-wrap;word-break:break-all;';
+                                div.textContent = line.text;
+                                box.appendChild(div);
+                            });
+                            box.scrollTop = box.scrollHeight;
+                        });
+                }
+
+                toggle.addEventListener('change', function () {
+                    if (toggle.checked) {
+                        refresh();
+                        timer = setInterval(refresh, 3000);
+                    } else {
+                        clearInterval(timer);
+                    }
+                });
+            })();
+        </script>
+    }
+}

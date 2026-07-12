@@ -1,0 +1,184 @@
+@page
+@model SRXPanel.Pages.Admin.Nodes.MigrateModel
+@using SRXPanel.Models
+@using SRXPanel.Services.Nodes
+@{
+    ViewData["Title"] = "Migrate Domain";
+    var pf = Model.Preflight;
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Nodes/Index">Nodes</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Migrate</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Migrate a domain between nodes</h4>
+
+@if (Model.MigrationId is int migrationId)
+{
+    <div class="card srx-card" style="max-width:820px;"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-light mb-0">
+                <i class="bi bi-arrow-left-right"></i> @Model.SelectedDomain?.DomainName:
+                @Model.SourceNode?.Name → @Model.TargetNode?.Name
+            </h6>
+            <span id="migStatus" class="badge text-bg-info">Running</span>
+        </div>
+
+        <div class="progress mb-2" style="height:22px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" id="migBar" style="width:0%">0%</div>
+        </div>
+        <div class="text-secondary small mb-3" id="migStep">Starting…</div>
+
+        <pre class="bg-black p-3 rounded small mb-0" style="max-height:280px;overflow:auto;" id="migLog"></pre>
+
+        <div id="migDone" class="mt-3 d-none">
+            <a asp-page="/Admin/Nodes/Index" class="btn btn-primary btn-sm">Back to fleet</a>
+        </div>
+    </div></div>
+
+    @section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+        <script>
+            (function () {
+                var migrationId = @migrationId;
+                var bar = document.getElementById('migBar'),
+                    step = document.getElementById('migStep'),
+                    log = document.getElementById('migLog'),
+                    status = document.getElementById('migStatus');
+
+                function line(text) { log.textContent += text + '\n'; log.scrollTop = log.scrollHeight; }
+
+                function done(success, message) {
+                    bar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                    bar.classList.add(success ? 'bg-success' : 'bg-danger');
+                    status.className = 'badge ' + (success ? 'text-bg-success' : 'text-bg-danger');
+                    status.textContent = success ? 'Complete' : 'Failed';
+                    line(message);
+                    document.getElementById('migDone').classList.remove('d-none');
+                }
+
+                if (window.signalR) {
+                    var conn = new signalR.HubConnectionBuilder().withUrl('/hubs/nodes').build();
+                    conn.on('progress', function (percent, s, logLine) {
+                        bar.style.width = percent + '%'; bar.textContent = percent + '%';
+                        if (s) step.textContent = s;
+                        if (logLine) line(logLine);
+                    });
+                    conn.on('completed', function (success, message) { done(success, message); });
+                    conn.start().then(function () { conn.invoke('JoinMigration', migrationId); });
+                } else {
+                    line('SignalR unavailable — migration is running server-side; check the fleet shortly.');
+                }
+            })();
+        </script>
+    }
+}
+else
+{
+    <div class="d-flex gap-2 mb-4" style="max-width:640px;">
+        <div class="flex-fill text-center">
+            <div class="badge rounded-pill text-bg-primary" style="width:32px;height:32px;line-height:24px;">1</div>
+            <div class="small text-light">Select</div>
+        </div>
+        <div class="flex-fill text-center">
+            <div class="badge rounded-pill @(pf != null ? "text-bg-primary" : "text-bg-secondary")" style="width:32px;height:32px;line-height:24px;">2</div>
+            <div class="small @(pf != null ? "text-light" : "text-secondary")">Pre-flight</div>
+        </div>
+        <div class="flex-fill text-center">
+            <div class="badge rounded-pill text-bg-secondary" style="width:32px;height:32px;line-height:24px;">3</div>
+            <div class="small text-secondary">Migrate</div>
+        </div>
+    </div>
+
+    <form method="post" asp-page-handler="@(pf != null ? "Start" : "Preflight")" style="max-width:820px;">
+        <div class="card srx-card mb-3"><div class="card-body">
+            <h6 class="text-light mb-3">Step 1 — What to move</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Domain</label>
+                    <select name="domainId" class="form-select" required>
+                        <option value="">Select a domain…</option>
+                        @foreach (var domain in Model.Domains)
+                        {
+                            <option value="@domain.Id" selected="@(Model.DomainId == domain.Id)">@domain.DomainName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Migration type</label>
+                    <select name="type" class="form-select">
+                        @foreach (var t in Enum.GetValues<MigrationType>())
+                        {
+                            <option value="@t" selected="@(Model.Type == t)">@t</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Source node</label>
+                    <select name="fromNodeId" class="form-select" required>
+                        @foreach (var node in Model.AllNodes)
+                        {
+                            <option value="@node.Id" selected="@(Model.FromNodeId == node.Id)">@node.Name — @node.Location</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Target node</label>
+                    <select name="toNodeId" class="form-select" required>
+                        @foreach (var node in Model.AllNodes)
+                        {
+                            <option value="@node.Id" selected="@(Model.ToNodeId == node.Id)">@node.Name — @node.Location</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div></div>
+
+        @if (pf != null && Model.SelectedDomain != null)
+        {
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">Step 2 — Pre-flight check</h6>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3"><div class="text-secondary small">Source disk</div><div class="text-light">@pf.SourceDiskGB GB</div></div>
+                    <div class="col-md-3"><div class="text-secondary small">Target free</div><div class="text-light">@pf.TargetFreeGB GB</div></div>
+                    <div class="col-md-3"><div class="text-secondary small">Database size</div><div class="text-light">@pf.DatabaseSizeMB MB</div></div>
+                    <div class="col-md-3"><div class="text-secondary small">Estimated time</div><div class="text-light">~@pf.EstimatedSeconds s</div></div>
+                </div>
+
+                @foreach (var warning in pf.Warnings)
+                {
+                    var blocking = warning.StartsWith("BLOCK");
+                    <div class="alert @(blocking ? "alert-danger" : "alert-warning") py-2 px-3 small mb-2">
+                        <i class="bi @(blocking ? "bi-x-octagon" : "bi-exclamation-triangle")"></i>
+                        @warning.Replace("BLOCK: ", "")
+                    </div>
+                }
+                @if (!pf.Warnings.Any())
+                {
+                    <div class="alert alert-success py-2 px-3 small mb-0"><i class="bi bi-check-circle"></i> All checks passed.</div>
+                }
+            </div></div>
+        }
+
+        <div class="d-flex gap-2">
+            @if (pf == null)
+            {
+                <button class="btn btn-primary"><i class="bi bi-search"></i> Run pre-flight check</button>
+            }
+            else if (pf.CanProceed)
+            {
+                <button class="btn btn-success" onclick="return confirm('Start the migration now?');">
+                    <i class="bi bi-rocket-takeoff"></i> Start migration
+                </button>
+                <a asp-page="/Admin/Nodes/Migrate" class="btn btn-outline-secondary">Change selection</a>
+            }
+            else
+            {
+                <a asp-page="/Admin/Nodes/Migrate" class="btn btn-outline-secondary">Change selection</a>
+            }
+        </div>
+    </form>
+}

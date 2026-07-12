@@ -1,0 +1,72 @@
+@page
+@model SRXPanel.Pages.Admin.Security.IpManagerModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "IP Manager";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Security/Index">Security</a></li>
+        <li class="breadcrumb-item active" aria-current="page">IP Manager</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">IP Manager</h4>
+
+@{
+    var cards = new (string Title, string Icon, IpRuleKind Kind, List<IpAccessRule> Rules, string Placeholder)[]
+    {
+        ("Whitelist", "bi-check-circle", IpRuleKind.WhitelistIp, Model.Whitelist, "1.2.3.4 or CIDR"),
+        ("Blacklist", "bi-slash-circle", IpRuleKind.BlacklistIp, Model.Blacklist, "1.2.3.4 or CIDR"),
+        ("Country blocking", "bi-globe", IpRuleKind.BlockCountry, Model.Countries, "ISO code e.g. KP")
+    };
+}
+<div class="row g-4">
+    @foreach (var card in cards)
+    {
+        <div class="col-lg-4">
+            <div class="card srx-card h-100"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi @card.Icon"></i> @card.Title</h6>
+                @if (!card.Rules.Any())
+                {
+                    <p class="text-secondary small">No entries.</p>
+                }
+                @foreach (var r in card.Rules)
+                {
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <span class="text-light small">@r.Value <span class="text-secondary">@r.Reason</span></span>
+                        <form method="post" asp-page-handler="Remove"><input type="hidden" name="id" value="@r.Id" /><button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form>
+                    </div>
+                }
+                <form method="post" asp-page-handler="Add" class="mt-2">
+                    <input type="hidden" name="kind" value="@card.Kind" />
+                    <input name="value" class="form-control form-control-sm mb-1" placeholder="@card.Placeholder" />
+                    <input name="reason" class="form-control form-control-sm mb-1" placeholder="Reason (optional)" />
+                    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-plus-lg"></i> Add</button>
+                </form>
+            </div></div>
+        </div>
+    }
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-4">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-speedometer"></i> Rate limiting</h6>
+            <form method="post" asp-page-handler="RateLimit">
+                <label class="form-label small text-secondary">Requests / minute per IP</label>
+                <div class="input-group input-group-sm">
+                    <input name="perMinute" type="number" value="@Model.RateLimit" class="form-control" />
+                    <button class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-bricks"></i> Firewall (UFW) status</h6>
+            <pre class="bg-black p-3 rounded small mb-0"><code>@Model.FirewallStatus</code></pre>
+        </div></div>
+    </div>
+</div>

@@ -1,0 +1,72 @@
+@page
+@model SRXPanel.Pages.Admin.Email.BlacklistModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Global Blacklist";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Email/Index">Email</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Blacklist</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-shield-exclamation accent"></i> Global Blacklist</h4>
+    <form method="post" asp-page-handler="CheckAll" class="srx-confirm-form" data-confirm-message="Run a blacklist check across all domains?">
+        <button class="btn btn-sm btn-primary"><i class="bi bi-search"></i> Schedule global check</button>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@Model.Listed.Count</div><div class="srx-stat-label">Active listings</div></div></div>
+    <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalChecks</div><div class="srx-stat-label">Checks run</div></div></div>
+    <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Recent.Count(c => c.Status == BlacklistCheckStatus.Clean)</div><div class="srx-stat-label">Recent clean</div></div></div>
+</div>
+
+<div class="card srx-card mb-3"><div class="card-body">
+    <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle text-danger"></i> Currently listed</h6>
+    @if (!Model.Listed.Any()) { <p class="text-success mb-0"><i class="bi bi-check-circle"></i> Nothing is currently blacklisted.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Value</th><th>Type</th><th>Blacklist</th><th>Domain</th><th>Since</th></tr></thead>
+            <tbody>
+            @foreach (var e in Model.Listed)
+            {
+                <tr>
+                    <td class="font-monospace small text-light">@e.Value</td>
+                    <td class="text-secondary">@e.Type</td>
+                    <td><span class="badge text-bg-danger">@e.BlacklistName</span></td>
+                    <td class="text-secondary small">@(e.Domain?.DomainName ?? "—")</td>
+                    <td class="text-secondary small">@e.FirstDetectedAt.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>
+
+<div class="card srx-card"><div class="card-body">
+    <h6 class="text-light mb-3">Recent checks</h6>
+    @if (!Model.Recent.Any()) { <p class="text-secondary mb-0">No checks yet.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Domain</th><th>Type</th><th>Value</th><th>Status</th><th>When</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model.Recent)
+            {
+                <tr>
+                    <td class="text-secondary small">@(c.Domain?.DomainName ?? "—")</td>
+                    <td class="text-secondary">@c.CheckType</td>
+                    <td class="font-monospace small text-light">@c.Value</td>
+                    <td>@if (c.Status == BlacklistCheckStatus.Listed) { <span class="badge text-bg-danger">Listed</span> } else { <span class="badge text-bg-success">Clean</span> }</td>
+                    <td class="text-secondary small">@c.CheckedAt.ToString("MM-dd HH:mm")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>

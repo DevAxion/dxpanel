@@ -1,0 +1,81 @@
+@page
+@model SRXPanel.Pages.Reseller.PaymentSettingsModel
+@{
+    ViewData["Title"] = "Payment Settings";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Reseller/Dashboard">Reseller</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payment Settings</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Payment Settings</h4>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-stripe"></i> Stripe Connect</h6>
+                @if (Model.Settings.ConnectOnboarded)
+                {
+                    <p class="text-success mb-2"><i class="bi bi-check-circle-fill"></i> Connected</p>
+                    <p class="small text-secondary">Account: <code>@Model.Settings.StripeConnectAccountId</code></p>
+                    <form method="post" asp-page-handler="Disconnect" class="srx-confirm-form" data-confirm-message="Disconnect Stripe?">
+                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Disconnect</button>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-secondary small">Connect your own Stripe account to receive payouts directly. The platform fee is deducted automatically via <code>application_fee_amount</code>.</p>
+                    <form method="post" asp-page-handler="Connect">
+                        <button class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i> Connect with Stripe</button>
+                    </form>
+                }
+                <hr class="border-secondary" />
+                <div class="d-flex justify-content-between">
+                    <span class="text-secondary">Platform fee (set by admin)</span>
+                    <strong class="text-light">@Model.PlatformFee%</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card srx-card">
+            <div class="card-body">
+                <form method="post" asp-page-handler="Save">
+                    <h6 class="text-light mb-3"><i class="bi bi-key"></i> Own Stripe Keys (bypass Connect)</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="useOwnKeys" value="true" @(Model.Settings.UseOwnKeys ? "checked" : "") />
+                        <label class="form-check-label">Use my own Stripe keys</label>
+                    </div>
+                    <div class="mb-2"><label class="form-label small">Publishable Key</label><input name="ownPublishableKey" value="@Model.Settings.OwnPublishableKey" class="form-control" placeholder="pk_live_..." /></div>
+                    <div class="mb-3"><label class="form-label small">Secret Key</label><input name="ownSecretKey" value="@Model.Settings.OwnSecretKey" type="password" class="form-control" placeholder="sk_live_..." /></div>
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-credit-card"></i> Methods &amp; Currency</h6>
+                    <div class="row g-2">
+                        <div class="col-md-8 mb-2"><label class="form-label small">Accepted methods (comma-separated)</label><input name="acceptedMethods" value="@Model.Settings.AcceptedMethods" class="form-control" placeholder="card, sepa_debit" /></div>
+                        <div class="col-md-4 mb-2"><label class="form-label small">Currency</label><input name="currency" value="@Model.Settings.Currency" class="form-control" /></div>
+                    </div>
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-percent"></i> Tax Configuration</h6>
+                    <div class="row g-2">
+                        <div class="col-md-3 mb-2"><label class="form-label small">Rate %</label><input name="taxRatePercent" type="number" step="0.01" value="@Model.Settings.TaxRatePercent" class="form-control" /></div>
+                        <div class="col-md-3 mb-2"><label class="form-label small">Label</label><input name="taxLabel" value="@Model.Settings.TaxLabel" class="form-control" placeholder="VAT / GST / KDV" /></div>
+                        <div class="col-md-6 mb-2"><label class="form-label small">Tax Number</label><input name="taxNumber" value="@Model.Settings.TaxNumber" class="form-control" /></div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="showTaxNumber" value="true" @(Model.Settings.ShowTaxNumberOnInvoice ? "checked" : "") />
+                        <label class="form-check-label">Show tax number on invoices</label>
+                    </div>
+
+                    <button class="btn btn-primary"><i class="bi bi-save"></i> Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

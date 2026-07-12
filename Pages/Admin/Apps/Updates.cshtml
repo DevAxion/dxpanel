@@ -1,0 +1,104 @@
+@page
+@model SRXPanel.Pages.Admin.Apps.UpdatesModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "App Updates";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Apps/Index">Applications</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Updates</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Application Updates</h4>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="Check"><button class="btn btn-outline-secondary btn-sm"><i class="bi bi-search"></i> Check for updates</button></form>
+        @if (Model.UpdateAvailableCount > 0)
+        {
+            <form method="post" asp-page-handler="BulkUpdate" onsubmit="return confirm('Update @Model.UpdateAvailableCount installation(s)? Each site is backed up first.');">
+                <button class="btn btn-warning btn-sm"><i class="bi bi-arrow-up-circle"></i> Update all (@Model.UpdateAvailableCount)</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card"><div class="card-body">
+            <div class="d-flex gap-3 mb-3">
+                <span class="badge text-bg-secondary">Installations: @Model.Installations.Count</span>
+                <span class="badge text-bg-warning">Updates available: @Model.UpdateAvailableCount</span>
+            </div>
+            <div class="table-responsive" style="max-height:520px;overflow:auto;">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Site</th><th>App</th><th>Installed</th><th>Latest</th><th>Owner</th><th>Status</th></tr></thead>
+                    <tbody>
+                    @if (!Model.Installations.Any())
+                    {
+                        <tr><td colspan="6" class="text-secondary text-center py-3">No installations across the platform yet.</td></tr>
+                    }
+                    @foreach (var i in Model.Installations)
+                    {
+                        <tr>
+                            <td class="small">
+                                <div class="text-light">@i.SiteTitle</div>
+                                <div class="text-secondary" style="font-size:11px;">@i.Domain?.DomainName@(i.InstallPath == "/" ? "" : i.InstallPath)</div>
+                            </td>
+                            <td class="small"><i class="bi @(i.AppDefinition?.IconPath) accent"></i> @i.AppDefinition?.Name</td>
+                            <td class="small">@i.InstalledVersion</td>
+                            <td class="small">@(i.AvailableVersion ?? i.AppDefinition?.Version)</td>
+                            <td class="small text-secondary">@(i.User?.UserName)</td>
+                            <td>
+                                @switch (i.Status)
+                                {
+                                    case AppInstallStatus.Active: <span class="badge text-bg-success">Up to date</span> break;
+                                    case AppInstallStatus.UpdateAvailable: <span class="badge text-bg-warning">Update</span> break;
+                                    case AppInstallStatus.Installing: <span class="badge text-bg-info">Installing</span> break;
+                                    default: <span class="badge text-bg-danger">Error</span> break;
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Auto-update policy</h6>
+            <form method="post" asp-page-handler="Settings">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" name="autoUpdateMinor" value="true" @(Model.Settings.AutoUpdateMinor ? "checked" : "") />
+                    <label class="form-check-label small">Auto-update minor / patch versions</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="notifyMajorOnly" value="true" @(Model.Settings.NotifyMajorOnly ? "checked" : "") />
+                    <label class="form-check-label small">Major versions: notify only</label>
+                </div>
+
+                <label class="form-label small">Update schedule</label>
+                <select name="schedule" class="form-select form-select-sm mb-3">
+                    <option value="nightly" selected="@(Model.Settings.Schedule == "nightly")">Nightly</option>
+                    <option value="weekly" selected="@(Model.Settings.Schedule == "weekly")">Weekly</option>
+                </select>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="emailClientOnUpdate" value="true" @(Model.Settings.EmailClientOnUpdate ? "checked" : "") />
+                    <label class="form-check-label small">Email the client on successful update</label>
+                </div>
+
+                <label class="form-label small">Restore points kept per site</label>
+                <input name="keepRestorePoints" type="number" min="1" max="10" value="@Model.Settings.KeepRestorePoints" class="form-control form-control-sm mb-3" />
+
+                <button class="btn btn-primary btn-sm w-100"><i class="bi bi-save"></i> Save policy</button>
+            </form>
+            <hr class="border-secondary" />
+            <p class="text-secondary small mb-0"><i class="bi bi-shield-check"></i> A full restore point (files + database) is created automatically before every update and uninstall.</p>
+        </div></div>
+    </div>
+</div>

@@ -1,0 +1,94 @@
+@page
+@model SRXPanel.Pages.Admin.CurrenciesModel
+@{
+    ViewData["Title"] = "Currencies";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Admin</li>
+            <li class="breadcrumb-item active" aria-current="page">Currencies</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Multi-Currency</h4>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-currency-exchange"></i> Currencies</h6>
+                <form method="post" asp-page-handler="AddCurrency" class="row g-1 mb-3">
+                    <div class="col-3"><input name="code" class="form-control form-control-sm" placeholder="usd" /></div>
+                    <div class="col-5"><input name="name" class="form-control form-control-sm" placeholder="US Dollar" /></div>
+                    <div class="col-2"><input name="symbol" class="form-control form-control-sm" placeholder="$" /></div>
+                    <div class="col-2"><button class="btn btn-sm btn-primary w-100">Add</button></div>
+                </form>
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        @foreach (var c in Model.Currencies)
+                        {
+                            <tr>
+                                <td><strong class="text-light">@c.Code.ToUpper()</strong> <span class="text-secondary">@c.Symbol</span></td>
+                                <td>@c.Name</td>
+                                <td class="text-end">
+                                    <form method="post" asp-page-handler="Toggle" asp-route-id="@c.Id" class="d-inline">
+                                        <button class="btn btn-sm @(c.IsEnabled ? "btn-success" : "btn-outline-secondary")">@(c.IsEnabled ? "Enabled" : "Disabled")</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!Model.Currencies.Any())
+                {
+                    <p class="text-secondary small mb-0">No currencies yet — add some above.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-star"></i> Base Currency</h6>
+                <form method="post" asp-page-handler="BaseCurrency" class="input-group">
+                    <input name="baseCurrency" value="@Model.BaseCurrency" class="form-control" />
+                    <button class="btn btn-primary">Set Base</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-arrow-left-right"></i> Exchange Rates</h6>
+                <form method="post" asp-page-handler="SetRate" class="row g-1 mb-3">
+                    <div class="col-3"><input name="from" class="form-control form-control-sm" placeholder="usd" /></div>
+                    <div class="col-3"><input name="to" class="form-control form-control-sm" placeholder="eur" /></div>
+                    <div class="col-3"><input name="rate" type="number" step="0.0001" class="form-control form-control-sm" placeholder="0.92" /></div>
+                    <div class="col-3"><button class="btn btn-sm btn-primary w-100">Set</button></div>
+                </form>
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Pair</th><th class="text-end">Rate</th><th class="text-end">Updated</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in Model.Rates)
+                        {
+                            <tr>
+                                <td>@r.FromCurrency.ToUpper() → @r.ToCurrency.ToUpper()</td>
+                                <td class="text-end">@r.Rate.ToString("0.0000")</td>
+                                <td class="text-end small text-secondary">@r.UpdatedAt.ToString("MM-dd")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!Model.Rates.Any())
+                {
+                    <p class="text-secondary small mb-0">No rates configured.</p>
+                }
+                <p class="text-secondary small mt-2 mb-0"><i class="bi bi-info-circle"></i> Rates are entered manually (auto-fetch from an FX API can be wired in production).</p>
+            </div>
+        </div>
+    </div>
+</div>

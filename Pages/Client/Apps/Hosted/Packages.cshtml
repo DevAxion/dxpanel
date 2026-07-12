@@ -1,0 +1,49 @@
+@page "/Client/Apps/Hosted/Packages/{id:int}"
+@model SRXPanel.Pages.Client.Apps.Hosted.PackagesModel
+@{
+    ViewData["Title"] = "npm Packages";
+    var a = Model.App;
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Index">Hosted Apps</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Detail" asp-route-id="@a.Id">@a.Name</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Packages</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4"><i class="bi bi-box accent"></i> npm Packages — @a.Name</h4>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card srx-card mb-3"><div class="card-body">
+            <h6 class="text-light mb-3">Install / manage</h6>
+            <form method="post" asp-page-handler="Install" class="d-flex gap-2 mb-3">
+                <input name="package" class="form-control form-control-sm font-monospace" placeholder="express (blank = npm install)" />
+                <button class="btn btn-sm btn-primary">Install</button>
+            </form>
+            <div class="d-flex gap-2">
+                <form method="post" asp-page-handler="Audit"><input type="hidden" name="fix" value="false" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-shield-check"></i> npm audit</button></form>
+                <form method="post" asp-page-handler="Audit"><input type="hidden" name="fix" value="true" /><button class="btn btn-sm btn-outline-warning"><i class="bi bi-wrench"></i> npm audit fix</button></form>
+            </div>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">npm scripts</h6>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var s in Model.Scripts)
+                {
+                    <form method="post" asp-page-handler="RunScript"><input type="hidden" name="script" value="@s" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-play"></i> @s</button></form>
+                }
+            </div>
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Output</h6>
+            <pre style="background:#0d1117;color:#c9d1d9;padding:12px;border-radius:8px;min-height:300px;font-size:.8rem;">@(Model.Output ?? "Run a command to see output here.")</pre>
+        </div></div>
+    </div>
+</div>

@@ -1,0 +1,123 @@
+@page
+@model SRXPanel.Pages.Admin.LoadBalancerModel
+@{
+    ViewData["Title"] = "Load Balancer";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Infrastructure</li>
+        <li class="breadcrumb-item active" aria-current="page">Load Balancer</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-1"><i class="bi bi-diagram-3 accent"></i> Load Balancer</h4>
+<p class="text-secondary small">Distribute load across the fleet, weight preferred nodes, and route users by geography.</p>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Load distribution</h6>
+            @foreach (var cap in Model.Capacities)
+            {
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            <span class="text-light">@cap.Name</span>
+                            @if (!cap.Accepting) { <span class="badge text-bg-secondary">not accepting</span> }
+                            else if (Model.BestNode?.Id == cap.NodeId) { <span class="badge text-bg-success">best pick</span> }
+                        </div>
+                        <div class="text-secondary small">
+                            <i class="bi bi-globe2"></i> @cap.DomainCount · <i class="bi bi-people"></i> @cap.UserCount ·
+                            score @cap.Score.ToString("0")
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @foreach (var (label, pct, color) in new[] { ("CPU", cap.CpuPercent, "bg-info"), ("RAM", cap.RamPercent, "bg-primary"), ("Disk", cap.DiskPercent, "bg-warning") })
+                        {
+                            <div class="flex-fill">
+                                <div class="d-flex justify-content-between small"><span class="text-secondary">@label</span><span class="text-light">@pct.ToString("0")%</span></div>
+                                <div class="progress" style="height:6px;"><div class="progress-bar @color" style="width:@pct%"></div></div>
+                            </div>
+                        }
+                        <form method="post" asp-page-handler="Weight" class="d-flex align-items-end gap-1">
+                            <input type="hidden" name="nodeId" value="@cap.NodeId" />
+                            <div>
+                                <label class="form-label small mb-0 text-secondary">Weight</label>
+                                <input name="weight" type="number" value="@cap.Weight" class="form-control form-control-sm" style="width:80px;" />
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary">Set</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Auto-balancing</h6>
+            <form method="post" asp-page-handler="Settings">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="autoBalance" value="true" id="ab" checked="@Model.Settings.AutoBalance" />
+                    <input type="hidden" name="autoBalance" value="false" />
+                    <label class="form-check-label" for="ab">
+                        Auto-balance new signups
+                        <span class="text-secondary small d-block">Place new accounts on the least-loaded node.</span>
+                    </label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">CPU threshold for placement</label>
+                    <div class="input-group input-group-sm">
+                        <input name="threshold" type="number" min="50" max="95" value="@Model.Settings.CpuThreshold" class="form-control" />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <div class="form-text">Nodes above this stop receiving new placement.</div>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="geoRouting" value="true" id="geo" checked="@Model.Settings.GeoRouting" />
+                    <input type="hidden" name="geoRouting" value="false" />
+                    <label class="form-check-label" for="geo">
+                        Geographic routing
+                        <span class="text-secondary small d-block">Match a user's region to a nearby node by IP.</span>
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-sm w-100">Save settings</button>
+            </form>
+        </div></div>
+    </div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    <h6 class="text-light mb-3">Suggested rebalancing</h6>
+    @if (!Model.Suggestions.Any())
+    {
+        <div class="text-secondary small"><i class="bi bi-check-circle text-success"></i> The fleet is balanced — no moves suggested.</div>
+    }
+    else
+    {
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Domain</th><th>From</th><th></th><th>To</th><th>Reason</th><th class="text-end"></th></tr></thead>
+            <tbody>
+                @foreach (var s in Model.Suggestions)
+                {
+                    <tr>
+                        <td class="text-light">@s.DomainName</td>
+                        <td class="text-secondary">@s.FromNode</td>
+                        <td><i class="bi bi-arrow-right text-secondary"></i></td>
+                        <td class="text-light">@s.ToNode</td>
+                        <td class="text-secondary small">@s.Reason</td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="Apply" class="d-inline">
+                                <input type="hidden" name="domainId" value="@s.DomainId" />
+                                <input type="hidden" name="fromNodeId" value="@s.FromNodeId" />
+                                <input type="hidden" name="toNodeId" value="@s.ToNodeId" />
+                                <button class="btn btn-sm btn-outline-primary">Migrate</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div></div>

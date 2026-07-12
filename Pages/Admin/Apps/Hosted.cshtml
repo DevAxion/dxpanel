@@ -1,0 +1,105 @@
+@page
+@model SRXPanel.Pages.Admin.Apps.HostedModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Hosted Apps";
+    (string cls, string text) Badge(HostedAppStatus s) => s switch
+    {
+        HostedAppStatus.Running => ("text-bg-success", "Running"),
+        HostedAppStatus.Starting => ("text-bg-info", "Starting"),
+        HostedAppStatus.Stopped => ("text-bg-secondary", "Stopped"),
+        HostedAppStatus.Error => ("text-bg-danger", "Error"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Applications</li>
+        <li class="breadcrumb-item active" aria-current="page">Hosted Apps</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-rocket-takeoff accent"></i> Hosted Apps</h4>
+    <div class="d-flex gap-2">
+        <a asp-page="/Admin/Apps/Runtimes" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-seam"></i> Runtimes</a>
+        <a asp-page="/Admin/Apps/ProcessMonitor" class="btn btn-sm btn-outline-secondary"><i class="bi bi-cpu"></i> Process Monitor</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-success">@Model.Running</div><div class="srx-stat-label">Running</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Total</div><div class="srx-stat-label">Total apps</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Apps.Count</div><div class="srx-stat-label">Shown</div></div></div>
+    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value" style="font-size:1.1rem">@Model.PortRangeStart-@Model.PortRangeEnd</div><div class="srx-stat-label">Port range</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card srx-card mb-3"><div class="card-body">
+            <form method="get" class="row g-2 align-items-end mb-3">
+                <div class="col-auto"><label class="form-label text-secondary small">Type</label>
+                    <select name="type" class="form-select form-select-sm"><option value="">All</option>
+                        @foreach (var t in Enum.GetValues<AppRuntimeType>()) { <option value="@t" selected="@(Model.Type == t)">@t</option> }</select></div>
+                <div class="col-auto"><label class="form-label text-secondary small">Status</label>
+                    <select name="status" class="form-select form-select-sm"><option value="">All</option>
+                        @foreach (var s in Enum.GetValues<HostedAppStatus>()) { <option value="@s" selected="@(Model.Status == s)">@s</option> }</select></div>
+                <div class="col"><label class="form-label text-secondary small">Search</label><input name="q" value="@Model.Q" class="form-control form-control-sm" placeholder="app name" /></div>
+                <div class="col-auto"><button class="btn btn-sm btn-primary">Filter</button></div>
+            </form>
+
+            <form method="post" asp-page-handler="Bulk">
+                <div class="d-flex gap-2 mb-3">
+                    <button name="action" value="start" class="btn btn-sm btn-outline-success srx-confirm-form" data-confirm-message="Start selected apps?">Start</button>
+                    <button name="action" value="stop" class="btn btn-sm btn-outline-warning srx-confirm-form" data-confirm-message="Stop selected apps?">Stop</button>
+                    <button name="action" value="restart" class="btn btn-sm btn-outline-secondary srx-confirm-form" data-confirm-message="Restart selected apps?">Restart</button>
+                </div>
+                @if (!Model.Apps.Any()) { <p class="text-secondary mb-0">No apps.</p> }
+                else
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr>
+                            <th><input type="checkbox" onclick="document.querySelectorAll('.rowck').forEach(c=>c.checked=this.checked)" /></th>
+                            <th>Name</th><th>Owner</th><th>Type</th><th>Port</th><th>CPU</th><th>RAM</th><th>Status</th>
+                        </tr></thead>
+                        <tbody>
+                        @foreach (var a in Model.Apps)
+                        {
+                            var b = Badge(a.Status);
+                            <tr>
+                                <td><input class="rowck" type="checkbox" name="ids" value="@a.Id" /></td>
+                                <td class="text-light"><i class="bi @a.TypeIcon accent"></i> @a.Name</td>
+                                <td class="text-secondary small">@(a.User?.Email ?? a.UserId)</td>
+                                <td class="text-secondary">@a.Type</td>
+                                <td class="text-secondary">@a.Port</td>
+                                <td class="text-secondary small">@a.CpuPercent.ToString("0.0")%</td>
+                                <td class="text-secondary small">@a.MemoryMB.ToString("0") MB</td>
+                                <td><span class="badge @b.cls">@b.text</span></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </form>
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Top memory usage</h6>
+            @if (!Model.TopMemory.Any()) { <p class="text-secondary mb-0">No running apps.</p> }
+            else
+            {
+                <table class="table table-sm mb-0">
+                    <tbody>
+                    @foreach (var a in Model.TopMemory)
+                    {
+                        <tr><td class="text-light"><i class="bi @a.TypeIcon"></i> @a.Name</td><td class="text-end text-secondary">@a.MemoryMB.ToString("0") MB</td></tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div>
+    </div>
+</div>

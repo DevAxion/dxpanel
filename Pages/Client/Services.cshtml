@@ -1,0 +1,161 @@
+@page
+@model SRXPanel.Pages.Client.ServicesModel
+@using SRXPanel.Models
+@using SRXPanel.Services.Store
+@{
+    ViewData["Title"] = "Services";
+    string Disk(long mb) => mb >= 1024 ? $"{mb / 1024.0:0.#} GB" : $"{mb} MB";
+    string Limit(int n) => n == 0 ? "Unlimited" : n.ToString();
+    string Money(decimal d, string c) => SRXPanel.Services.Billing.BillingService.FormatMoney(d, c);
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Store</li>
+        <li class="breadcrumb-item active" aria-current="page">Services</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">My Services</h4>
+    <a href="/Client/Store" class="btn btn-primary btn-sm"><i class="bi bi-cart-plus"></i> Order New Service</a>
+</div>
+
+@if (Model.Debug)
+{
+    <div class="alert alert-secondary small">
+        <strong>Debug — records found:</strong>
+        Shared hosting: @Model.SharedCount ·
+        VPS: @Model.VpsCount ·
+        Reseller: @Model.ResellerCount ·
+        Add-ons: @Model.Addons.Count ·
+        Domains: @Model.Domains.Count
+    </div>
+}
+
+@if (!Model.Services.Any() && !Model.Addons.Any() && !Model.Domains.Any())
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-box-seam text-secondary" style="font-size:48px;"></i>
+        <h5 class="text-light mt-3">No active services yet</h5>
+        <p class="text-secondary">Order your first hosting plan to get started.</p>
+        <a href="/Client/Store" class="btn btn-primary"><i class="bi bi-cart-plus"></i> Order Hosting</a>
+    </div></div>
+}
+
+@* ---------------- Hosting services (shared + VPS + reseller) ---------------- *@
+@foreach (var s in Model.Services)
+{
+    <div class="card srx-card mb-3"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h5 class="text-light mb-1">@s.Name
+                    @switch (s.Kind)
+                    {
+                        case ServiceKind.Vps: <span class="badge text-bg-primary">VPS</span> break;
+                        case ServiceKind.Reseller: <span class="badge text-bg-primary">Reseller</span> break;
+                        default: <span class="badge text-bg-secondary">Shared</span> break;
+                    }
+                    @switch (s.Status)
+                    {
+                        case SubscriptionStatus.Active: <span class="badge text-bg-success">Active</span> break;
+                        case SubscriptionStatus.Trialing: <span class="badge text-bg-info">Trial</span> break;
+                        case SubscriptionStatus.PastDue: <span class="badge text-bg-danger">Past Due</span> break;
+                        default: <span class="badge text-bg-secondary">@s.Status</span> break;
+                    }
+                </h5>
+                <div class="text-secondary small">
+                    Renews / expires: <strong>@s.Expiry.ToString("MMM d, yyyy")</strong>
+                    @if (s.Status == SubscriptionStatus.Trialing && s.TrialEndsAt != null)
+                    {
+                        <span>· Trial ends @s.TrialEndsAt.Value.ToString("MMM d, yyyy")</span>
+                    }
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/Client/Dashboard" class="btn btn-sm btn-outline-secondary"><i class="bi bi-gear"></i> Manage</a>
+                @if (s.CanUpgrade)
+                {
+                    <a href="/Client/Services/Upgrade/@s.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-up-circle"></i> Upgrade Plan</a>
+                }
+                @if (s.Kind == ServiceKind.Shared)
+                {
+                    <form method="post" asp-page-handler="Cancel" onsubmit="return confirm('Cancel this service? It stays active until the end of the period.');">
+                        <input type="hidden" name="subscriptionId" value="@s.Id" />
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Cancel</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="CancelService" onsubmit="return confirm('Cancel this service?');">
+                        <input type="hidden" name="clientServiceId" value="@s.Id" />
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Cancel</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        @if (s.Kind == ServiceKind.Shared && s.Plan != null)
+        {
+            <div class="row g-3 mt-2">
+                <div class="col-6 col-md-3"><div class="text-secondary small">Domains</div><div class="text-light">@s.DomainsUsed / @Limit(s.MaxDomains)</div></div>
+                <div class="col-6 col-md-3"><div class="text-secondary small">Disk</div><div class="text-light">@Disk(s.DiskUsedMB) / @Disk(s.DiskQuotaMB)</div></div>
+                <div class="col-6 col-md-3"><div class="text-secondary small">Emails</div><div class="text-light">up to @Limit(s.MaxEmails)</div></div>
+                <div class="col-6 col-md-3"><div class="text-secondary small">Databases</div><div class="text-light">up to @Limit(s.MaxDatabases)</div></div>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(s.ResourceSummary))
+        {
+            <div class="text-secondary small mt-2"><i class="bi bi-hdd-stack"></i> @s.ResourceSummary</div>
+        }
+    </div></div>
+}
+
+@* ---------------- Add-ons ---------------- *@
+@if (Model.Addons.Any())
+{
+    <h6 class="text-light mt-4 mb-2"><i class="bi bi-plus-square"></i> Add-ons</h6>
+    <div class="card srx-card mb-3"><div class="card-body">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Add-on</th><th>Qty</th><th>Purchased</th><th>Renews</th></tr></thead>
+            <tbody>
+            @foreach (var a in Model.Addons)
+            {
+                <tr>
+                    <td class="text-light">@(a.Addon?.Name)</td>
+                    <td>@a.Quantity</td>
+                    <td class="text-secondary small">@a.PurchasedAt.ToString("MMM d, yyyy")</td>
+                    <td class="text-secondary small">@(a.ExpiresAt?.ToString("MMM d, yyyy") ?? "-")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div></div>
+}
+
+@* ---------------- Domain registrations ---------------- *@
+@if (Model.Domains.Any())
+{
+    <h6 class="text-light mt-4 mb-2"><i class="bi bi-globe2"></i> Domains</h6>
+    <div class="card srx-card"><div class="card-body">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Domain</th><th>Status</th><th>Registered</th><th>Expires</th><th class="text-end">Price</th></tr></thead>
+            <tbody>
+            @foreach (var d in Model.Domains)
+            {
+                <tr>
+                    <td class="text-light">@d.DomainName</td>
+                    <td>
+                        @if (d.Status == DomainRegistrationStatus.Active) { <span class="badge text-bg-success">Active</span> }
+                        else if (d.Status == DomainRegistrationStatus.Pending) { <span class="badge text-bg-warning">Pending</span> }
+                        else { <span class="badge text-bg-danger">Failed</span> }
+                    </td>
+                    <td class="text-secondary small">@d.RegisteredAt.ToString("MMM d, yyyy")</td>
+                    <td class="text-secondary small">@d.ExpiresAt.ToString("MMM d, yyyy")</td>
+                    <td class="text-end text-light">@Money(d.Price, d.Currency)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div></div>
+}

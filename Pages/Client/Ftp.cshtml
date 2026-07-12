@@ -1,0 +1,82 @@
+@page
+@model SRXPanel.Pages.Client.FtpModel
+@{
+    ViewData["Title"] = "FTP Accounts";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">FTP</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">FTP Accounts <span class="text-secondary fs-6">(@Model.Accounts.Count / @(Model.MaxFtp == 0 ? "∞" : Model.MaxFtp.ToString()))</span></h4>
+
+@if (Model.NewPassword != null)
+{
+    <div class="alert alert-success">
+        <strong>New credentials for @Model.NewUsername</strong> — copy the password now, it won't be shown again:
+        <code class="ms-2">@Model.NewPassword</code>
+    </div>
+}
+
+<div class="card srx-card mb-4">
+    <div class="card-body">
+        <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">New FTP account</label>
+                <input name="suffix" class="form-control" placeholder="webdev" @(Model.AtLimit ? "disabled" : "") />
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary" @(Model.AtLimit ? "disabled" : "")><i class="bi bi-plus-lg"></i> Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@foreach (var f in Model.Accounts)
+{
+    <div class="card srx-card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-light fw-semibold"><i class="bi bi-folder2-open"></i> @f.Username</span>
+                <div class="btn-group btn-group-sm">
+                    <form method="post" asp-page-handler="Password" asp-route-id="@f.Id"><button class="btn btn-outline-secondary"><i class="bi bi-key"></i> Reset Password</button></form>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@f.Id" class="srx-confirm-form" data-confirm-message="Delete FTP account '@f.Username'?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                </div>
+            </div>
+            <div class="row g-2 small">
+                @{
+                    var fields = new (string, string)[] {
+                        ("Server", Model.FtpHost),
+                        ("Port", "21"),
+                        ("Username", f.Username),
+                        ("Home Directory", f.HomeDirectory)
+                    };
+                }
+                @foreach (var (label, val) in fields)
+                {
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center bg-body-tertiary rounded px-3 py-2">
+                            <span><span class="text-secondary">@label:</span> <span class="text-light" data-copy>@val</span></span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary copy-btn" data-value="@val" title="Copy"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.copy-btn').forEach(b => b.addEventListener('click', () => {
+            navigator.clipboard.writeText(b.getAttribute('data-value'));
+            const i = b.querySelector('i'); i.className = 'bi bi-check-lg';
+            setTimeout(() => i.className = 'bi bi-clipboard', 1200);
+        }));
+    </script>
+}

@@ -1,0 +1,303 @@
+@page
+@model SRXPanel.Pages.Client.Developer.StagingModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Staging";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Staging</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0">Staging Environments</h4>
+        <div class="text-secondary small">
+            A full copy of a site at <code>staging.yourdomain.com</code>. Emails and payments are disabled on staging.
+        </div>
+    </div>
+    @if (Model.AvailableDomains.Any())
+    {
+        <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#createForm">
+            <i class="bi bi-plus-lg"></i> Create staging site
+        </button>
+    }
+</div>
+
+<div class="collapse @(Model.AvailableDomains.Any() && !Model.Sites.Any() ? "show" : "")" id="createForm">
+    <div class="card srx-card mb-4"><div class="card-body">
+        <h6 class="text-light mb-3">Clone production into staging</h6>
+        <form method="post" asp-page-handler="Create">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Domain</label>
+                    <select name="domainId" class="form-select" required>
+                        @foreach (var domain in Model.AvailableDomains)
+                        {
+                            <option value="@domain.Id">@domain.DomainName → staging.@domain.DomainName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Auto-delete after</label>
+                    <select name="expiryDays" class="form-select">
+                        <option value="">Never</option>
+                        <option value="7">7 days</option>
+                        <option value="14" selected>14 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="cloneDatabase" value="true" id="cloneDb" checked />
+                        <input type="hidden" name="cloneDatabase" value="false" />
+                        <label class="form-check-label" for="cloneDb">
+                            Clone the database
+                            <span class="text-secondary small d-block">Copies into a new schema and rewrites site URLs for WordPress.</span>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="passwordProtect" value="true" id="protect" checked />
+                        <input type="hidden" name="passwordProtect" value="false" />
+                        <label class="form-check-label" for="protect">
+                            Password protect (HTTP basic auth)
+                            <span class="text-secondary small d-block">Keeps search engines and visitors out of your staging copy.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6 auth-field">
+                    <label class="form-label small">Staging username</label>
+                    <input name="authUser" class="form-control form-control-sm" value="staging" />
+                </div>
+                <div class="col-md-6 auth-field">
+                    <label class="form-label small">Staging password</label>
+                    <input name="authPassword" type="text" class="form-control form-control-sm" required />
+                </div>
+            </div>
+
+            <button class="btn btn-primary mt-4"><i class="bi bi-files"></i> Create staging site</button>
+        </form>
+    </div></div>
+</div>
+
+@if (!Model.Sites.Any())
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-layers text-secondary" style="font-size:48px;"></i>
+        <h5 class="text-light mt-3">No staging sites</h5>
+        <p class="text-secondary mb-0">Test changes safely before pushing them to your live site.</p>
+    </div></div>
+}
+else
+{
+    foreach (var site in Model.Sites)
+    {
+        var expired = site.ExpiresAt is DateTime expiry && expiry <= DateTime.UtcNow.AddDays(3);
+        <div class="card srx-card mb-3"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h6 class="text-light mb-1">
+                        <i class="bi bi-layers accent"></i> @site.StagingDomain
+                        <span class="badge text-bg-info">STAGING</span>
+                    </h6>
+                    <div class="text-secondary small">
+                        Cloned from <strong class="text-light">@site.Domain?.DomainName</strong>
+                        @if (site.DatabaseName != null)
+                        {
+                            <span>· database <code>@site.DatabaseName</code></span>
+                        }
+                        @if (site.LastSyncAt is DateTime synced)
+                        {
+                            <span>· last @(site.LastSyncDirection == "push" ? "pushed" : "refreshed") @synced.ToString("MMM dd, HH:mm")</span>
+                        }
+                    </div>
+                </div>
+                <div class="text-end">
+                    @switch (site.Status)
+                    {
+                        case StagingStatus.Active: <span class="badge text-bg-success">Active</span> break;
+                        case StagingStatus.Syncing: <span class="badge text-bg-info">Syncing</span> break;
+                        case StagingStatus.Creating: <span class="badge text-bg-info">Creating</span> break;
+                        default: <span class="badge text-bg-danger">Failed</span> break;
+                    }
+                    @if (site.PasswordProtected)
+                    {
+                        <span class="badge text-bg-secondary"><i class="bi bi-lock-fill"></i> Protected</span>
+                    }
+                </div>
+            </div>
+
+            @if (site.ExpiresAt is DateTime expiresAt)
+            {
+                <div class="alert @(expired ? "alert-warning" : "alert-secondary") py-2 px-3 small">
+                    <i class="bi bi-hourglass-split"></i>
+                    Auto-deletes on @expiresAt.ToString("MMM dd, yyyy")
+                    (@Math.Max(0, (expiresAt - DateTime.UtcNow).Days) days left).
+                </div>
+            }
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="https://@site.StagingDomain" target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-box-arrow-up-right"></i> Visit staging
+                </a>
+
+                <form method="post" asp-page-handler="Refresh" class="d-inline"
+                      onsubmit="return confirm('Re-clone production over staging? Staging changes are lost.');">
+                    <input type="hidden" name="id" value="@site.Id" />
+                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Refresh from production</button>
+                </form>
+
+                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#pushModal-@site.Id">
+                    <i class="bi bi-arrow-up-circle"></i> Push to production
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#settings-@site.Id">
+                    <i class="bi bi-gear"></i> Settings
+                </button>
+
+                <form method="post" asp-page-handler="Delete" class="d-inline"
+                      onsubmit="return confirm('Delete @site.StagingDomain? Its files and database are removed. Production is untouched.');">
+                    <input type="hidden" name="id" value="@site.Id" />
+                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+
+            <div class="collapse mt-3" id="settings-@site.Id">
+                <div class="border border-secondary rounded p-3">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <form method="post" asp-page-handler="Protect" class="row g-2 align-items-end">
+                                <input type="hidden" name="id" value="@site.Id" />
+                                <input type="hidden" name="enabled" value="@((!site.PasswordProtected).ToString().ToLowerInvariant())" />
+                                @if (!site.PasswordProtected)
+                                {
+                                    <div class="col-5">
+                                        <label class="form-label small">Username</label>
+                                        <input name="authUser" class="form-control form-control-sm" value="staging" />
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label small">Password</label>
+                                        <input name="authPassword" type="text" class="form-control form-control-sm" required />
+                                    </div>
+                                    <div class="col-2">
+                                        <button class="btn btn-sm btn-outline-primary w-100">Protect</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="col-12">
+                                        <div class="text-secondary small mb-2">
+                                            Protected with basic auth as <code>@site.AuthUser</code>.
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-secondary">Remove password protection</button>
+                                    </div>
+                                }
+                            </form>
+                        </div>
+                        <div class="col-md-5">
+                            <form method="post" asp-page-handler="Expiry" class="row g-2 align-items-end">
+                                <input type="hidden" name="id" value="@site.Id" />
+                                <div class="col-8">
+                                    <label class="form-label small">Auto-delete after</label>
+                                    <select name="days" class="form-select form-select-sm">
+                                        <option value="">Never</option>
+                                        <option value="7">7 days</option>
+                                        <option value="14">14 days</option>
+                                        <option value="30">30 days</option>
+                                        <option value="90">90 days</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <button class="btn btn-sm btn-outline-secondary w-100">Set</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div></div>
+
+        <div class="modal fade" id="pushModal-@site.Id" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" asp-page-handler="Push">
+                        <input type="hidden" name="id" value="@site.Id" />
+                        <div class="modal-header">
+                            <h6 class="modal-title text-light">
+                                <i class="bi bi-arrow-up-circle text-warning"></i>
+                                Push staging → @site.Domain?.DomainName
+                            </h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning small">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                This overwrites your live site. A rollback archive of production is taken first.
+                            </div>
+
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="syncFiles" value="true" id="sf-@site.Id" checked />
+                                <input type="hidden" name="syncFiles" value="false" />
+                                <label class="form-check-label" for="sf-@site.Id">Sync files</label>
+                            </div>
+                            <div class="form-check form-switch mb-2 ms-4">
+                                <input class="form-check-input" type="checkbox" name="excludeUploads" value="true" id="eu-@site.Id" checked />
+                                <input type="hidden" name="excludeUploads" value="false" />
+                                <label class="form-check-label small text-secondary" for="eu-@site.Id">
+                                    Exclude uploads (keeps files your visitors added since the clone)
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="syncDatabase" value="true" id="sd-@site.Id" />
+                                <input type="hidden" name="syncDatabase" value="false" />
+                                <label class="form-check-label" for="sd-@site.Id">
+                                    Sync database
+                                    <span class="text-secondary small d-block">
+                                        Replaces the live database. Orders, comments and posts created since the clone are lost.
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="clearCaches" value="true" id="cc-@site.Id" checked />
+                                <input type="hidden" name="clearCaches" value="false" />
+                                <label class="form-check-label" for="cc-@site.Id">Clear caches afterwards</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-warning btn-sm"
+                                    onclick="return confirm('Push staging to production now?');">
+                                <i class="bi bi-arrow-up-circle"></i> Push to production
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var protect = document.getElementById('protect');
+            if (!protect) return;
+
+            function sync() {
+                document.querySelectorAll('.auth-field').forEach(function (el) {
+                    el.classList.toggle('d-none', !protect.checked);
+                    var input = el.querySelector('input');
+                    if (input && input.name === 'authPassword') input.required = protect.checked;
+                });
+            }
+            protect.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
+}

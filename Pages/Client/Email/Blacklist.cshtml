@@ -1,0 +1,114 @@
+@page
+@model SRXPanel.Pages.Client.Email.BlacklistModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Blacklist Check";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Email</li><li class="breadcrumb-item active" aria-current="page">Blacklist</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-shield-exclamation accent"></i> Blacklist Check</h4>
+    <form method="get" class="d-flex gap-2">
+        <select name="domainId" class="form-select form-select-sm" onchange="this.form.submit()">
+            @foreach (var d in Model.Domains) { <option value="@d.Id" selected="@(Model.DomainId == d.Id)">@d.DomainName</option> }
+        </select>
+    </form>
+</div>
+
+@if (Model.Selected == null)
+{
+    <div class="card srx-card"><div class="card-body text-secondary text-center py-4">Add a domain first to run blacklist checks.</div></div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small mb-2">Overall status</div>
+            @{ var listed = Model.Result?.AnyListed ?? (Model.History.FirstOrDefault()?.Status == BlacklistCheckStatus.Listed); }
+            @if (listed)
+            {
+                <div class="fs-2 text-danger"><i class="bi bi-exclamation-octagon-fill"></i></div><div class="badge text-bg-danger">Listed</div>
+            }
+            else
+            {
+                <div class="fs-2 text-success"><i class="bi bi-check-circle-fill"></i></div><div class="badge text-bg-success">Clean</div>
+            }
+            <div class="text-secondary small mt-2">Last checked: @(Model.Config?.LastBlacklistCheckAt?.ToString("yyyy-MM-dd HH:mm") ?? "never")</div>
+            <form method="post" asp-page-handler="Check" class="mt-3"><input type="hidden" name="domainId" value="@Model.Selected.Id" />
+                <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Check Now</button></form>
+        </div></div></div>
+
+        <div class="col-md-8"><div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Settings</h6>
+            <form method="post" asp-page-handler="AutoCheck" class="row g-2 align-items-end mb-3">
+                <input type="hidden" name="domainId" value="@Model.Selected.Id" />
+                <div class="col-auto"><div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="enabled" value="true" id="auto" @(Model.Config?.BlacklistAutoCheck == true ? "checked" : "") />
+                    <label class="form-check-label text-secondary" for="auto">Auto-check</label></div></div>
+                <div class="col-auto"><select name="schedule" class="form-select form-select-sm">
+                    <option value="daily" selected="@(Model.Config?.BlacklistSchedule == "daily")">Daily</option>
+                    <option value="weekly" selected="@(Model.Config?.BlacklistSchedule == "weekly")">Weekly</option></select></div>
+                <div class="col-auto"><button class="btn btn-sm btn-outline-secondary">Save schedule</button></div>
+            </form>
+            <form method="post" asp-page-handler="Alert" class="d-flex gap-2 align-items-center">
+                <input type="hidden" name="domainId" value="@Model.Selected.Id" />
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="alertOnBlacklist" value="true" id="alert" @(Model.Config?.AlertOnBlacklist == true ? "checked" : "") />
+                    <label class="form-check-label text-secondary" for="alert">Email me when listed</label></div>
+                <button class="btn btn-sm btn-outline-secondary">Save</button>
+            </form>
+        </div></div></div>
+    </div>
+
+    @if (Model.Result != null)
+    {
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3">Results</h6>
+            @foreach (var (label, res) in new[] { ("IP", Model.Result.Ip), ("Domain", Model.Result.Domain), ("MX", Model.Result.Mx) })
+            {
+                if (res == null) { continue; }
+                <div class="mb-2 text-secondary small">@label: <span class="font-monospace text-light">@res.Value</span> — @res.Summary</div>
+                <table class="table table-sm align-middle mb-3">
+                    <tbody>
+                    @foreach (var h in res.Hits)
+                    {
+                        <tr>
+                            <td class="text-light">@h.Name</td>
+                            <td>@if (h.Listed) { <span class="badge text-bg-danger">Listed</span> } else { <span class="badge text-bg-success">Clean</span> }</td>
+                            <td class="text-end">@if (h.Listed) { <a href="@h.DelistUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-warning">Request delisting</a> }</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div>
+    }
+
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Check history</h6>
+        @if (!Model.History.Any()) { <p class="text-secondary mb-0">No checks yet.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Type</th><th>Value</th><th>Status</th><th>Listed on</th><th>When</th></tr></thead>
+                <tbody>
+                @foreach (var h in Model.History)
+                {
+                    <tr>
+                        <td class="text-secondary">@h.CheckType</td>
+                        <td class="font-monospace small text-light">@h.Value</td>
+                        <td>@if (h.Status == BlacklistCheckStatus.Listed) { <span class="badge text-bg-danger">Listed</span> } else { <span class="badge text-bg-success">Clean</span> }</td>
+                        <td class="text-secondary small">@(h.ListedOn ?? "—")</td>
+                        <td class="text-secondary small">@h.CheckedAt.ToString("MM-dd HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+}

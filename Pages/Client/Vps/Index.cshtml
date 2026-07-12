@@ -1,0 +1,105 @@
+@page
+@model SRXPanel.Pages.Client.Vps.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "VPS";
+    string Money(decimal d) => $"${d:0.00}";
+    (string cls, string text) Badge(VpsStatus s) => s switch
+    {
+        VpsStatus.Running => ("text-bg-success", "Running"),
+        VpsStatus.Building => ("text-bg-info", "Building"),
+        VpsStatus.Stopped => ("text-bg-secondary", "Stopped"),
+        VpsStatus.Suspended => ("text-bg-warning", "Suspended"),
+        VpsStatus.Error => ("text-bg-danger", "Error"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item active" aria-current="page">VPS</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-hdd-rack accent"></i> My VPS</h4>
+</div>
+
+@if (!Model.Instances.Any())
+{
+    <div class="card srx-card mb-4"><div class="card-body text-center py-5">
+        <i class="bi bi-hdd-rack text-secondary" style="font-size:2.5rem;"></i>
+        <p class="text-secondary mt-3 mb-0">You don't have any VPS yet. Choose a plan below to deploy one in minutes.</p>
+    </div></div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        @foreach (var v in Model.Instances)
+        {
+            var b = Badge(v.Status);
+            <div class="col-lg-6">
+                <div class="card srx-card h-100"><div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="text-light mb-1"><i class="bi @(v.OsTemplate == "ubuntu" ? "bi-ubuntu" : "bi-hdd-stack") accent"></i> @v.Hostname</h5>
+                            <div class="text-secondary small font-monospace">@(v.IpAddress ?? "assigning…") @(v.Node != null ? "· " + v.Node.Location : "")</div>
+                        </div>
+                        <span class="badge @b.cls">@b.text</span>
+                    </div>
+                    <div class="row text-secondary small g-2 mb-3">
+                        <div class="col-4"><i class="bi bi-cpu accent"></i> @v.CpuCores vCPU</div>
+                        <div class="col-4"><i class="bi bi-memory accent"></i> @(v.RamMB / 1024) GB</div>
+                        <div class="col-4"><i class="bi bi-hdd accent"></i> @v.DiskGB GB</div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span>Bandwidth</span><span>@v.BandwidthUsed.ToString("0.0") / @v.BandwidthGB GB (@v.BandwidthPercent%)</span>
+                    </div>
+                    <div class="progress mb-3" style="height:6px;">
+                        <div class="progress-bar @(v.BandwidthPercent >= 90 ? "bg-danger" : v.BandwidthPercent >= 75 ? "bg-warning" : "bg-success")" style="width:@v.BandwidthPercent%"></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if (v.Status is VpsStatus.Running or VpsStatus.Stopped)
+                        {
+                            <form method="post" asp-page-handler="Power" class="d-inline">
+                                <input type="hidden" name="id" value="@v.Id" />
+                                @if (v.Status == VpsStatus.Running)
+                                {
+                                    <button name="action" value="restart" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button name="action" value="stop" class="btn btn-sm btn-outline-warning"><i class="bi bi-stop-circle"></i> Stop</button>
+                                }
+                                else
+                                {
+                                    <button name="action" value="start" class="btn btn-sm btn-outline-success"><i class="bi bi-play-circle"></i> Start</button>
+                                }
+                            </form>
+                        }
+                        <a asp-page="/Client/Vps/Detail" asp-route-id="@v.Id" class="btn btn-sm btn-primary ms-auto"><i class="bi bi-gear"></i> Manage</a>
+                    </div>
+                </div></div>
+            </div>
+        }
+    </div>
+}
+
+<h5 class="text-light mb-3">Deploy a new VPS</h5>
+<div class="row g-3">
+    @foreach (var p in Model.Plans)
+    {
+        <div class="col-lg-4 col-md-6">
+            <div class="card srx-card h-100"><div class="card-body">
+                @if (p.IsPopular) { <span class="badge text-bg-primary mb-2">Most Popular</span> }
+                <h5 class="text-light">@p.Name</h5>
+                <div class="text-secondary small mb-2"><i class="bi bi-geo-alt accent"></i> @p.Location</div>
+                <div class="my-2"><span class="fs-3 fw-bold text-light">@Money(p.Price)</span><span class="text-secondary">/mo</span></div>
+                <ul class="list-unstyled text-secondary small mb-3">
+                    <li><i class="bi bi-cpu accent"></i> @p.CpuCores vCPU core(s)</li>
+                    <li><i class="bi bi-memory accent"></i> @(p.RamMB / 1024) GB RAM</li>
+                    <li><i class="bi bi-hdd accent"></i> @p.DiskGB GB NVMe</li>
+                    <li><i class="bi bi-arrow-left-right accent"></i> @(p.BandwidthGB / 1000) TB bandwidth</li>
+                </ul>
+                <a asp-page="/Client/Vps/Order" asp-route-planId="@p.Id" class="btn @(p.IsPopular ? "btn-primary" : "btn-outline-secondary") w-100">Deploy</a>
+            </div></div>
+        </div>
+    }
+</div>

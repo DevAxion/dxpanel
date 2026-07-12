@@ -1,0 +1,68 @@
+@using Microsoft.AspNetCore.Identity
+@using SRXPanel.Models
+@using SRXPanel.Services
+@inject UserManager<ApplicationUser> UserManager
+@inject INotificationService Notifications
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var unread = 0;
+    List<Notification> recent = new();
+    if (user != null)
+    {
+        unread = await Notifications.GetUnreadCountAsync(user.Id);
+        recent = await Notifications.GetRecentAsync(user.Id, 5);
+    }
+
+    string IconFor(NotificationType t) => t switch
+    {
+        NotificationType.Success => "bi-check-circle text-success",
+        NotificationType.Warning => "bi-exclamation-triangle text-warning",
+        NotificationType.Error => "bi-x-octagon text-danger",
+        _ => "bi-info-circle text-info"
+    };
+}
+
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary position-relative" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+        <i class="bi bi-bell"></i>
+        @if (unread > 0)
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">
+                @(unread > 9 ? "9+" : unread.ToString())
+            </span>
+        }
+    </button>
+    <div class="dropdown-menu dropdown-menu-end p-0" style="width: 340px;">
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <strong class="text-light">Notifications</strong>
+            @if (unread > 0)
+            {
+                <span class="badge text-bg-danger">@unread new</span>
+            }
+        </div>
+        <div style="max-height: 340px; overflow-y: auto;">
+            @if (recent.Any())
+            {
+                @foreach (var n in recent)
+                {
+                    <div class="px-3 py-2 border-bottom small @(n.IsRead ? "" : "bg-body-tertiary")">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi @IconFor(n.Type)"></i>
+                            <div class="flex-grow-1">
+                                <div class="text-light fw-semibold">@n.Title</div>
+                                <div class="text-secondary">@n.Message</div>
+                                <div class="text-secondary" style="font-size: 0.7rem;">@n.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="px-3 py-3 text-secondary small">No notifications.</div>
+            }
+        </div>
+        <a asp-page="/Notifications/Index" class="dropdown-item text-center py-2 border-top">View all</a>
+    </div>
+</div>

@@ -1,0 +1,161 @@
+@page
+@model SRXPanel.Pages.Client.BackupModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Backup & Restore";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Backup</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Backup &amp; Restore</h4>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-light mb-0">Create Backup</h6>
+                    @if (Model.BackupLimit > 0)
+                    {
+                        <span class="badge @(Model.LimitReached ? "text-bg-danger" : "text-bg-secondary")">
+                            @Model.Backups.Count / @Model.BackupLimit backups used
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary">Unlimited backups</span>
+                    }
+                </div>
+                @if (Model.LimitReached)
+                {
+                    <div class="alert alert-warning d-flex align-items-center gap-2 py-2">
+                        <i class="bi bi-arrow-up-circle"></i>
+                        <div>
+                            You have reached your plan's backup limit (@Model.BackupLimit).
+                            <a asp-page="/Client/Store" class="alert-link">Upgrade plan to get more backups</a>,
+                            or delete an existing backup below.
+                        </div>
+                    </div>
+                }
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var t in Enum.GetValues<BackupType>())
+                    {
+                        <form method="post" asp-page-handler="Create">
+                            <input type="hidden" name="type" value="@t" />
+                            <button class="btn btn-outline-primary btn-sm" disabled="@Model.LimitReached"><i class="bi bi-hdd-stack"></i> @t Backup</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3">Backup History</h6>
+                @if (!Model.OffsiteEnabled)
+                {
+                    <p class="text-secondary small"><i class="bi bi-info-circle"></i> Off-site backup storage is not configured by your provider. Uploads are simulated.</p>
+                }
+                @if (Model.Backups.Any())
+                {
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th>Type</th><th>Size</th><th>Status</th><th>Off-site</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
+                        <tbody>
+                            @foreach (var b in Model.Backups)
+                            {
+                                <tr>
+                                    <td><span class="badge text-bg-secondary">@b.Type</span></td>
+                                    <td>@SRXPanel.Pages.Client.BackupModel.Size(b.SizeBytes)</td>
+                                    <td>@(b.Status == BackupStatus.Completed ? Html.Raw("<span class='badge srx-badge-active'>Completed</span>") : Html.Raw($"<span class='badge text-bg-warning'>{b.Status}</span>"))</td>
+                                    <td>
+                                        @if (b.OffsiteStored)
+                                        {
+                                            <span class="badge srx-badge-active" title="Stored on @Model.OffsiteProvider since @(b.OffsiteUploadedAt?.ToString("yyyy-MM-dd HH:mm"))"><i class="bi bi-cloud-check"></i> @Model.OffsiteProvider</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-secondary"><i class="bi bi-cloud-slash"></i> Local only</span>
+                                        }
+                                    </td>
+                                    <td>@b.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <form method="post" asp-page-handler="Download" asp-route-id="@b.Id"><button class="btn btn-outline-secondary" title="Download"><i class="bi bi-download"></i></button></form>
+                                            @if (b.OffsiteStored)
+                                            {
+                                                <form method="post" asp-page-handler="OffsiteRemove" asp-route-id="@b.Id" class="srx-confirm-form" data-confirm-message="Remove this backup from off-site storage?"><button class="btn btn-outline-info" title="Remove from off-site storage"><i class="bi bi-cloud-minus"></i></button></form>
+                                            }
+                                            else
+                                            {
+                                                <form method="post" asp-page-handler="OffsiteUpload" asp-route-id="@b.Id"><button class="btn btn-outline-info" title="Upload to off-site storage (@Model.OffsiteProvider)"><i class="bi bi-cloud-upload"></i></button></form>
+                                            }
+                                            <form method="post" asp-page-handler="Restore" asp-route-id="@b.Id" class="srx-confirm-form" data-confirm-message="Restore from this backup? Current data will be overwritten."><button class="btn btn-outline-warning" title="Restore"><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@b.Id" class="srx-confirm-form" data-confirm-message="Delete this backup?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No backups yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3">Automatic Backups</h6>
+                <form method="post" asp-page-handler="Schedule">
+                    <div class="mb-3">
+                        <label class="form-label">Frequency</label>
+                        <select name="frequency" class="form-select">
+                            @foreach (var f in Enum.GetValues<BackupFrequency>())
+                            {
+                                if (f == Model.Schedule.Frequency)
+                                {
+                                    <option value="@f" selected>@f</option>
+                                }
+                                else
+                                {
+                                    <option value="@f">@f</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keep last N backups</label>
+                        <input name="retention" value="@Model.Schedule.Retention" type="number" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Storage</label>
+                        <select name="destination" class="form-select" id="dest">
+                            <option value="local" selected="@(Model.Schedule.Destination == "local")">Local storage</option>
+                            <option value="s3" selected="@(Model.Schedule.Destination == "s3")">S3-compatible</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">S3 Bucket (if S3)</label>
+                        <input name="s3Bucket" value="@Model.Schedule.S3Bucket" class="form-control" placeholder="my-backups" />
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="true" @(Model.Schedule.IsEnabled ? "checked" : "") />
+                        <label class="form-check-label">Enable scheduled backups</label>
+                    </div>
+                    <button class="btn btn-primary w-100"><i class="bi bi-save"></i> Save Schedule</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

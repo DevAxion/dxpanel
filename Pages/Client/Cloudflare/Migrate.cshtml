@@ -1,0 +1,104 @@
+@page "/Client/Cloudflare/Migrate/{domainId:int}"
+@model SRXPanel.Pages.Client.Cloudflare.MigrateModel
+@using SRXPanel.Services.Cloudflare
+@{
+    ViewData["Title"] = "DNS Migration";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Cloudflare/Index">Cloudflare</a></li>
+        <li class="breadcrumb-item active" aria-current="page">DNS Migration</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-1">Step 3 — DNS migration</h4>
+<p class="text-secondary small">
+    Comparing panel DNS for <strong class="text-light">@Model.Cf.Domain?.DomainName</strong> with its Cloudflare zone.
+    Review the differences, then choose how to sync.
+</p>
+
+<div class="d-flex gap-2 mb-3">
+    <span class="badge text-bg-secondary">@Model.Diff.Count records</span>
+    @if (Model.PanelOnly > 0) { <span class="badge text-bg-info">@Model.PanelOnly only in panel</span> }
+    @if (Model.CloudflareOnly > 0) { <span class="badge text-bg-warning">@Model.CloudflareOnly only in Cloudflare</span> }
+    @if (Model.Differs > 0) { <span class="badge text-bg-danger">@Model.Differs differ</span> }
+</div>
+
+<div class="card srx-card mb-4"><div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr><th>Type</th><th>Name</th><th>Panel value</th><th>Cloudflare value</th><th>State</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model.Diff)
+            {
+                <tr>
+                    <td><span class="badge text-bg-secondary">@row.Type</span></td>
+                    <td class="text-light small font-monospace">@row.Name</td>
+                    <td class="small font-monospace @(row.PanelValue == null ? "text-secondary fst-italic" : "text-light")" style="word-break:break-all;">
+                        @(row.PanelValue ?? "—")
+                    </td>
+                    <td class="small font-monospace @(row.CloudflareValue == null ? "text-secondary fst-italic" : "text-light")" style="word-break:break-all;">
+                        @(row.CloudflareValue ?? "—")
+                    </td>
+                    <td>
+                        @switch (row.State)
+                        {
+                            case "match": <span class="badge text-bg-success">In sync</span> break;
+                            case "differs": <span class="badge text-bg-danger">Differs</span> break;
+                            case "panel-only": <span class="badge text-bg-info">Panel only</span> break;
+                            default: <span class="badge text-bg-warning">Cloudflare only</span> break;
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Diff.Any())
+            {
+                <tr><td colspan="5" class="text-center text-secondary py-4">No DNS records on either side yet.</td></tr>
+            }
+        </tbody>
+    </table>
+</div></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card srx-card h-100"><div class="card-body text-center">
+            <i class="bi bi-arrow-right-circle accent" style="font-size:28px;"></i>
+            <h6 class="text-light mt-2">Panel → Cloudflare</h6>
+            <p class="text-secondary small">Push records that exist in the panel up to Cloudflare.</p>
+            <form method="post" asp-page-handler="Sync">
+                <input type="hidden" name="direction" value="@DnsSyncDirection.PanelToCloudflare" />
+                <button class="btn btn-outline-primary btn-sm w-100">Copy to Cloudflare</button>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card srx-card h-100"><div class="card-body text-center">
+            <i class="bi bi-arrow-left-circle accent" style="font-size:28px;"></i>
+            <h6 class="text-light mt-2">Cloudflare → Panel</h6>
+            <p class="text-secondary small">Import records from Cloudflare into the panel's DNS.</p>
+            <form method="post" asp-page-handler="Sync">
+                <input type="hidden" name="direction" value="@DnsSyncDirection.CloudflareToPanel" />
+                <button class="btn btn-outline-primary btn-sm w-100">Import from Cloudflare</button>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card srx-card h-100"><div class="card-body text-center">
+            <i class="bi bi-arrow-left-right accent" style="font-size:28px;"></i>
+            <h6 class="text-light mt-2">Merge (keep both)</h6>
+            <p class="text-secondary small">Copy missing records in both directions. Nothing is deleted.</p>
+            <form method="post" asp-page-handler="Sync">
+                <input type="hidden" name="direction" value="@DnsSyncDirection.Merge" />
+                <button class="btn btn-primary btn-sm w-100">Merge both ways</button>
+            </form>
+        </div></div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-page="/Client/Cloudflare/Domain" asp-route-domainId="@Model.DomainId" class="btn btn-outline-secondary btn-sm">
+        Skip — manage domain <i class="bi bi-arrow-right"></i>
+    </a>
+</div>

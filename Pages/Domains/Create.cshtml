@@ -1,0 +1,71 @@
+@page
+@model SRXPanel.Pages.Domains.CreateModel
+@{
+    ViewData["Title"] = "Add Domain";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Domains/Index">Domains</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Add Domain</h4>
+
+<div class="card srx-card" style="max-width: 640px;">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <form method="post">
+            <div class="row g-3">
+                @if (Model.CanChooseOwner)
+                {
+                    <div class="col-md-12">
+                        <label asp-for="Input.OwnerId" class="form-label"></label>
+                        <select asp-for="Input.OwnerId" asp-items="Model.OwnerOptions" class="form-select">
+                            <option value="">-- Select owner --</option>
+                        </select>
+                    </div>
+                }
+                <div class="col-md-12">
+                    <label asp-for="Input.DomainName" class="form-label"></label>
+                    <input asp-for="Input.DomainName" class="form-control" placeholder="example.com" />
+                    <span asp-validation-for="Input.DomainName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-12">
+                    <label asp-for="Input.DocumentRoot" class="form-label"></label>
+                    <input asp-for="Input.DocumentRoot" class="form-control" />
+                    <span asp-validation-for="Input.DocumentRoot" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Input.PhpVersion" class="form-label"></label>
+                    <select asp-for="Input.PhpVersion" class="form-select">
+                        <option>8.1</option>
+                        <option>8.2</option>
+                        <option selected>8.3</option>
+                        <option>8.4</option>
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check">
+                        <input asp-for="Input.SslEnabled" class="form-check-input" />
+                        <label asp-for="Input.SslEnabled" class="form-check-label">Enable SSL (Let's Encrypt)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Add Domain</button>
+                <a asp-page="/Domains/Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

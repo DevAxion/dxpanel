@@ -1,0 +1,95 @@
+@page
+@model SRXPanel.Pages.Admin.PlansModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Manage Plans";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Plans</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Hosting Plans</h4>
+    <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#newPlan"><i class="bi bi-plus-lg"></i> New Plan</button>
+</div>
+
+<div class="collapse mb-4" id="newPlan">
+    <div class="card srx-card">
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <form method="post" asp-page-handler="Save">
+                <input type="hidden" asp-for="Input.Id" />
+                <div class="row g-2">
+                    <div class="col-md-4"><label class="form-label">Name</label><input asp-for="Input.Name" class="form-control" /></div>
+                    <div class="col-md-6"><label class="form-label">Description</label><input asp-for="Input.Description" class="form-control" /></div>
+                    <div class="col-md-2"><label class="form-label">Price</label><input asp-for="Input.Price" class="form-control" /></div>
+                    <div class="col-md-2"><label class="form-label">Cycle</label>
+                        <select asp-for="Input.BillingCycle" class="form-select">
+                            <option value="@BillingCycle.Monthly">Monthly</option>
+                            <option value="@BillingCycle.Annual">Annual</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2"><label class="form-label">Disk MB</label><input asp-for="Input.DiskQuotaMB" class="form-control" /></div>
+                    <div class="col-md-2"><label class="form-label">BW MB</label><input asp-for="Input.BandwidthQuotaMB" class="form-control" /></div>
+                    <div class="col-md-1"><label class="form-label">Dom.</label><input asp-for="Input.MaxDomains" class="form-control" /></div>
+                    <div class="col-md-1"><label class="form-label">Email</label><input asp-for="Input.MaxEmails" class="form-control" /></div>
+                    <div class="col-md-1"><label class="form-label">DB</label><input asp-for="Input.MaxDatabases" class="form-control" /></div>
+                    <div class="col-md-1"><label class="form-label">FTP</label><input asp-for="Input.MaxFtpAccounts" class="form-control" /></div>
+                </div>
+                <div class="form-text mb-2">Limits: 0 = unlimited.</div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save Plan</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card srx-card">
+    <div class="card-body">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Name</th><th>Price</th><th>Cycle</th><th>Limits (D/E/DB/F)</th><th>Stripe</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model.Plans)
+                {
+                    <tr>
+                        <td>@p.Name</td>
+                        <td>$@p.Price.ToString("0.00")</td>
+                        <td>@p.BillingCycle</td>
+                        <td class="small">@(p.MaxDomains == 0 ? "∞" : p.MaxDomains.ToString())/@(p.MaxEmails == 0 ? "∞" : p.MaxEmails.ToString())/@(p.MaxDatabases == 0 ? "∞" : p.MaxDatabases.ToString())/@(p.MaxFtpAccounts == 0 ? "∞" : p.MaxFtpAccounts.ToString())</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(p.StripePriceId))
+                            {
+                                <span class="badge srx-badge-active" title="@p.StripePriceId">Synced</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Not synced</span>
+                            }
+                        </td>
+                        <td>@(p.IsActive ? Html.Raw("<span class='badge srx-badge-active'>Active</span>") : Html.Raw("<span class='badge srx-badge-suspended'>Inactive</span>"))</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <form method="post" asp-page-handler="Sync" asp-route-id="@p.Id" class="d-inline">
+                                    <button class="btn btn-outline-primary" title="Sync to Stripe"><i class="bi bi-cloud-arrow-up"></i></button>
+                                </form>
+                                <form method="post" asp-page-handler="Toggle" asp-route-id="@p.Id" class="d-inline">
+                                    <button class="btn btn-outline-warning" title="Toggle active"><i class="bi @(p.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i></button>
+                                </form>
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@p.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete plan '@p.Name'?">
+                                    <button class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

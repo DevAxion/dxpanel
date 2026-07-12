@@ -1,0 +1,74 @@
+@page
+@model SRXPanel.Pages.Admin.InstallationModel
+@{
+    ViewData["Title"] = "Installation";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">System</li>
+            <li class="breadcrumb-item active" aria-current="page">Installation</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-2">Installation &amp; Deployment</h4>
+<p class="text-secondary">Server setup instructions for administrators. This page is only visible to the SuperAdmin and is never shown on the public site.</p>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light"><i class="bi bi-hdd-rack"></i> Requirements</h6>
+            <ul class="text-secondary mb-0">
+                <li>Ubuntu 22.04 LTS (fresh server recommended)</li>
+                <li>1 CPU core minimum (2+ recommended)</li>
+                <li>1 GB RAM minimum (2 GB+ recommended)</li>
+                <li>10 GB free disk</li>
+                <li>root access and a domain pointed at the server IP</li>
+            </ul>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light"><i class="bi bi-terminal"></i> One-line install</h6>
+            <p class="text-secondary small mb-2">Run on a fresh Ubuntu 22.04 server as root. The installer is interactive.</p>
+            <pre class="bg-black p-3 rounded small mb-0"><code>curl -fsSL https://get.srxpanel.com/install.sh | bash</code></pre>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light"><i class="bi bi-box"></i> Docker</h6>
+            <pre class="bg-black p-3 rounded small mb-0"><code>git clone https://github.com/srxpanel/srxpanel
+cd srxpanel/docker
+cp .env.example .env
+nano .env          # set domain, passwords, Stripe keys
+docker compose up -d</code></pre>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light"><i class="bi bi-arrow-repeat"></i> Updating</h6>
+            <p class="text-secondary small mb-2">From the server shell, or from <a asp-page="/Admin/Updates">Admin → Updates</a>.</p>
+            <pre class="bg-black p-3 rounded small mb-0"><code>curl -fsSL https://get.srxpanel.com/update.sh | bash</code></pre>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light"><i class="bi bi-trash"></i> Uninstall</h6>
+            <pre class="bg-black p-3 rounded small mb-0"><code>bash /var/www/srxpanel/src/scripts/uninstall.sh</code></pre>
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card mb-4"><div class="card-body text-center">
+            <i class="bi bi-info-circle fs-1 text-primary"></i>
+            <h6 class="text-light mt-2">Current version</h6>
+            <span class="display-6 text-light">v@Model.Version</span>
+        </div></div>
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-2"><i class="bi bi-shield-lock"></i> White-label note</h6>
+            <p class="text-secondary small mb-0">
+                Install/update commands and the underlying project name are never displayed on the public site.
+                To expose developer documentation publicly, or to credit the project, use the switches in
+                <code>appsettings.json → PanelSettings</code> and <a asp-page="/Admin/Frontend">Frontend settings</a>.
+            </p>
+        </div></div>
+    </div>
+</div>

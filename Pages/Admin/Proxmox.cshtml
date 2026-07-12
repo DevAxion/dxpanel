@@ -1,0 +1,189 @@
+@page
+@model SRXPanel.Pages.Admin.ProxmoxModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Proxmox Nodes";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Vps/Index">VPS</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Proxmox</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-hdd-stack accent"></i> Proxmox Nodes</h4>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNode"><i class="bi bi-plus-lg"></i> Add node</button>
+</div>
+
+@* ---------------- Nodes ---------------- *@
+<div class="row g-3 mb-4">
+    @foreach (var n in Model.Nodes)
+    {
+        var st = Model.Status.GetValueOrDefault(n.Id);
+        var pool = Model.IpPool.GetValueOrDefault(n.Id);
+        <div class="col-lg-6">
+            <div class="card srx-card h-100"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h5 class="text-light mb-0">@n.Name @(n.IsActive ? "" : Html.Raw("<span class='badge text-bg-secondary'>disabled</span>"))</h5>
+                        <div class="text-secondary small font-monospace">@n.Host:@n.Port · @n.Location</div>
+                    </div>
+                    <span class="badge @(st is { Online: true } ? "text-bg-success" : "text-bg-secondary")">@(st is { Online: true } ? "Online" : "—")</span>
+                </div>
+                @if (st != null)
+                {
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small text-secondary"><span>CPU</span><span>@st.CpuPercent%</span></div>
+                        <div class="progress mb-1" style="height:5px;"><div class="progress-bar bg-info" style="width:@st.CpuPercent%"></div></div>
+                        <div class="d-flex justify-content-between small text-secondary"><span>RAM (@st.UsedRamGB/@st.TotalRamGB GB)</span><span>@st.RamPercent%</span></div>
+                        <div class="progress mb-1" style="height:5px;"><div class="progress-bar bg-primary" style="width:@st.RamPercent%"></div></div>
+                        <div class="d-flex justify-content-between small text-secondary"><span>Disk (@st.UsedDiskGB/@st.TotalDiskGB GB)</span><span>@st.DiskPercent%</span></div>
+                        <div class="progress" style="height:5px;"><div class="progress-bar bg-warning" style="width:@st.DiskPercent%"></div></div>
+                    </div>
+                }
+                <div class="text-secondary small mb-3">
+                    <i class="bi bi-hdd"></i> @n.Storage · <i class="bi bi-diagram-2"></i> @n.Network · <i class="bi bi-hdd-network"></i> IPs @pool.used/@pool.total · max @n.MaxVms VMs
+                </div>
+                <div class="d-flex gap-2">
+                    <form method="post" asp-page-handler="TestNode"><input type="hidden" name="id" value="@n.Id" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-plug"></i> Test</button></form>
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editNode@(n.Id)"><i class="bi bi-pencil"></i> Edit</button>
+                    <form method="post" asp-page-handler="DeleteNode" class="srx-confirm-form ms-auto" data-confirm-message="Remove node @n.Name?"><input type="hidden" name="id" value="@n.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="modal fade" id="editNode@(n.Id)" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+            <form method="post" asp-page-handler="EditNode">
+                <div class="modal-header"><h5 class="modal-title">Edit @n.Name</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" value="@n.Id" />
+                    <div class="row g-2">
+                        <div class="col-6"><label class="form-label small">Name</label><input name="name" class="form-control" value="@n.Name" /></div>
+                        <div class="col-6"><label class="form-label small">Host</label><input name="host" class="form-control" value="@n.Host" /></div>
+                        <div class="col-4"><label class="form-label small">Port</label><input name="port" type="number" class="form-control" value="@n.Port" /></div>
+                        <div class="col-4"><label class="form-label small">Max VMs</label><input name="maxVms" type="number" class="form-control" value="@n.MaxVms" /></div>
+                        <div class="col-4"><label class="form-label small">Storage</label><input name="storage" class="form-control" value="@n.Storage" /></div>
+                        <div class="col-6"><label class="form-label small">Network</label><input name="network" class="form-control" value="@n.Network" /></div>
+                        <div class="col-6"><label class="form-label small">Location</label><input name="location" class="form-control" value="@n.Location" /></div>
+                        <div class="col-12"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="isActive" value="true" id="active@(n.Id)" @(n.IsActive ? "checked" : "") /><label class="form-check-label" for="active@(n.Id)">Active</label></div></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary">Save</button></div>
+            </form>
+        </div></div></div>
+    }
+    @if (!Model.Nodes.Any())
+    {
+        <div class="col-12"><div class="card srx-card"><div class="card-body text-center text-secondary py-4">No Proxmox nodes yet. Add one to start provisioning VPS.</div></div></div>
+    }
+</div>
+
+@* ---------------- Templates ---------------- *@
+<div class="card srx-card mb-4"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0"><i class="bi bi-hdd"></i> OS Templates</h6>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addTemplate" @(Model.Nodes.Any() ? "" : "disabled")><i class="bi bi-plus-lg"></i> Add template</button>
+    </div>
+    @if (!Model.Templates.Any()) { <p class="text-secondary mb-0">No templates.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Name</th><th>OS</th><th>Node</th><th>VMID</th><th>Min specs</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var t in Model.Templates)
+            {
+                <tr>
+                    <td class="text-light"><i class="bi @t.IconClass accent"></i> @t.Name</td>
+                    <td class="text-secondary">@t.OsType</td>
+                    <td class="text-secondary small">@t.Node?.Name</td>
+                    <td class="text-secondary">@t.TemplateId</td>
+                    <td class="text-secondary small">@t.MinCpuCores vCPU / @(t.MinRamMB) MB / @t.MinDiskGB GB</td>
+                    <td><span class="badge @(t.IsActive ? "text-bg-success" : "text-bg-secondary")">@(t.IsActive ? "Active" : "Disabled")</span></td>
+                    <td class="text-end">
+                        <form method="post" asp-page-handler="ToggleTemplate" class="d-inline"><input type="hidden" name="id" value="@t.Id" /><button class="btn btn-sm btn-outline-secondary">@(t.IsActive ? "Disable" : "Enable")</button></form>
+                        <form method="post" asp-page-handler="DeleteTemplate" class="d-inline srx-confirm-form" data-confirm-message="Delete template @t.Name?"><input type="hidden" name="id" value="@t.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div></div>
+
+@* ---------------- IP pool ---------------- *@
+<div class="card srx-card"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0"><i class="bi bi-hdd-network"></i> IP Pool</h6>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addIp" @(Model.Nodes.Any() ? "" : "disabled")><i class="bi bi-plus-lg"></i> Add range</button>
+    </div>
+    @if (!Model.Addresses.Any()) { <p class="text-secondary mb-0">No addresses in the pool.</p> }
+    else
+    {
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var a in Model.Addresses)
+            {
+                <span class="badge @(a.AssignedInstanceId != null ? "text-bg-secondary" : "text-bg-success") d-inline-flex align-items-center gap-1 font-monospace">
+                    @a.Address @(a.AssignedInstanceId != null ? "(assigned)" : "")
+                    @if (a.AssignedInstanceId == null)
+                    {
+                        <form method="post" asp-page-handler="DeleteIp" class="d-inline"><input type="hidden" name="id" value="@a.Id" /><button class="btn btn-close btn-close-white" style="font-size:.5rem;"></button></form>
+                    }
+                </span>
+            }
+        </div>
+    }
+</div></div>
+
+@* ---------------- Modals ---------------- *@
+<div class="modal fade" id="addNode" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" asp-page-handler="AddNode">
+        <div class="modal-header"><h5 class="modal-title">Add Proxmox node</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><div class="row g-2">
+            <div class="col-6"><label class="form-label small">Name</label><input name="name" class="form-control" placeholder="pve-fra-01" required /></div>
+            <div class="col-6"><label class="form-label small">Host / IP</label><input name="host" class="form-control" placeholder="10.0.0.5" required /></div>
+            <div class="col-4"><label class="form-label small">Port</label><input name="port" type="number" class="form-control" value="8006" /></div>
+            <div class="col-8"><label class="form-label small">Username</label><input name="username" class="form-control" value="root@@pam" /></div>
+            <div class="col-6"><label class="form-label small">Token ID</label><input name="tokenId" class="form-control" placeholder="root@@pam!srxpanel" /></div>
+            <div class="col-6"><label class="form-label small">Token secret</label><input name="tokenSecret" class="form-control" placeholder="(blank = simulation)" /></div>
+            <div class="col-4"><label class="form-label small">Max VMs</label><input name="maxVms" type="number" class="form-control" value="100" /></div>
+            <div class="col-4"><label class="form-label small">Storage</label><input name="storage" class="form-control" value="local-lvm" /></div>
+            <div class="col-4"><label class="form-label small">Network</label><input name="network" class="form-control" value="vmbr0" /></div>
+            <div class="col-8"><label class="form-label small">Location</label><input name="location" class="form-control" value="Frankfurt, DE" /></div>
+            <div class="col-4"><div class="form-check mt-4"><input class="form-check-input" type="checkbox" name="verifySsl" value="true" id="vssl" /><label class="form-check-label small" for="vssl">Verify SSL</label></div></div>
+        </div></div>
+        <div class="modal-footer"><button class="btn btn-primary">Add node</button></div>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="addTemplate" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" asp-page-handler="AddTemplate">
+        <div class="modal-header"><h5 class="modal-title">Add OS template</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><div class="row g-2">
+            <div class="col-6"><label class="form-label small">Node</label><select name="nodeId" class="form-select">@foreach (var n in Model.Nodes) { <option value="@n.Id">@n.Name</option> }</select></div>
+            <div class="col-6"><label class="form-label small">Name</label><input name="name" class="form-control" placeholder="Ubuntu 24.04 LTS" required /></div>
+            <div class="col-6"><label class="form-label small">OS type (slug)</label><input name="osType" class="form-control" placeholder="ubuntu" required /></div>
+            <div class="col-6"><label class="form-label small">Template VMID</label><input name="templateId" type="number" class="form-control" placeholder="9000" required /></div>
+            <div class="col-12"><label class="form-label small">Description</label><input name="description" class="form-control" /></div>
+            <div class="col-4"><label class="form-label small">Min CPU</label><input name="minCpuCores" type="number" class="form-control" value="1" /></div>
+            <div class="col-4"><label class="form-label small">Min RAM MB</label><input name="minRamMB" type="number" class="form-control" value="512" /></div>
+            <div class="col-4"><label class="form-label small">Min disk GB</label><input name="minDiskGB" type="number" class="form-control" value="10" /></div>
+        </div></div>
+        <div class="modal-footer"><button class="btn btn-primary">Add template</button></div>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="addIp" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" asp-page-handler="AddIpRange">
+        <div class="modal-header"><h5 class="modal-title">Add IP range</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><div class="row g-2">
+            <div class="col-6"><label class="form-label small">Node</label><select name="nodeId" class="form-select">@foreach (var n in Model.Nodes) { <option value="@n.Id">@n.Name</option> }</select></div>
+            <div class="col-6"><label class="form-label small">Start IP</label><input name="startIp" class="form-control font-monospace" placeholder="203.0.113.10" required /></div>
+            <div class="col-4"><label class="form-label small">Count</label><input name="count" type="number" class="form-control" value="16" /></div>
+            <div class="col-4"><label class="form-label small">Prefix</label><input name="prefix" type="number" class="form-control" value="24" /></div>
+            <div class="col-4"><label class="form-label small">Gateway</label><input name="gateway" class="form-control font-monospace" placeholder="203.0.113.1" /></div>
+        </div></div>
+        <div class="modal-footer"><button class="btn btn-primary">Add range</button></div>
+    </form>
+</div></div></div>

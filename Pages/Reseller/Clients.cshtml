@@ -1,0 +1,131 @@
+@page
+@model SRXPanel.Pages.Reseller.ClientsModel
+@{
+    ViewData["Title"] = "Clients";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Reseller/Dashboard">Reseller</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Clients</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Clients <span class="text-secondary fs-6">(@Model.Usage.ClientCount / @(Model.Profile?.MaxClients == 0 ? "∞" : Model.Profile?.MaxClients.ToString()))</span></h4>
+    <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#newClient"><i class="bi bi-person-plus"></i> New Client</button>
+</div>
+
+@if (Model.Profile == null)
+{
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Your reseller account has no resource allocation yet.</div>
+    return;
+}
+
+<div class="collapse mb-4" id="newClient">
+    <div class="card srx-card">
+        <div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-person-plus"></i> Create Client</h6>
+            <form method="post" asp-page-handler="Create">
+                <div class="row g-2">
+                    <div class="col-md-3 mb-2"><label class="form-label">Username</label><input asp-for="Input.UserName" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Full Name</label><input asp-for="Input.FullName" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Email</label><input asp-for="Input.Email" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Password</label><input asp-for="Input.Password" type="password" class="form-control" /></div>
+                    <div class="col-md-4 mb-2"><label class="form-label">Package</label>
+                        <select asp-for="Input.ResellerPackageId" asp-items="Model.PackageOptions" class="form-select">
+                            <option value="">— Custom limits —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Disk (MB)</label><input asp-for="Input.DiskQuotaMB" type="number" class="form-control" /></div>
+                    <div class="col-md-3 mb-2"><label class="form-label">Bandwidth (MB)</label><input asp-for="Input.BandwidthQuotaMB" type="number" class="form-control" /></div>
+                    <div class="col-md-2 mb-2 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="Input.SendWelcomeEmail" />
+                            <label class="form-check-label small">Welcome email</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="small text-secondary mb-2">Selecting a package uses its limits; leave blank to use the custom disk/bandwidth values above.</div>
+                <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Create Client</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (Model.Detail != null)
+{
+    <div class="card srx-card mb-4 border-primary">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h6 class="text-light mb-3"><i class="bi bi-person-vcard"></i> @Model.Detail.User.UserName — details</h6>
+                <a asp-page="/Reseller/Clients" class="btn-close btn-close-white"></a>
+            </div>
+            <div class="row text-center">
+                <div class="col"><div class="srx-stat-value">@Model.Detail.Domains</div><div class="srx-stat-label">Domains</div></div>
+                <div class="col"><div class="srx-stat-value">@Model.Detail.Databases</div><div class="srx-stat-label">Databases</div></div>
+                <div class="col"><div class="srx-stat-value">@Model.Detail.Emails</div><div class="srx-stat-label">Email</div></div>
+                <div class="col"><div class="srx-stat-value">@Model.Detail.OpenTickets</div><div class="srx-stat-label">Open Tickets</div></div>
+                <div class="col"><div class="srx-stat-value">@Model.Detail.User.DiskQuotaMB</div><div class="srx-stat-label">Disk MB</div></div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card srx-card">
+    <div class="card-body">
+        @if (Model.Clients.Any())
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Client</th><th>Package</th><th>Disk</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var c in Model.Clients)
+                    {
+                        <tr>
+                            <td><strong class="text-light">@c.UserName</strong><div class="small text-secondary">@c.Email</div></td>
+                            <td>@(c.ResellerPackage?.Name ?? "Custom")</td>
+                            <td>@c.DiskQuotaMB MB</td>
+                            <td>
+                                @if (c.IsActive)
+                                {
+                                    <span class="badge text-bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary" title="@c.SuspensionReason">Suspended</span>
+                                }
+                            </td>
+                            <td class="text-secondary small">@c.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td class="text-end text-nowrap">
+                                <a asp-page="/Reseller/Clients" asp-route-details="@c.Id" class="btn btn-sm btn-outline-secondary" title="Details"><i class="bi bi-eye"></i></a>
+                                <form method="post" asp-page-handler="Impersonate" asp-route-id="@c.Id" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-info" title="Login as client"><i class="bi bi-box-arrow-in-right"></i></button>
+                                </form>
+                                <form method="post" asp-page-handler="Suspend" asp-route-id="@c.Id" class="d-inline">
+                                    @if (!c.IsActive)
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" title="Reactivate"><i class="bi bi-play-circle"></i></button>
+                                    }
+                                    else
+                                    {
+                                        <input type="hidden" name="reason" value="Suspended by reseller" />
+                                        <button class="btn btn-sm btn-outline-warning" title="Suspend"><i class="bi bi-pause-circle"></i></button>
+                                    }
+                                </form>
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@c.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this client? All their domains, databases, email and files will be permanently removed.">
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-secondary mb-0">No clients yet. Click <strong>New Client</strong> to add one.</p>
+        }
+    </div>
+</div>

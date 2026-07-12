@@ -1,0 +1,60 @@
+@page
+@model SRXPanel.Pages.Reseller.InvoiceSettingsModel
+@{
+    ViewData["Title"] = "Invoice Settings";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Reseller/Dashboard">Reseller</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Invoice Settings</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Invoice Customization</h4>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <h6 class="text-light mb-3"><i class="bi bi-building"></i> Company Details</h6>
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2"><label class="form-label">Company Name</label><input name="companyName" value="@Model.Settings.CompanyName" class="form-control" /></div>
+                        <div class="col-md-6 mb-2"><label class="form-label">Tax Number</label><input name="taxNumber" value="@Model.Settings.TaxNumber" class="form-control" /></div>
+                        <div class="col-12 mb-2"><label class="form-label">Address</label><textarea name="companyAddress" class="form-control" rows="2">@Model.Settings.CompanyAddress</textarea></div>
+                    </div>
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-hash"></i> Numbering &amp; Logo</h6>
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2"><label class="form-label">Invoice Prefix</label><input name="invoicePrefix" value="@Model.Settings.InvoicePrefix" class="form-control" placeholder="INV-2026-" /></div>
+                        <div class="col-md-6 mb-2"><label class="form-label">Logo (PNG/JPG/SVG ≤2MB)</label><input asp-for="Logo" type="file" class="form-control" accept=".png,.jpg,.jpeg,.svg" /></div>
+                    </div>
+                    @if (Model.Settings.LogoPath != null)
+                    {
+                        <div class="mb-2"><img src="@Model.Settings.LogoPath" style="max-height:40px" class="bg-white p-1 rounded" /></div>
+                    }
+
+                    <h6 class="text-light mb-3 mt-3"><i class="bi bi-card-text"></i> Terms &amp; Payment</h6>
+                    <div class="mb-2"><label class="form-label">Payment Terms</label><input name="paymentTerms" value="@Model.Settings.PaymentTerms" class="form-control" placeholder="Net 14 days" /></div>
+                    <div class="mb-2"><label class="form-label">Bank Transfer Details</label><textarea name="bankDetails" class="form-control" rows="3" placeholder="IBAN / SWIFT / account name">@Model.Settings.BankDetails</textarea></div>
+                    <div class="mb-3"><label class="form-label">Footer Notes</label><input name="footerNotes" value="@Model.Settings.FooterNotes" class="form-control" placeholder="Thank you for your business!" /></div>
+
+                    <button class="btn btn-primary"><i class="bi bi-save"></i> Save Invoice Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-2"><i class="bi bi-info-circle"></i> Preview</h6>
+                <p class="text-secondary small mb-2">Invoices use these details plus your white-label colors and tax settings.</p>
+                <p class="small">Next number: <code>@Model.Settings.InvoicePrefix@(Model.Settings.NextNumber.ToString("0000"))</code></p>
+                <p class="text-secondary small mb-0">Generate a platform invoice from <a asp-page="/Reseller/Billing">Billing</a> to see the full PDF layout.</p>
+            </div>
+        </div>
+    </div>
+</div>

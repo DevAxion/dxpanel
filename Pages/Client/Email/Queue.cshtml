@@ -1,0 +1,116 @@
+@page
+@model SRXPanel.Pages.Client.Email.QueueModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Mail Queue";
+    var c = Model.Counts;
+    (string cls, string text) Badge(EmailQueueStatus s) => s switch
+    {
+        EmailQueueStatus.Sent => ("text-bg-success", "Sent"),
+        EmailQueueStatus.Queued => ("text-bg-info", "Queued"),
+        EmailQueueStatus.Sending => ("text-bg-primary", "Sending"),
+        EmailQueueStatus.Deferred => ("text-bg-warning", "Deferred"),
+        EmailQueueStatus.Failed => ("text-bg-danger", "Failed"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Email</li>
+        <li class="breadcrumb-item active" aria-current="page">Queue</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-envelope-paper accent"></i> Mail Queue</h4>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="TogglePause">
+            <input type="hidden" name="pause" value="@((!Model.AnyPaused).ToString().ToLower())" />
+            <button class="btn btn-sm @(Model.AnyPaused ? "btn-outline-success" : "btn-outline-warning")">
+                <i class="bi @(Model.AnyPaused ? "bi-play-circle" : "bi-pause-circle")"></i> @(Model.AnyPaused ? "Resume queue" : "Pause queue")
+            </button>
+        </form>
+        <form method="post" asp-page-handler="RetryAll"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Retry all failed</button></form>
+        <form method="post" asp-page-handler="Flush" class="srx-confirm-form" data-confirm-message="Delete all queued/deferred messages?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Flush queue</button></form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value" id="cQueued">@c.Queued</div><div class="srx-stat-label">Queued</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value" id="cSending">@c.Sending</div><div class="srx-stat-label">Sending</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value" id="cSent">@c.SentToday</div><div class="srx-stat-label">Sent today</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value" id="cFailed">@c.Failed</div><div class="srx-stat-label">Failed</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value" id="cDeferred">@c.Deferred</div><div class="srx-stat-label">Deferred</div></div></div>
+    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@Model.DeliveryRate<span class="fs-6">%</span></div><div class="srx-stat-label">Delivery rate</div></div></div>
+</div>
+
+<div class="card srx-card"><div class="card-body">
+    <form method="get" class="mb-3 d-flex gap-2 align-items-end">
+        <div><label class="form-label text-secondary small">Status</label>
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">All</option>
+                @foreach (var s in Enum.GetValues<EmailQueueStatus>())
+                {
+                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                }
+            </select></div>
+    </form>
+
+    @if (!Model.Queue.Items.Any()) { <p class="text-secondary mb-0">The queue is empty.</p> }
+    else
+    {
+        <table class="table table-sm align-middle mb-3">
+            <thead><tr><th>From</th><th>To</th><th>Subject</th><th>Status</th><th>Attempts</th><th>Date</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var m in Model.Queue.Items)
+            {
+                var b = Badge(m.Status);
+                <tr>
+                    <td class="small text-secondary font-monospace">@m.FromAddress</td>
+                    <td class="small text-secondary font-monospace">@m.ToAddress</td>
+                    <td class="small text-light">@(m.Subject.Length > 40 ? m.Subject[..40] + "…" : m.Subject)</td>
+                    <td><span class="badge @b.cls">@b.text</span>@if (m.Status == EmailQueueStatus.Failed && m.ErrorMessage != null) { <i class="bi bi-info-circle text-secondary ms-1" title="@m.ErrorMessage"></i> }</td>
+                    <td class="text-secondary">@m.Attempts</td>
+                    <td class="text-secondary small">@m.CreatedAt.ToString("MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        @if (m.Status is EmailQueueStatus.Failed or EmailQueueStatus.Deferred)
+                        {
+                            <form method="post" asp-page-handler="Retry" class="d-inline"><input type="hidden" name="id" value="@m.Id" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button></form>
+                        }
+                        <form method="post" asp-page-handler="Delete" class="d-inline"><input type="hidden" name="id" value="@m.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+
+        @if (Model.Queue.TotalPages > 1)
+        {
+            <nav><ul class="pagination pagination-sm mb-0">
+                @for (var p = 1; p <= Model.Queue.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Queue.Page ? "active" : "")"><a class="page-link" asp-route-page="@p" asp-route-status="@Model.Status">@p</a></li>
+                }
+            </ul></nav>
+        }
+    }
+</div></div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+        var uid = '@Model.HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+        if (window.signalR && uid) {
+            var conn = new signalR.HubConnectionBuilder().withUrl('/hubs/email').build();
+            conn.on('queue', function (d) {
+                document.getElementById('cQueued').textContent = d.queued;
+                document.getElementById('cSending').textContent = d.sending;
+                document.getElementById('cSent').textContent = d.sent;
+                document.getElementById('cFailed').textContent = d.failed;
+                document.getElementById('cDeferred').textContent = d.deferred;
+            });
+            conn.start().then(function () { conn.invoke('JoinUser', uid); }).catch(function(){});
+        }
+    </script>
+}

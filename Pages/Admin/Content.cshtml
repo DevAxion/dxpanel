@@ -1,0 +1,113 @@
+@page
+@model SRXPanel.Pages.Admin.ContentModel
+@{
+    ViewData["Title"] = "Content";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Website</li>
+            <li class="breadcrumb-item active" aria-current="page">Content</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Homepage Content</h4>
+
+<div class="row g-4">
+    <!-- Features -->
+    <div class="col-lg-6">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-grid"></i> Features</h6>
+            <table class="table table-sm align-middle">
+                <tbody>
+                @foreach (var f in Model.Features)
+                {
+                    <tr>
+                        <td style="width:28px;"><i class="bi @f.Icon accent"></i></td>
+                        <td><div class="text-light">@f.Title</div><div class="text-secondary small">@f.Description</div></td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="DeleteFeature"><input type="hidden" name="id" value="@f.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <form method="post" asp-page-handler="AddFeature" class="border-top pt-3">
+                <div class="row g-2">
+                    <div class="col-5"><input name="icon" class="form-control form-control-sm" placeholder="bi-hdd" /></div>
+                    <div class="col-7"><input name="title" class="form-control form-control-sm" placeholder="Title" required /></div>
+                    <div class="col-9"><input name="description" class="form-control form-control-sm" placeholder="Description" /></div>
+                    <div class="col-3"><input name="sortOrder" type="number" value="0" class="form-control form-control-sm" /></div>
+                </div>
+                <button class="btn btn-sm btn-primary mt-2"><i class="bi bi-plus-lg"></i> Add feature</button>
+            </form>
+            <div class="form-text">Icon = a <a href="https://icons.getbootstrap.com/" target="_blank">Bootstrap icon</a> name (e.g. <code>bi-hdd</code>).</div>
+        </div></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="col-lg-6">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-123"></i> Stat counters</h6>
+            <table class="table table-sm align-middle">
+                <tbody>
+                @foreach (var s in Model.Stats)
+                {
+                    <tr>
+                        <td style="width:28px;"><i class="bi @s.Icon accent"></i></td>
+                        <td><span class="text-light fw-semibold">@s.Value@s.Suffix</span> <span class="text-secondary small">@s.Label</span></td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="DeleteStat"><input type="hidden" name="id" value="@s.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <form method="post" asp-page-handler="AddStat" class="border-top pt-3">
+                <div class="row g-2">
+                    <div class="col-6"><input name="label" class="form-control form-control-sm" placeholder="Label" required /></div>
+                    <div class="col-3"><input name="value" type="number" class="form-control form-control-sm" placeholder="Value" required /></div>
+                    <div class="col-3"><input name="suffix" class="form-control form-control-sm" placeholder="+ / %" /></div>
+                    <div class="col-9"><input name="icon" class="form-control form-control-sm" placeholder="bi-people" /></div>
+                    <div class="col-3"><input name="sortOrder" type="number" value="0" class="form-control form-control-sm" /></div>
+                </div>
+                <button class="btn btn-sm btn-primary mt-2"><i class="bi bi-plus-lg"></i> Add stat</button>
+            </form>
+        </div></div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="col-12">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-chat-quote"></i> Testimonials</h6>
+            <div class="row g-3">
+                @foreach (var t in Model.Testimonials)
+                {
+                    <div class="col-md-4">
+                        <div class="p-3" style="background:#0d1117;border:1px solid #30363d;border-radius:10px;">
+                            <div class="text-warning mb-1">@for (var i = 0; i < t.Rating; i++) { <i class="bi bi-star-fill"></i> }</div>
+                            <p class="text-light small">“@t.Content”</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary small">@t.Name@(string.IsNullOrEmpty(t.Company) ? "" : $", {t.Company}")</span>
+                                <form method="post" asp-page-handler="DeleteTestimonial"><input type="hidden" name="id" value="@t.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <form method="post" asp-page-handler="AddTestimonial" class="border-top pt-3 mt-3">
+                <div class="row g-2">
+                    <div class="col-md-3"><input name="name" class="form-control form-control-sm" placeholder="Name" required /></div>
+                    <div class="col-md-3"><input name="company" class="form-control form-control-sm" placeholder="Company" /></div>
+                    <div class="col-md-2"><input name="rating" type="number" min="1" max="5" value="5" class="form-control form-control-sm" /></div>
+                    <div class="col-md-4"><input name="photoUrl" class="form-control form-control-sm" placeholder="Photo URL (optional)" /></div>
+                    <div class="col-md-10"><input name="content" class="form-control form-control-sm" placeholder="Testimonial text" required /></div>
+                    <div class="col-md-2"><input name="sortOrder" type="number" value="0" class="form-control form-control-sm" /></div>
+                </div>
+                <button class="btn btn-sm btn-primary mt-2"><i class="bi bi-plus-lg"></i> Add testimonial</button>
+            </form>
+        </div></div>
+    </div>
+</div>

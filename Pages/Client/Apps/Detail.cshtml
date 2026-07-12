@@ -1,0 +1,76 @@
+@page "/Client/Apps/Detail/{slug}"
+@model SRXPanel.Pages.Client.Apps.DetailModel
+@{
+    var a = Model.App;
+    ViewData["Title"] = a.Name;
+    string Stars(double r) => new string('★', (int)Math.Round(r)) + new string('☆', 5 - (int)Math.Round(r));
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Catalog">Catalog</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@a.Name</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div class="d-flex gap-3">
+        <i class="bi @a.IconPath accent" style="font-size:52px;"></i>
+        <div>
+            <h4 class="text-light mb-1">@a.Name <span class="text-secondary fs-6">v@a.Version</span></h4>
+            <div class="text-secondary"><span class="text-warning">@Stars(a.Rating)</span> @a.Rating.ToString("0.0") · <i class="bi bi-download"></i> @a.InstallCount installs platform-wide</div>
+        </div>
+    </div>
+    <a href="/Client/Apps/Install/@a.Id" class="btn btn-primary btn-lg"><i class="bi bi-lightning-charge"></i> Install Now</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-2">About</h6>
+            <p class="text-secondary mb-0">@a.Description</p>
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3">Features</h6>
+            @foreach (var f in a.FeatureList)
+            {
+                <div class="text-secondary py-1"><i class="bi bi-check-lg accent"></i> @f</div>
+            }
+        </div></div>
+
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3">Screenshots</h6>
+            <div class="row g-2">
+                @for (var i = 1; i <= 3; i++)
+                {
+                    <div class="col-4">
+                        <div class="d-flex align-items-center justify-content-center" style="background:#0d1117;border:1px solid #30363d;border-radius:8px;height:110px;">
+                            <i class="bi @a.IconPath text-secondary" style="font-size:28px;"></i>
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="text-secondary small mt-2 mb-0">Preview images are supplied by the application vendor.</p>
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-2">Changelog</h6>
+            <pre class="bg-black p-3 rounded small mb-0"><code>@a.Changelog</code></pre>
+        </div></div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Requirements</h6>
+            <div class="d-flex justify-content-between py-1"><span class="text-secondary">Disk space</span><span class="text-light">@a.MinDiskMB MB</span></div>
+            <div class="d-flex justify-content-between py-1"><span class="text-secondary">PHP version</span><span class="text-light">@a.MinPhpVersion+</span></div>
+            <div class="d-flex justify-content-between py-1"><span class="text-secondary">Database</span><span class="text-light">@(a.RequiresDatabase ? "MySQL required" : "Not required")</span></div>
+            <div class="d-flex justify-content-between py-1"><span class="text-secondary">Category</span><span class="text-light">@a.Category</span></div>
+            <hr class="border-secondary" />
+            <p class="text-secondary small mb-3">@a.Requirements</p>
+            <a href="/Client/Apps/Install/@a.Id" class="btn btn-primary w-100"><i class="bi bi-lightning-charge"></i> Install @a.Name</a>
+        </div></div>
+    </div>
+</div>

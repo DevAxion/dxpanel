@@ -1,0 +1,88 @@
+@page
+@model SRXPanel.Pages.Client.Email.DeliverabilityModel
+@{
+    ViewData["Title"] = "Deliverability";
+    var s = Model.Score;
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Email</li><li class="breadcrumb-item active" aria-current="page">Deliverability</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-graph-up-arrow accent"></i> Deliverability Score</h4>
+    <form method="get"><select name="domainId" class="form-select form-select-sm" onchange="this.form.submit()">
+        @foreach (var d in Model.Domains) { <option value="@d.Id" selected="@(Model.DomainId == d.Id)">@d.DomainName</option> }
+    </select></form>
+</div>
+
+@if (s == null)
+{
+    <div class="card srx-card"><div class="card-body text-secondary text-center py-4">Add a domain first.</div></div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small mb-2">Overall score</div>
+            <div class="display-3 fw-bold text-@s.Color">@s.Score</div>
+            <div class="badge text-bg-@s.Color mb-2">@s.Grade</div>
+            <div class="text-secondary small">Platform average: @Model.PlatformAverage</div>
+        </div></div></div>
+
+        <div class="col-md-8"><div class="card srx-card h-100"><div class="card-body">
+            <h6 class="text-light mb-3">Breakdown</h6>
+            @foreach (var f in s.Factors)
+            {
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <i class="bi @(f.Passed ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger")"></i>
+                        <span class="text-light">@f.Label</span>
+                        @if (!f.Passed && f.Recommendation != null) { <a href="@f.Link" class="small ms-2">@f.Recommendation →</a> }
+                    </div>
+                    <span class="text-secondary">@f.Points / @f.MaxPoints</span>
+                </div>
+            }
+        </div></div></div>
+    </div>
+
+    @if (s.Recommendations.Any())
+    {
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-lightbulb"></i> Recommendations</h6>
+            <ul class="mb-0">
+                @foreach (var (text, link) in s.Recommendations)
+                {
+                    <li class="mb-1"><a href="@link">@text</a></li>
+                }
+            </ul>
+        </div></div>
+    }
+
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Score history (30 days)</h6>
+        <canvas id="scoreChart" height="80"></canvas>
+    </div></div>
+}
+
+@section Scripts {
+    @if (s != null)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.HistoryData.Select(h => h.date.ToString("MM-dd"))));
+            var data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.HistoryData.Select(h => h.score)));
+            var avg = @Model.PlatformAverage;
+            new Chart(document.getElementById('scoreChart'), {
+                type: 'line',
+                data: { labels: labels, datasets: [
+                    { label: 'Your score', data: data, borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,.1)', fill: true, tension: .3 },
+                    { label: 'Platform avg', data: labels.map(function(){return avg;}), borderColor: '#8b949e', borderDash: [5,5], pointRadius: 0 }
+                ] },
+                options: { plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { y: { min: 0, max: 100, grid: { color: '#21262d' }, ticks: { color: '#8b949e' } }, x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e' } } } }
+            });
+        </script>
+    }
+}

@@ -1,0 +1,68 @@
+@page
+@model SRXPanel.Pages.Client.SslModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "SSL";
+    (string cls, string label) Badge(SslCertificate? c)
+    {
+        if (c == null) return ("text-bg-secondary", "No SSL");
+        if (c.Status == SslCertStatus.Expired || c.DaysUntilExpiry < 0) return ("srx-badge-suspended", "Expired");
+        if (c.DaysUntilExpiry <= 30) return ("text-bg-warning", $"{c.DaysUntilExpiry} days");
+        return ("srx-badge-active", $"{c.DaysUntilExpiry} days");
+    }
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">SSL</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">SSL Certificates</h4>
+    <a asp-page="/Ssl/Upload" class="btn btn-outline-secondary btn-sm"><i class="bi bi-upload"></i> Upload Custom</a>
+</div>
+
+<div class="card srx-card">
+    <div class="card-body">
+        @if (Model.Rows.Any())
+        {
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Domain</th><th>Status</th><th>Expires</th><th>Auto-Renew</th><th>Force HTTPS</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        var badge = Badge(r.Cert);
+                        <tr>
+                            <td>@r.Domain.DomainName</td>
+                            <td><span class="badge @badge.cls">@badge.label</span></td>
+                            <td>@(r.Cert?.ExpiresAt.ToString("yyyy-MM-dd") ?? "—")</td>
+                            <td>
+                                <form method="post" asp-page-handler="AutoRenew" asp-route-domainId="@r.Domain.Id">
+                                    <button class="btn btn-sm @(r.Domain.AutoRenewSsl ? "btn-success" : "btn-outline-secondary")">@(r.Domain.AutoRenewSsl ? "On" : "Off")</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="post" asp-page-handler="ForceHttps" asp-route-domainId="@r.Domain.Id">
+                                    <button class="btn btn-sm @(r.Domain.ForceHttps ? "btn-success" : "btn-outline-secondary")">@(r.Domain.ForceHttps ? "On" : "Off")</button>
+                                </form>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" asp-page-handler="Issue" asp-route-domainId="@r.Domain.Id">
+                                    <button class="btn btn-sm btn-primary"><i class="bi bi-shield-plus"></i> @(r.Cert == null ? "Issue Let's Encrypt" : "Reissue")</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-secondary mb-0">No domains yet. Add a domain to enable SSL.</p>
+        }
+    </div>
+</div>

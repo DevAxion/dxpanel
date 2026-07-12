@@ -1,0 +1,178 @@
+@page
+@model SRXPanel.Pages.Client.Developer.DnsLookupModel
+@using SRXPanel.Services.Developer
+@{
+    ViewData["Title"] = "DNS Lookup";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">DNS Lookup</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-1">DNS Lookup</h4>
+<p class="text-secondary small">Queries public resolvers directly over UDP — no caching, no proxies.</p>
+
+<div class="card srx-card mb-4"><div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small">Domain</label>
+            <input name="domain" value="@Model.Domain" class="form-control font-monospace" placeholder="example.com" required />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Record type</label>
+            <select name="type" class="form-select">
+                @foreach (var kind in Enum.GetValues<DnsRecordKind>())
+                {
+                    <option value="@kind" selected="@(Model.Type == kind)">@kind</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" name="propagation" value="false">
+                <i class="bi bi-search"></i> Look up
+            </button>
+            <button class="btn btn-outline-secondary flex-grow-1" name="propagation" value="true">
+                <i class="bi bi-globe"></i> Check propagation
+            </button>
+        </div>
+    </form>
+</div></div>
+
+@if (Model.Error != null)
+{
+    <div class="alert alert-danger"><i class="bi bi-x-octagon"></i> @Model.Error</div>
+}
+
+@if (Model.Result is DnsLookupResult result)
+{
+    var responding = result.Responding;
+    var total = result.Results.Count;
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h6 class="text-light mb-0">
+            @result.Type records for <code>@result.Domain</code>
+        </h6>
+        <div>
+            <span class="badge text-bg-secondary">@responding / @total resolvers answered</span>
+            @if (Model.Propagation)
+            {
+                if (result.Propagated && responding > 0)
+                {
+                    <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> Fully propagated</span>
+                }
+                else if (responding > 0)
+                {
+                    <span class="badge text-bg-warning"><i class="bi bi-hourglass-split"></i> Still propagating</span>
+                }
+            }
+        </div>
+    </div>
+
+    @if (Model.Expected != null)
+    {
+        <div class="alert alert-secondary py-2 px-3 small">
+            <i class="bi bi-bullseye"></i>
+            This panel expects <code class="text-light">@Model.Expected</code> for @result.Type records.
+            Rows that match are marked below.
+        </div>
+    }
+
+    @if (responding == 0)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            No resolver answered. Outbound UDP port 53 may be blocked from this server, or the domain does not exist.
+        </div>
+    }
+
+    <div class="card srx-card"><div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Resolver</th>
+                    <th>Location</th>
+                    <th>Answer</th>
+                    <th>TTL</th>
+                    <th>Time</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var resolver in result.Results)
+                {
+                    <tr>
+                        <td>
+                            <div class="text-light">@resolver.ResolverName</div>
+                            <div class="text-secondary small font-monospace">@resolver.ResolverIp</div>
+                        </td>
+                        <td class="text-secondary small">@resolver.Location</td>
+                        <td>
+                            @if (!resolver.Ok)
+                            {
+                                <span class="text-danger small"><i class="bi bi-x-circle"></i> @resolver.Error</span>
+                            }
+                            else if (!resolver.Answers.Any())
+                            {
+                                <span class="text-secondary small">No records</span>
+                            }
+                            else
+                            {
+                                @foreach (var answer in resolver.Answers)
+                                {
+                                    var matches = Model.Expected != null &&
+                                                  string.Equals(answer.Value.TrimEnd('.'), Model.Expected.TrimEnd('.'), StringComparison.OrdinalIgnoreCase);
+                                    <div class="font-monospace small @(matches ? "text-success" : "text-light")" style="word-break:break-all;">
+                                        @if (answer.Priority is int priority)
+                                        {
+                                            <span class="badge text-bg-secondary">@priority</span>
+                                        }
+                                        @answer.Value
+                                        @if (matches)
+                                        {
+                                            <i class="bi bi-check-circle-fill text-success" title="Matches the expected value"></i>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </td>
+                        <td class="text-secondary small">
+                            @if (resolver.Answers.Any())
+                            {
+                                var ttl = resolver.Answers.First().Ttl;
+                                <span>@ttl s</span>
+                                <div style="font-size:11px;">@TimeSpan.FromSeconds(ttl).ToString(@"hh\:mm\:ss")</div>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </td>
+                        <td class="text-secondary small">@resolver.ElapsedMs ms</td>
+                        <td>
+                            @if (resolver.Ok)
+                            {
+                                <i class="bi bi-check-circle text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-circle text-danger"></i>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div></div>
+
+    @if (Model.Propagation && responding > 1 && !result.Propagated)
+    {
+        <div class="alert alert-info mt-3 small">
+            <i class="bi bi-info-circle"></i>
+            Resolvers are returning different answers, which means a recent change has not reached everyone yet.
+            Propagation follows the record's TTL — wait that long and check again.
+        </div>
+    }
+}

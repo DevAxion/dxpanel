@@ -1,0 +1,70 @@
+@page
+@model SRXPanel.Pages.Client.DnsModel
+@{
+    ViewData["Title"] = "DNS";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">DNS</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">DNS Management</h4>
+
+@if (Model.PropagationResult != null)
+{
+    <div class="alert alert-info"><i class="bi bi-broadcast"></i> @Model.PropagationResult</div>
+}
+
+@foreach (var r in Model.Rows)
+{
+    <div class="card srx-card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-hdd-network"></i> <span class="text-light fw-semibold">@r.Domain.DomainName</span>
+                    @if (r.Zone != null)
+                    {
+                        <span class="badge srx-badge-active ms-1">Zone active · @r.RecordCount records</span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary ms-1">No zone</span>
+                    }
+                </div>
+                <div class="d-flex gap-2">
+                    @if (r.Zone != null)
+                    {
+                        <a asp-page="/Dns/Records" asp-route-domainId="@r.Domain.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-list-ul"></i> Records</a>
+                        <form method="post" asp-page-handler="EmailPreset" asp-route-domainId="@r.Domain.Id"><button class="btn btn-sm btn-outline-secondary" title="Add MX/SPF/DKIM/DMARC"><i class="bi bi-envelope"></i> Email preset</button></form>
+                        <form method="post" asp-page-handler="Check" asp-route-domainId="@r.Domain.Id"><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-broadcast"></i> Check propagation</button></form>
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#imp-@r.Domain.Id"><i class="bi bi-upload"></i> Import</button>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="CreateZone" asp-route-domainId="@r.Domain.Id"><button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Create Zone</button></form>
+                    }
+                </div>
+            </div>
+            @if (r.Zone != null)
+            {
+                <div class="collapse mt-3" id="imp-@r.Domain.Id">
+                    <form method="post" asp-page-handler="Import" asp-route-domainId="@r.Domain.Id">
+                        <label class="form-label small">Paste zone file records (BIND format)</label>
+                        <textarea name="zoneText" class="form-control font-monospace" rows="4" placeholder="mail    IN  A     203.0.113.20"></textarea>
+                        <button class="btn btn-sm btn-primary mt-2"><i class="bi bi-upload"></i> Import Records</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (!Model.Rows.Any())
+{
+    <div class="card srx-card"><div class="card-body text-secondary">No domains yet. Add a domain to manage DNS.</div></div>
+}

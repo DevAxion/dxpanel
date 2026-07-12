@@ -1,0 +1,152 @@
+@page
+@model SRXPanel.Pages.Client.DomainsModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "My Domains";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Domains</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">My Domains <span class="text-secondary fs-6">(@Model.Domains.Count / @(Model.MaxDomains == 0 ? "∞" : Model.MaxDomains.ToString()))</span></h4>
+</div>
+
+<div class="card srx-card mb-4">
+    <div class="card-body">
+        <form method="post" asp-page-handler="Add" class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label">Add a domain</label>
+                <input asp-for="NewDomain" class="form-control" placeholder="example.com" disabled="@(Model.AtLimit ? "disabled" : null)" />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary" @(Model.AtLimit ? "disabled" : "")><i class="bi bi-plus-lg"></i> Add Domain</button>
+            </div>
+        </form>
+        @if (Model.AtLimit)
+        {
+            <div class="form-text text-warning mt-2">You've reached your plan's domain limit. <a asp-page="/Billing/Index">Upgrade your plan</a> to add more.</div>
+        }
+    </div>
+</div>
+
+@foreach (var d in Model.Domains)
+{
+    var subs = Model.Subdomains.GetValueOrDefault(d.Id) ?? new();
+    var reds = Model.Redirects.GetValueOrDefault(d.Id) ?? new();
+    <div class="card srx-card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-globe2"></i> <span class="text-light fw-semibold">@d.DomainName</span>
+                    @if (d.SslEnabled)
+                    {
+                        <span class="badge srx-badge-active ms-1"><i class="bi bi-shield-lock"></i> SSL</span>
+                    }
+                    <span class="badge text-bg-secondary ms-1">PHP @d.PhpVersion</span>
+                    @if (d.ForceHttps)
+                    {
+                        <span class="badge text-bg-info ms-1">Force HTTPS</span>
+                    }
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#s-@d.Id"><i class="bi bi-gear"></i> Settings</button>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete '@d.DomainName'? Files remain but the site goes offline.">
+                        <button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="collapse mt-3" id="s-@d.Id">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#set-@d.Id" type="button">Settings</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#sub-@d.Id" type="button">Subdomains (@subs.Count)</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#red-@d.Id" type="button">Redirects (@reds.Count)</button></li>
+                </ul>
+                <div class="tab-content pt-3">
+                    <div class="tab-pane fade show active" id="set-@d.Id">
+                        <form method="post" asp-page-handler="Settings" asp-route-id="@d.Id" class="row g-2">
+                            <div class="col-md-3">
+                                <label class="form-label small">PHP Version</label>
+                                <select name="phpVersion" class="form-select form-select-sm">
+                                    @foreach (var v in SRXPanel.Pages.Client.DomainsModel.PhpVersions)
+                                    {
+                                        if (v == d.PhpVersion)
+                                        {
+                                            <option value="@v" selected>PHP @v</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@v">PHP @v</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Custom 404 page</label>
+                                <input name="error404" value="@d.Error404Path" class="form-control form-control-sm" placeholder="/404.html" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Custom 500 page</label>
+                                <input name="error500" value="@d.Error500Path" class="form-control form-control-sm" placeholder="/500.html" />
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end gap-3">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="forceHttps" value="true" @(d.ForceHttps ? "checked" : "") /><label class="form-check-label small">Force HTTPS</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="directoryListing" value="true" @(d.DirectoryListing ? "checked" : "") /><label class="form-check-label small">Dir listing</label></div>
+                            </div>
+                            <div class="col-12"><button class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i> Save Settings</button></div>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="sub-@d.Id">
+                        <form method="post" asp-page-handler="AddSubdomain" asp-route-domainId="@d.Id" class="input-group input-group-sm mb-2" style="max-width:420px;">
+                            <input name="name" class="form-control" placeholder="blog" />
+                            <span class="input-group-text">.@d.DomainName</span>
+                            <button class="btn btn-outline-primary">Add</button>
+                        </form>
+                        @foreach (var s in subs)
+                        {
+                            <div class="d-flex justify-content-between align-items-center small py-1 border-bottom border-secondary-subtle">
+                                <span>@s.Name.@d.DomainName → <code>@s.DocumentRoot</code></span>
+                                <form method="post" asp-page-handler="DeleteSubdomain" asp-route-subId="@s.Id"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="tab-pane fade" id="red-@d.Id">
+                        <form method="post" asp-page-handler="AddRedirect" asp-route-domainId="@d.Id" class="row g-2 mb-2">
+                            <div class="col-md-3"><input name="source" class="form-control form-control-sm" placeholder="/old-path" /></div>
+                            <div class="col-md-4"><input name="target" class="form-control form-control-sm" placeholder="https://example.com/new" /></div>
+                            <div class="col-md-3">
+                                <select name="type" class="form-select form-select-sm">
+                                    <option value="@RedirectType.Permanent301">301 Permanent</option>
+                                    <option value="@RedirectType.Temporary302">302 Temporary</option>
+                                    <option value="@RedirectType.Alias">Alias</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Add</button></div>
+                        </form>
+                        @foreach (var r in reds)
+                        {
+                            <div class="d-flex justify-content-between align-items-center small py-1 border-bottom border-secondary-subtle">
+                                <span><span class="badge text-bg-secondary">@r.Type</span> @r.Source → @r.Target</span>
+                                <form method="post" asp-page-handler="DeleteRedirect" asp-route-redirectId="@r.Id"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!Model.Domains.Any())
+{
+    <div class="card srx-card"><div class="card-body text-secondary">No domains yet. Add your first domain above.</div></div>
+}

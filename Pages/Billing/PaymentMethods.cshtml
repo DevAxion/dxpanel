@@ -1,0 +1,116 @@
+@page
+@model SRXPanel.Pages.Billing.PaymentMethodsModel
+@{
+    ViewData["Title"] = "Payment Methods";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Billing/Index">Billing</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payment Methods</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Payment Methods</h4>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3">Saved Cards</h6>
+                @if (Model.Methods.Any())
+                {
+                    <table class="table align-middle mb-0">
+                        <tbody>
+                            @foreach (var pm in Model.Methods)
+                            {
+                                <tr>
+                                    <td><i class="bi bi-credit-card-2-front fs-5"></i></td>
+                                    <td>
+                                        <span class="text-light">@pm.Brand.ToUpper() ****@pm.Last4</span>
+                                        <div class="small text-secondary">Expires @pm.ExpMonth.ToString("D2")/@pm.ExpYear</div>
+                                    </td>
+                                    <td>
+                                        @if (pm.IsDefault)
+                                        {
+                                            <span class="badge text-bg-secondary">Default</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            @if (!pm.IsDefault)
+                                            {
+                                                <form method="post" asp-page-handler="Default" asp-route-id="@pm.Id" class="d-inline">
+                                                    <button class="btn btn-outline-secondary" title="Set default"><i class="bi bi-star"></i></button>
+                                                </form>
+                                            }
+                                            <form method="post" asp-page-handler="Remove" asp-route-id="@pm.Id" class="d-inline srx-confirm-form" data-confirm-message="Remove this card?">
+                                                <button class="btn btn-outline-danger" title="Remove"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No cards on file.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3">Add Card</h6>
+                @if (Model.SimulationMode)
+                {
+                    <div class="alert alert-warning small">Simulation mode — a mock Visa ****4242 will be added.</div>
+                }
+                <form method="post" asp-page-handler="Add" id="addCardForm">
+                    <input type="hidden" asp-for="PaymentMethodToken" id="pmToken" />
+                    @if (!Model.SimulationMode && !string.IsNullOrEmpty(Model.PublishableKey))
+                    {
+                        <div id="card-element" class="form-control mb-2" style="padding:12px;"></div>
+                        <div id="card-errors" class="text-danger small mb-2"></div>
+                    }
+                    else
+                    {
+                        <input class="form-control mb-2" value="4242 4242 4242 4242" readonly />
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><input class="form-control" value="12 / 30" readonly /></div>
+                            <div class="col-6"><input class="form-control" value="123" readonly /></div>
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> Add Card</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (!Model.SimulationMode && !string.IsNullOrEmpty(Model.PublishableKey))
+    {
+        <script src="https://js.stripe.com/v3/"></script>
+        <script>
+            const stripe = Stripe('@Model.PublishableKey');
+            const card = stripe.elements().create('card', { style: { base: { color: '#c9d1d9' } } });
+            card.mount('#card-element');
+            const form = document.getElementById('addCardForm');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const { paymentMethod, error } = await stripe.createPaymentMethod({ type: 'card', card });
+                if (error) { document.getElementById('card-errors').textContent = error.message; return; }
+                document.getElementById('pmToken').value = paymentMethod.id;
+                form.submit();
+            });
+        </script>
+    }
+}

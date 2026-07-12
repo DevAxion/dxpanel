@@ -1,0 +1,35 @@
+@page "/kb/{category}"
+@model SRXPanel.Pages.Kb.CategoryModel
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = Model.Category.Name;
+    ViewData["MetaDescription"] = Model.Category.Description;
+}
+
+<div class="container py-5" style="max-width:820px;">
+    <a href="/kb" class="text-secondary text-decoration-none small"><i class="bi bi-arrow-left"></i> Knowledge Base</a>
+    <div class="d-flex align-items-center gap-3 my-3">
+        <i class="bi @Model.Category.Icon accent" style="font-size:34px;"></i>
+        <div>
+            <h1 class="text-light fw-bold mb-0">@Model.Category.Name</h1>
+            <p class="text-secondary mb-0">@Model.Category.Description</p>
+        </div>
+    </div>
+
+    @if (!Model.Articles.Any())
+    {
+        <p class="text-secondary mt-4">No articles in this category yet.</p>
+    }
+    else
+    {
+        <div class="mt-4">
+            @foreach (var a in Model.Articles)
+            {
+                <a href="/kb/@Model.Category.Slug/@a.Slug" class="d-flex align-items-center justify-content-between text-decoration-none mb-2" style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 18px;">
+                    <span class="text-light"><i class="bi bi-file-text accent me-2"></i>@a.Title</span>
+                    <i class="bi bi-chevron-right text-secondary"></i>
+                </a>
+            }
+        </div>
+    }
+</div>

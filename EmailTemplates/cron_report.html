@@ -1,0 +1,18 @@
+<h1 style="color:#fff;font-size:24px;margin:0 0 16px;">Cron job {{STATUS}}</h1>
+<p style="line-height:1.6;">Your scheduled task finished with exit code <strong>{{EXIT_CODE}}</strong>.</p>
+
+<table role="presentation" style="width:100%;font-size:14px;line-height:1.8;">
+  <tr><td style="color:#8b949e;width:150px;">Command</td><td style="color:#fff;font-family:monospace;">{{COMMAND}}</td></tr>
+  <tr><td style="color:#8b949e;">Schedule</td><td style="color:#fff;font-family:monospace;">{{SCHEDULE}}</td></tr>
+  <tr><td style="color:#8b949e;">Started</td><td style="color:#fff;">{{RAN_AT}}</td></tr>
+  <tr><td style="color:#8b949e;">Duration</td><td style="color:#fff;">{{DURATION}}</td></tr>
+  <tr><td style="color:#8b949e;">Exit code</td><td style="color:#fff;">{{EXIT_CODE}}</td></tr>
+</table>
+
+<h3 style="color:#fff;font-size:16px;margin:24px 0 8px;">Output</h3>
+<pre style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:16px;color:#c9d1d9;font-size:12px;overflow:auto;">{{OUTPUT}}</pre>
+
+<p style="color:#8b949e;font-size:13px;margin-top:24px;">
+  You are receiving this because email notifications are enabled for this cron job.
+  Change that from Developer → Cron Jobs in your control panel.
+</p>

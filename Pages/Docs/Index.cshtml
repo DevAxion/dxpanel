@@ -1,0 +1,193 @@
+@page
+@using SRXPanel.Services
+@model SRXPanel.Pages.Docs.IndexModel
+@inject IFrontendService Frontend
+@{
+    Layout = null;
+    ViewData["Title"] = "Documentation";
+    var fs = await Frontend.GetSettingsAsync();
+    var brand = string.IsNullOrWhiteSpace(fs.SiteName) ? "Documentation" : fs.SiteName;
+}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation — SRXPanel</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body { background:#0d1117; color:#c9d1d9; }
+        .docs-nav { border-bottom:1px solid #30363d; position:sticky; top:0; background:rgba(13,17,23,.92); backdrop-filter:blur(8px); z-index:100; }
+        .docs-wrap { display:grid; grid-template-columns:240px 1fr; gap:40px; max-width:1200px; margin:0 auto; padding:32px 20px 80px; }
+        .docs-side { position:sticky; top:80px; align-self:start; height:max-content; }
+        .docs-side a { display:block; padding:6px 10px; border-radius:6px; color:#8b949e; text-decoration:none; font-size:14px; }
+        .docs-side a:hover { background:#161b22; color:#fff; }
+        .docs-side .grp { color:#6e7681; text-transform:uppercase; font-size:11px; letter-spacing:.5px; margin:16px 0 4px 10px; }
+        .docs-body h2 { color:#fff; font-weight:700; margin-top:8px; padding-top:12px; scroll-margin-top:80px; }
+        .docs-body h3 { color:#e6edf3; font-size:18px; margin-top:24px; }
+        .docs-body p, .docs-body li { color:#c9d1d9; }
+        .docs-body section { padding:24px 0; border-bottom:1px solid #21262d; }
+        .docs-body pre { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; overflow:auto; }
+        .docs-body pre code { color:#e6edf3; font-size:13px; }
+        .docs-body code { color:#79c0ff; }
+        .docs-body table { width:100%; border-collapse:collapse; margin:12px 0; }
+        .docs-body th, .docs-body td { border:1px solid #30363d; padding:8px 12px; font-size:14px; text-align:left; }
+        .docs-body th { background:#161b22; color:#fff; }
+        .callout { background:#161b22; border-left:3px solid #3b82f6; border-radius:6px; padding:12px 16px; margin:14px 0; font-size:14px; }
+        @@media (max-width: 800px) { .docs-wrap { grid-template-columns:1fr; } .docs-side { position:static; } }
+    </style>
+</head>
+<body>
+    <nav class="docs-nav">
+        <div class="container d-flex justify-content-between align-items-center py-3">
+            <a href="/" class="text-decoration-none" style="font-size:22px;font-weight:700;color:#fff;">@brand <span class="text-secondary fs-6 fw-normal">Docs</span></a>
+            <div class="d-flex gap-2">
+                <a href="/" class="btn btn-outline-secondary btn-sm">Home</a>
+                <a href="/Account/Login" class="btn btn-primary btn-sm">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="docs-wrap">
+        <aside class="docs-side">
+            <div class="grp">Get Started</div>
+            <a href="#getting-started">Getting Started</a>
+            <a href="#requirements">Requirements</a>
+            <div class="grp">Install</div>
+            <a href="#install">One-liner Install</a>
+            <a href="#docker">Docker</a>
+            <a href="#update">Updating</a>
+            <div class="grp">Reference</div>
+            <a href="#config">Configuration</a>
+            <a href="#api">REST API</a>
+            <a href="#whmcs">WHMCS Module</a>
+            <a href="#reseller">Reseller Guide</a>
+            <div class="grp">Help</div>
+            <a href="#troubleshooting">Troubleshooting</a>
+        </aside>
+
+        <main class="docs-body">
+            <section id="getting-started">
+                <h2>Getting Started</h2>
+                <p>@brand is a self-hosted web hosting control panel. It manages domains, email, MySQL databases, DNS, SSL, file storage, billing and resellers from a single dashboard, and integrates directly with Nginx, MySQL, BIND9, Postfix/Dovecot and Let's Encrypt on Ubuntu.</p>
+                <p>The fastest way to try it is the one-liner installer on a fresh Ubuntu 22.04 server. After install you log in as <code>admin</code>, configure your Stripe keys and hosting packages, and start creating accounts.</p>
+            </section>
+
+            <section id="requirements">
+                <h2>Requirements</h2>
+                <ul>
+                    <li><strong>OS:</strong> Ubuntu 22.04 LTS (fresh server recommended)</li>
+                    <li><strong>CPU:</strong> 1 core minimum (2+ recommended)</li>
+                    <li><strong>RAM:</strong> 1 GB minimum (2 GB+ recommended)</li>
+                    <li><strong>Disk:</strong> 10 GB minimum</li>
+                    <li><strong>Access:</strong> root (or sudo) and a domain name pointed at the server IP</li>
+                </ul>
+            </section>
+
+            <section id="install">
+                <h2>One-liner Install</h2>
+                <p>Run this on a fresh Ubuntu 22.04 server as root. The installer is interactive — it asks for your panel domain, admin credentials and which optional services (email, DNS, FTP, phpMyAdmin) to enable.</p>
+                <pre><code>curl -fsSL https://get.srxpanel.com/install.sh | bash</code></pre>
+                <p>The script installs Nginx, MySQL, PHP (7.4–8.3), the .NET 9 runtime, Certbot and your selected services, provisions the database, deploys the panel as a <code>systemd</code> service, configures the Nginx reverse proxy with a Let's Encrypt certificate, and hardens the box with UFW and Fail2ban.</p>
+                <div class="callout"><i class="bi bi-info-circle"></i> When it finishes, the installer prints your panel URL, admin password and the location of the saved MySQL root credentials (<code>/etc/srxpanel/db.conf</code>).</div>
+            </section>
+
+            <section id="docker">
+                <h2>Docker</h2>
+                <p>Prefer containers? Use the bundled Compose stack (panel + MySQL + Nginx + Certbot):</p>
+                <pre><code>git clone https://github.com/srxpanel/srxpanel
+cd srxpanel/docker
+cp .env.example .env
+nano .env          # set domain, passwords, Stripe keys
+docker compose up -d</code></pre>
+                <p>Named volumes persist the database, panel data and SSL certificates across restarts. Health checks and an auto-restart policy are configured for every service.</p>
+            </section>
+
+            <section id="update">
+                <h2>Updating</h2>
+                <p>Update in place from the server shell:</p>
+                <pre><code>curl -fsSL https://get.srxpanel.com/update.sh | bash</code></pre>
+                <p>Or from the panel itself under <strong>Admin → Updates</strong>, where you can view the changelog, apply updates with one click, review update history and enable automatic updates. The panel version is exposed at <code>/api/health</code>.</p>
+            </section>
+
+            <section id="config">
+                <h2>Configuration</h2>
+                <p>Runtime configuration lives in <code>appsettings.json</code> (and <code>appsettings.Production.json</code> on a server). Key settings:</p>
+                <table>
+                    <thead><tr><th>Key</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>ConnectionStrings:DefaultConnection</code></td><td>Database connection string (SQLite by default)</td></tr>
+                        <tr><td><code>Version</code> / <code>UpdateChannel</code></td><td>Panel version and release channel (<code>stable</code>/<code>beta</code>)</td></tr>
+                        <tr><td><code>SimulationMode</code></td><td>When <code>true</code>, service commands are logged but not executed (dev/Windows)</td></tr>
+                        <tr><td><code>Stripe:*</code></td><td>Publishable/secret/webhook keys for billing</td></tr>
+                        <tr><td><code>Panel:Hostname</code></td><td>The panel's public hostname</td></tr>
+                        <tr><td><code>Panel:LetsEncryptEmail</code></td><td>Email used for SSL certificate registration</td></tr>
+                        <tr><td><code>Panel:Smtp:*</code></td><td>Outbound email server for panel notifications</td></tr>
+                        <tr><td><code>Panel:MySql:*</code></td><td>MySQL root connection used to provision databases</td></tr>
+                    </tbody>
+                </table>
+                <p>Platform-level options (branding, fees, trial length, registration mode, update channel) are editable in the UI under <strong>Admin → Platform Settings</strong>.</p>
+            </section>
+
+            <section id="api">
+                <h2>REST API</h2>
+                <p>Clients authenticate by exchanging an API key (created under <strong>API Access</strong>) for a JWT:</p>
+                <pre><code>curl -X POST https://panel.example.com/api/v1/auth/token \
+  -H "X-API-Key: sk_live_..."
+# → { "access_token": "...", "token_type": "Bearer", "expires_in": 86400 }</code></pre>
+                <p>Then call resource endpoints with the bearer token:</p>
+                <table>
+                    <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td>GET</td><td><code>/api/v1/account</code></td><td>Current account details</td></tr>
+                        <tr><td>GET/POST</td><td><code>/api/v1/domains</code></td><td>List / create domains</td></tr>
+                        <tr><td>DELETE</td><td><code>/api/v1/domains/{id}</code></td><td>Delete a domain</td></tr>
+                        <tr><td>GET/POST</td><td><code>/api/v1/emails</code></td><td>List / create mailboxes</td></tr>
+                        <tr><td>GET/POST</td><td><code>/api/v1/databases</code></td><td>List / create databases</td></tr>
+                        <tr><td>GET</td><td><code>/api/v1/stats/usage</code></td><td>Resource usage summary</td></tr>
+                        <tr><td>GET</td><td><code>/api/health</code></td><td>Public service health &amp; version</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="whmcs">
+                <h2>WHMCS &amp; Blesta Module</h2>
+                <p>Automate provisioning from your billing system. Endpoints authenticate with an <code>X-API-Key</code> header and are rate-limited to 100 requests/minute.</p>
+                <pre><code>POST /api/v1/whmcs/CreateAccount
+POST /api/v1/whmcs/SuspendAccount
+POST /api/v1/whmcs/UnsuspendAccount
+POST /api/v1/whmcs/TerminateAccount
+POST /api/v1/whmcs/ChangePackage</code></pre>
+                <p>The full endpoint reference, response formats and a ready-made PHP module are on the <a href="/Docs/Whmcs" style="color:#79c0ff;">WHMCS integration page</a> inside the panel.</p>
+            </section>
+
+            <section id="reseller">
+                <h2>Reseller Guide</h2>
+                <p>Resellers get their own branded control panel and sell hosting under their own name:</p>
+                <ul>
+                    <li><strong>Allocation:</strong> the admin assigns each reseller disk, bandwidth, client and domain limits.</li>
+                    <li><strong>Packages:</strong> resellers create their own hosting packages and public pricing.</li>
+                    <li><strong>White-label:</strong> custom panel title, logo, colours and (optionally) a custom domain.</li>
+                    <li><strong>Billing:</strong> prepaid balance or postpaid invoicing, with a configurable platform fee and multi-currency support.</li>
+                    <li><strong>Clients:</strong> resellers create and impersonate their own clients without seeing other tenants.</li>
+                </ul>
+            </section>
+
+            <section id="troubleshooting">
+                <h2>Troubleshooting</h2>
+                <h3>The panel won't start</h3>
+                <pre><code>systemctl status srxpanel
+journalctl -u srxpanel -n 100 --no-pager</code></pre>
+                <h3>Check overall health</h3>
+                <pre><code>curl -s https://panel.example.com/api/health | jq</code></pre>
+                <h3>SSL certificate failed to issue</h3>
+                <p>Confirm the panel domain's DNS <code>A</code> record points at the server and ports 80/443 are open in UFW, then re-run <code>certbot --nginx -d panel.example.com</code>.</p>
+                <h3>Reset the admin password</h3>
+                <p>Re-run the installer's seed step, or update the password hash directly in the database. Full recovery steps are documented in the repository README.</p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

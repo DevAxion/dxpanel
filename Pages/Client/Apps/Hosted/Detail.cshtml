@@ -1,0 +1,289 @@
+@page "/Client/Apps/Hosted/Detail/{id:int}"
+@model SRXPanel.Pages.Client.Apps.Hosted.DetailModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = $"App — {Model.App.Name}";
+    var a = Model.App;
+    var tab = Model.Tab;
+    (string cls, string text) Badge(HostedAppStatus s) => s switch
+    {
+        HostedAppStatus.Running => ("text-bg-success", "Running"),
+        HostedAppStatus.Starting => ("text-bg-info", "Starting"),
+        HostedAppStatus.Stopped => ("text-bg-secondary", "Stopped"),
+        HostedAppStatus.Error => ("text-bg-danger", "Error"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+    var b = Badge(a.Status);
+
+    var tabs = new List<(string href, string icon, string label)>
+    {
+        ("overview", "bi-speedometer2", "Overview"),
+        ("logs", "bi-terminal", "Logs"),
+        ("environment", "bi-sliders", "Environment"),
+        ("deploy", "bi-rocket", "Deploy"),
+    };
+    if (a.IsNode) tabs.Add(("process", "bi-cpu", "Process"));
+    tabs.Add(("settings", "bi-gear", "Settings"));
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Index">Hosted Apps</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@a.Name</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi @a.TypeIcon accent"></i> @a.Name <span id="statusBadge" class="badge @b.cls">@b.text</span></h4>
+        <div class="text-secondary small">@a.Type · @(a.Domain?.DomainName ?? "no domain") · port @a.Port · @a.AppPath</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="Power" asp-route-tab="@tab" class="d-flex gap-2">
+            @if (a.Status == HostedAppStatus.Running)
+            {
+                <button name="action" value="reload" class="btn btn-sm btn-outline-info">Reload</button>
+                <button name="action" value="restart" class="btn btn-sm btn-outline-secondary">Restart</button>
+                <button name="action" value="stop" class="btn btn-sm btn-outline-warning">Stop</button>
+            }
+            else
+            {
+                <button name="action" value="start" class="btn btn-sm btn-outline-success">Start</button>
+            }
+        </form>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    @foreach (var (href, icon, label) in tabs)
+    {
+        <li class="nav-item"><a class="nav-link @(tab == href ? "active" : "")" asp-page="/Client/Apps/Hosted/Detail" asp-route-id="@a.Id" asp-route-tab="@href"><i class="bi @icon"></i> @label</a></li>
+    }
+</ul>
+
+@if (tab == "overview")
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center"><div class="text-secondary small">CPU</div><div id="cpuVal" class="fs-3 fw-bold text-light">@a.CpuPercent.ToString("0.0")<span class="fs-6">%</span></div></div></div></div>
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center"><div class="text-secondary small">Memory</div><div id="memVal" class="fs-3 fw-bold text-light">@a.MemoryMB.ToString("0")<span class="fs-6"> MB</span></div></div></div></div>
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center"><div class="text-secondary small">Restarts</div><div class="fs-3 fw-bold text-light">@a.RestartCount</div></div></div></div>
+        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center"><div class="text-secondary small">Uptime (30d)</div><div class="fs-3 fw-bold text-success">@Model.UptimePercent<span class="fs-6">%</span></div></div></div></div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">CPU %</h6><canvas id="cpuChart" height="90"></canvas></div></div></div>
+        <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">Memory MB</h6><canvas id="memChart" height="90"></canvas></div></div></div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-6"><div class="card srx-card"><div class="card-body"><h6 class="text-light mb-3">Requests / sec</h6><canvas id="reqChart" height="90"></canvas></div></div></div>
+        <div class="col-lg-6"><div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Health</h6>
+            <p class="text-secondary small mb-2">Last check: @(a.LastHealthCheckAt?.ToString("yyyy-MM-dd HH:mm") ?? "pending")</p>
+            @if (!Model.Incidents.Any()) { <p class="text-success mb-0"><i class="bi bi-check-circle"></i> No downtime incidents.</p> }
+            else
+            {
+                <ul class="list-unstyled small mb-0">
+                    @foreach (var i in Model.Incidents)
+                    {
+                        <li class="mb-1"><i class="bi bi-dot @(i.Ongoing ? "text-danger" : "text-secondary")"></i> @i.StartedAt.ToString("MM-dd HH:mm") — @(i.Ongoing ? "ongoing" : $"{i.DurationSeconds:0}s") <span class="text-secondary">@i.Reason</span></li>
+                    }
+                </ul>
+            }
+        </div></div></div>
+    </div>
+}
+else if (tab == "logs")
+{
+    <div class="card srx-card"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <ul class="nav nav-pills nav-sm">
+                <li class="nav-item"><a class="nav-link active" href="#" onclick="showLog('out');return false;" id="tab-out">stdout</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showLog('err');return false;" id="tab-err">stderr</a></li>
+            </ul>
+            <div class="d-flex gap-2">
+                <input id="logSearch" class="form-control form-control-sm" placeholder="filter…" oninput="filterLog()" style="width:160px" />
+                <a href="data:text/plain;charset=utf-8,@Uri.EscapeDataString(Model.LogOut)" download="@(a.Name)-out.log" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i></a>
+                <form method="post" asp-page-handler="FlushLogs" class="srx-confirm-form" data-confirm-message="Clear stored logs?"><button class="btn btn-sm btn-outline-danger">Clear</button></form>
+            </div>
+        </div>
+        <pre id="logBody" style="background:#0d1117;color:#c9d1d9;padding:12px;border-radius:8px;max-height:460px;overflow:auto;font-size:.8rem;">@Model.LogOut</pre>
+    </div></div>
+}
+else if (tab == "environment")
+{
+    <div class="card srx-card mb-3"><div class="card-body">
+        <form method="post" asp-page-handler="EnvSet" class="row g-2 align-items-end">
+            <div class="col-md-4"><label class="form-label text-secondary small">Key</label><input name="key" class="form-control font-monospace" required /></div>
+            <div class="col-md-5"><label class="form-label text-secondary small">Value</label><input name="value" class="form-control font-monospace" /></div>
+            <div class="col-md-2"><div class="form-check mt-4"><input class="form-check-input" type="checkbox" name="isSecret" value="true" id="sec" /><label class="form-check-label small" for="sec">Secret</label></div></div>
+            <div class="col-md-1"><button class="btn btn-primary w-100">Add</button></div>
+        </form>
+    </div></div>
+
+    <div class="card srx-card mb-3"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-light mb-0">Variables</h6>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importEnv"><i class="bi bi-upload"></i> Import .env</button>
+        </div>
+        @if (!Model.EnvVars.Any()) { <p class="text-secondary mb-0">No variables.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Key</th><th>Value</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var e in Model.EnvVars)
+                {
+                    <tr>
+                        <td class="font-monospace text-light">@e.Key @if (e.IsSecret) { <i class="bi bi-lock-fill text-warning small"></i> }</td>
+                        <td class="font-monospace text-secondary small">@e.Masked</td>
+                        <td class="text-end"><form method="post" asp-page-handler="EnvDelete" class="d-inline"><input type="hidden" name="envId" value="@e.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+
+    <div class="modal fade" id="importEnv" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+        <form method="post" asp-page-handler="EnvImport">
+            <div class="modal-header"><h5 class="modal-title">Import .env</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><textarea name="dotenv" class="form-control font-monospace" rows="8" placeholder="KEY=value&#10;SECRET_TOKEN=abc123"></textarea></div>
+            <div class="modal-footer"><button class="btn btn-primary">Import</button></div>
+        </form>
+    </div></div></div>
+}
+else if (tab == "deploy")
+{
+    <div class="card srx-card mb-3"><div class="card-body">
+        <h6 class="text-light mb-3">Deploy a new version</h6>
+        <div class="progress mb-2 d-none" id="deployProgWrap" style="height:8px;"><div id="deployProg" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0"></div></div>
+        <div id="deployStep" class="text-secondary small mb-2"></div>
+        <div class="d-flex gap-2">
+            @if (Model.Repos.Any())
+            {
+                <form method="post" asp-page-handler="Deploy" class="d-flex gap-2">
+                    <input type="hidden" name="type" value="git" />
+                    <select name="gitRepoId" class="form-select form-select-sm" style="width:auto">
+                        @foreach (var r in Model.Repos) { <option value="@r.Id">@r.ShortName (@r.Branch)</option> }
+                    </select>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-git"></i> Deploy from Git</button>
+                </form>
+            }
+            <form method="post" asp-page-handler="Deploy"><input type="hidden" name="type" value="upload" /><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload"></i> Redeploy / install deps</button></form>
+        </div>
+    </div></div>
+
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">Deploy history</h6>
+        @if (!Model.Deploys.Any()) { <p class="text-secondary mb-0">No deploys yet.</p> }
+        else
+        {
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Date</th><th>Type</th><th>Commit</th><th>Status</th><th>Duration</th></tr></thead>
+                <tbody>
+                @foreach (var d in Model.Deploys)
+                {
+                    var sc = d.Status == AppDeployStatus.Success ? "text-bg-success" : d.Status == AppDeployStatus.Failed ? "text-bg-danger" : "text-bg-info";
+                    <tr>
+                        <td class="text-secondary small">@d.CreatedAt.ToString("MM-dd HH:mm")</td>
+                        <td class="text-secondary">@d.Type</td>
+                        <td class="font-monospace small">@(d.CommitHash ?? "—")</td>
+                        <td><span class="badge @sc">@d.Status</span></td>
+                        <td class="text-secondary small">@(d.DurationSeconds.HasValue ? $"{d.DurationSeconds:0}s" : "—")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div></div>
+}
+else if (tab == "process")
+{
+    <div class="card srx-card"><div class="card-body">
+        <h6 class="text-light mb-3">PM2 process</h6>
+        <form method="post" asp-page-handler="Scale" class="row g-3">
+            <div class="col-md-4"><label class="form-label text-secondary">Instances</label>
+                <select name="instances" class="form-select">@for (var i = 1; i <= 4; i++) { <option value="@i" selected="@(a.ProcessCount == i)">@i</option> }</select></div>
+            <div class="col-md-4"><label class="form-label text-secondary">Max memory restart (MB)</label><input name="maxMemory" type="number" value="@a.MaxMemoryRestartMB" class="form-control" /></div>
+            <div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="clusterMode" value="true" id="cl" @(a.ClusterMode ? "checked" : "") /><label class="form-check-label text-secondary" for="cl">Cluster mode</label></div></div>
+            <div class="col-12"><button class="btn btn-primary">Apply</button></div>
+        </form>
+        <hr class="border-secondary" />
+        <div class="text-secondary small">Exec mode: <span class="text-light">@(a.ClusterMode ? "cluster" : "fork")</span> · PM2 id: <span class="text-light">@(a.Pm2Id?.ToString() ?? "—")</span> · PID: <span class="text-light">@(a.Pid?.ToString() ?? "—")</span></div>
+    </div></div>
+}
+else if (tab == "settings")
+{
+    <div class="card srx-card mb-3"><div class="card-body">
+        <h6 class="text-light mb-3">Settings</h6>
+        <form method="post" asp-page-handler="Settings" class="row g-3">
+            <div class="col-md-6"><label class="form-label text-secondary">Entry point</label><input name="entryPoint" class="form-control font-monospace" value="@a.EntryPoint" /></div>
+            <div class="col-md-3"><label class="form-label text-secondary">Port</label><input name="port" type="number" min="3000" max="9999" value="@a.Port" class="form-control" /></div>
+            <div class="col-md-3"><label class="form-label text-secondary">Processes</label><select name="processCount" class="form-select">@for (var i = 1; i <= 4; i++) { <option value="@i" selected="@(a.ProcessCount == i)">@i</option> }</select></div>
+            <div class="col-md-4"><label class="form-label text-secondary">Max memory restart (MB)</label><input name="maxMemory" type="number" value="@a.MaxMemoryRestartMB" class="form-control" /></div>
+            <div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="watchMode" value="true" id="wm" @(a.WatchMode ? "checked" : "") /><label class="form-check-label text-secondary" for="wm">Watch mode (dev)</label></div></div>
+            <div class="col-12"><button class="btn btn-primary">Save settings</button></div>
+        </form>
+        @if (a.IsPython)
+        {
+            <hr class="border-secondary" />
+            <a asp-page="/Client/Apps/Hosted/Virtualenv" asp-route-id="@a.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-py"></i> Virtualenv manager</a>
+        }
+        @if (a.IsNode)
+        {
+            <hr class="border-secondary" />
+            <a asp-page="/Client/Apps/Hosted/Packages" asp-route-id="@a.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box"></i> npm package manager</a>
+        }
+    </div></div>
+
+    <div class="card srx-card border-danger"><div class="card-body">
+        <h6 class="text-danger mb-2"><i class="bi bi-exclamation-octagon"></i> Delete app</h6>
+        <form method="post" asp-page-handler="Delete" class="row g-2 align-items-end srx-confirm-form" data-confirm-message="Delete this app permanently?">
+            <div class="col-auto"><label class="form-label text-secondary small">Type <span class="font-monospace">@a.Name</span> to confirm</label><input name="confirm" class="form-control" required /></div>
+            <div class="col-auto"><button class="btn btn-danger">Delete</button></div>
+        </form>
+    </div></div>
+}
+
+@section Scripts {
+    @if (tab == "overview")
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+        <script>
+            var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.Timestamp.ToString("HH:mm"))));
+            var cpuData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.CpuPercent)));
+            var memData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.MemoryMB)));
+            var reqData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.History.Select(h => h.RequestsPerSec)));
+            var grid = { color: '#21262d' }, ticks = { color: '#8b949e' };
+            function mk(id, label, data, color) {
+                return new Chart(document.getElementById(id), { type: 'line',
+                    data: { labels: labels.slice(), datasets: [{ label: label, data: data.slice(), borderColor: color, backgroundColor: color + '22', fill: true, tension: .3, pointRadius: 0 }] },
+                    options: { plugins: { legend: { display: false } }, scales: { x: { grid: grid, ticks: ticks }, y: { grid: grid, ticks: ticks, beginAtZero: true } } } });
+            }
+            var cpuChart = mk('cpuChart', 'CPU', cpuData, '#58a6ff');
+            var memChart = mk('memChart', 'Memory', memData, '#3fb950');
+            var reqChart = mk('reqChart', 'Req/s', reqData, '#f778ba');
+            function push(ch, v) { ch.data.labels.push(new Date().toLocaleTimeString().slice(0,5)); ch.data.datasets[0].data.push(v); if (ch.data.labels.length > 60){ch.data.labels.shift();ch.data.datasets[0].data.shift();} ch.update('none'); }
+            if (window.signalR) {
+                var conn = new signalR.HubConnectionBuilder().withUrl('/hubs/hostedapps').build();
+                conn.on('metrics', function(d){ document.getElementById('cpuVal').innerHTML = d.cpu.toFixed(1)+'<span class="fs-6">%</span>'; document.getElementById('memVal').innerHTML = Math.round(d.mem)+'<span class="fs-6"> MB</span>'; push(cpuChart,d.cpu); push(memChart,d.mem); push(reqChart,d.reqPerSec); });
+                conn.on('status', function(){ location.reload(); });
+                conn.start().then(function(){ conn.invoke('JoinApp', @a.Id); }).catch(pollLoop);
+            } else { pollLoop(); }
+            function pollLoop(){ setInterval(function(){ fetch('?handler=Metrics').then(function(r){return r.json();}).then(function(d){ document.getElementById('cpuVal').innerHTML=d.cpu.toFixed(1)+'<span class="fs-6">%</span>'; document.getElementById('memVal').innerHTML=Math.round(d.mem)+'<span class="fs-6"> MB</span>'; push(cpuChart,d.cpu); push(memChart,d.mem); }).catch(function(){}); }, 30000); }
+        </script>
+    }
+    else if (tab == "logs")
+    {
+        <script>
+            var outLog = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LogOut));
+            var errLog = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LogErr));
+            var current = 'out';
+            function showLog(which){ current = which; document.getElementById('tab-out').classList.toggle('active', which==='out'); document.getElementById('tab-err').classList.toggle('active', which==='err'); filterLog(); }
+            function filterLog(){ var q = document.getElementById('logSearch').value.toLowerCase(); var src = (current==='out'?outLog:errLog).split('\n'); if (q) src = src.filter(function(l){return l.toLowerCase().indexOf(q)>=0;}); var el = document.getElementById('logBody'); el.textContent = src.join('\n'); el.scrollTop = el.scrollHeight; }
+            // live tail
+            setInterval(function(){ fetch('?handler=LogTail').then(function(r){return r.json();}).then(function(d){ outLog=d.stdout; errLog=d.stderr; filterLog(); }).catch(function(){}); }, 15000);
+        </script>
+    }
+}

@@ -1,0 +1,68 @@
+@page "/Client/Store/Addons"
+@model SRXPanel.Pages.Client.StoreAddonsModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Add-ons";
+    string Money(decimal d) => $"${d:0.00}";
+    var icons = new Dictionary<AddonType, string>
+    {
+        [AddonType.ExtraDisk] = "bi-hdd", [AddonType.ExtraBandwidth] = "bi-arrow-left-right",
+        [AddonType.ExtraEmail] = "bi-envelope", [AddonType.ExtraDatabase] = "bi-database",
+        [AddonType.DedicatedIp] = "bi-hdd-network", [AddonType.PremiumSsl] = "bi-shield-lock",
+        [AddonType.DailyBackup] = "bi-hdd-stack", [AddonType.PrioritySupport] = "bi-headset"
+    };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Store</li>
+        <li class="breadcrumb-item"><a asp-page="/Client/Store">Order Hosting</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Add-ons</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Add-on Services</h4>
+
+<div class="row g-3">
+    @foreach (var a in Model.Addons)
+    {
+        <div class="col-lg-4 col-md-6">
+            <div class="card srx-card h-100"><div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi @(icons.GetValueOrDefault(a.Type, "bi-plus-square")) accent fs-4"></i>
+                    <h6 class="text-light mb-0">@a.Name</h6>
+                </div>
+                <p class="text-secondary small flex-grow-1">@a.Description</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-light">@Money(a.Price)<span class="text-secondary small">/mo</span></span>
+                    <form method="post" asp-page-handler="Buy" class="d-flex gap-1" onsubmit="return @(Model.HasCard ? "confirm('Purchase this add-on now? Your saved card will be charged.')" : "true");">
+                        <input type="hidden" name="addonId" value="@a.Id" />
+                        <input type="number" name="quantity" value="1" min="1" max="20" class="form-control form-control-sm" style="width:64px;" />
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-cart-plus"></i> @(Model.HasCard ? "Buy" : "Add")</button>
+                    </form>
+                </div>
+            </div></div>
+        </div>
+    }
+</div>
+
+@if (Model.Purchased.Any())
+{
+    <h5 class="text-light mt-5 mb-3">Your active add-ons</h5>
+    <div class="card srx-card"><div class="card-body">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Add-on</th><th>Qty</th><th>Purchased</th><th>Renews</th></tr></thead>
+            <tbody>
+            @foreach (var p in Model.Purchased)
+            {
+                <tr>
+                    <td class="text-light">@(p.Addon?.Name)</td>
+                    <td>@p.Quantity</td>
+                    <td class="text-secondary small">@p.PurchasedAt.ToString("MMM d, yyyy")</td>
+                    <td class="text-secondary small">@(p.ExpiresAt?.ToString("MMM d, yyyy") ?? "-")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div></div>
+}

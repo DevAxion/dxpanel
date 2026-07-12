@@ -1,0 +1,182 @@
+@page
+@model SRXPanel.Pages.Client.Developer.PerformanceModel
+@{
+    ViewData["Title"] = "Performance";
+
+    string Grade(long ms, long good, long fair) =>
+        ms <= good ? "text-success" : ms <= fair ? "text-warning" : "text-danger";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Developer</li>
+        <li class="breadcrumb-item active" aria-current="page">Performance</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-1">Performance</h4>
+<p class="text-secondary small">The panel fetches your site server-side and times the response.</p>
+
+@if (!Model.Domains.Any())
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Add a domain to run a performance test.
+        <a asp-page="/Client/Domains" class="alert-link">Add a domain</a>
+    </div>
+}
+else
+{
+    <div class="card srx-card mb-4"><div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label small">Domain</label>
+                <select name="domainId" class="form-select">
+                    @foreach (var domain in Model.Domains)
+                    {
+                        <option value="@domain.Id" selected="@(Model.DomainId == domain.Id)">
+                            @(domain.SslEnabled ? "https" : "http")://@domain.DomainName
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary w-100"><i class="bi bi-speedometer2"></i> Run test</button>
+            </div>
+        </form>
+    </div></div>
+}
+
+@if (Model.Error != null)
+{
+    <div class="alert alert-danger"><i class="bi bi-x-octagon"></i> @Model.Error</div>
+}
+
+@if (Model.Result is not null)
+{
+    var r = Model.Result;
+
+    @if (r.Simulated)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> @r.Error
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">TTFB</div>
+            <div class="fs-3 @Grade(r.TtfbMs, 200, 600)">@r.TtfbMs<span class="fs-6">ms</span></div>
+            <div class="text-secondary" style="font-size:11px;">Time to first byte</div>
+        </div></div></div>
+
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">Total load</div>
+            <div class="fs-3 @Grade(r.TotalMs, 800, 2000)">@r.TotalMs<span class="fs-6">ms</span></div>
+            <div class="text-secondary" style="font-size:11px;">Document downloaded</div>
+        </div></div></div>
+
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">TLS handshake</div>
+            @if (r.SslHandshakeMs is long handshake)
+            {
+                <div class="fs-3 @Grade(handshake, 120, 300)">@handshake<span class="fs-6">ms</span></div>
+            }
+            else
+            {
+                <div class="fs-3 text-secondary">—</div>
+            }
+            <div class="text-secondary" style="font-size:11px;">@(r.SslHandshakeMs is null ? "No HTTPS" : "SSL negotiation")</div>
+        </div></div></div>
+
+        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+            <div class="text-secondary small">Document size</div>
+            <div class="fs-3 text-light">@(r.ContentBytes / 1024)<span class="fs-6">KB</span></div>
+            <div class="text-secondary" style="font-size:11px;">HTTP @r.StatusCode · @r.HttpVersion</div>
+        </div></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-clipboard-check"></i> Checks</h6>
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-secondary">Compression</td>
+                            <td>
+                                @if (r.GzipEnabled)
+                                {
+                                    <span class="badge text-bg-success">@r.ContentEncoding</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-danger">none</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary">Brotli</td>
+                            <td>
+                                <span class="badge @(r.BrotliSupported ? "text-bg-success" : "text-bg-secondary")">
+                                    @(r.BrotliSupported ? "enabled" : "not used")
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary">Cache-Control</td>
+                            <td class="font-monospace small text-light">@(r.CacheControl ?? "not set")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary">ETag</td>
+                            <td class="font-monospace small text-light">@(r.Etag ?? "not set")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary">Protocol</td>
+                            <td>
+                                <span class="badge @(r.HttpVersion != null && (r.HttpVersion.Contains('2') || r.HttpVersion.Contains('3')) ? "text-bg-success" : "text-bg-warning")">
+                                    @r.HttpVersion
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-list-ul"></i> Response headers</h6>
+                <div class="table-responsive" style="max-height:260px;overflow:auto;">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            @foreach (var header in r.Headers.OrderBy(h => h.Key))
+                            {
+                                <tr>
+                                    <td class="text-secondary small font-monospace">@header.Key</td>
+                                    <td class="text-light small font-monospace" style="word-break:break-all;">@header.Value</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-lightbulb"></i> Recommendations</h6>
+                @foreach (var recommendation in r.Recommendations)
+                {
+                    <div class="alert alert-@recommendation.Severity py-2 px-3">
+                        <div class="fw-semibold">
+                            <i class="bi @(recommendation.Severity switch {
+                                "danger" => "bi-exclamation-octagon",
+                                "warning" => "bi-exclamation-triangle",
+                                _ => "bi-check-circle" })"></i>
+                            @recommendation.Title
+                        </div>
+                        <div class="small">@recommendation.Detail</div>
+                    </div>
+                }
+            </div></div>
+        </div>
+    </div>
+}

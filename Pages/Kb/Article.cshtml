@@ -1,0 +1,100 @@
+@page "/kb/{category}/{article}"
+@model SRXPanel.Pages.Kb.ArticleModel
+@{
+    Layout = "_PublicLayout";
+    var a = Model.Article;
+    ViewData["Title"] = a.Title;
+    ViewData["MetaDescription"] = a.MetaDescription;
+}
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-8 mx-lg-auto" style="max-width:820px;">
+            <nav class="small text-secondary mb-3">
+                <a href="/kb" class="text-secondary text-decoration-none">Knowledge Base</a>
+                <i class="bi bi-chevron-right" style="font-size:10px;"></i>
+                <a href="/kb/@Model.Category.Slug" class="text-secondary text-decoration-none">@Model.Category.Name</a>
+            </nav>
+
+            <h1 class="text-light fw-bold">@a.Title</h1>
+            <div class="text-secondary small mb-3"><i class="bi bi-eye"></i> @a.Views views · Updated @a.UpdatedAt.ToString("MMM d, yyyy")</div>
+
+            <div id="tocBox" class="mb-4 d-none" style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;">
+                <div class="text-secondary small text-uppercase mb-2">On this page</div>
+                <ul id="toc" class="mb-0" style="list-style:none;padding-left:0;"></ul>
+            </div>
+
+            <div id="kbContent" class="kb-content text-light" style="line-height:1.8;font-size:17px;">
+                @Html.Raw(a.Content)
+            </div>
+
+            <hr class="border-secondary my-4" />
+
+            <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px;">
+                @if (TempData["HelpfulThanks"] != null)
+                {
+                    <div class="text-success"><i class="bi bi-check-circle"></i> @TempData["HelpfulThanks"]</div>
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <span class="text-light">Was this article helpful?</span>
+                        <div class="d-flex gap-2">
+                            <form method="post" asp-page-handler="Helpful" asp-route-category="@Model.Category.Slug" asp-route-article="@a.Slug">
+                                <input type="hidden" name="helpful" value="true" />
+                                <button class="btn btn-outline-cta btn-sm"><i class="bi bi-hand-thumbs-up"></i> Yes (@a.HelpfulYes)</button>
+                            </form>
+                            <form method="post" asp-page-handler="Helpful" asp-route-category="@Model.Category.Slug" asp-route-article="@a.Slug">
+                                <input type="hidden" name="helpful" value="false" />
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-hand-thumbs-down"></i> No (@a.HelpfulNo)</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.Related.Any())
+        {
+            <div class="col-lg-4 d-none d-lg-block">
+                <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px;position:sticky;top:90px;">
+                    <h6 class="text-light mb-3">Related articles</h6>
+                    @foreach (var r in Model.Related)
+                    {
+                        <a href="/kb/@Model.Category.Slug/@r.Slug" class="d-block text-secondary text-decoration-none py-1">@r.Title</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .kb-content h2 { color:#fff; font-size:23px; margin-top:26px; scroll-margin-top:90px; }
+    .kb-content h3 { color:#e6edf3; font-size:19px; margin-top:20px; scroll-margin-top:90px; }
+    .kb-content p { margin-bottom:14px; color:#c9d1d9; }
+    .kb-content ul, .kb-content ol { color:#c9d1d9; margin-bottom:14px; }
+    .kb-content code { color:#79c0ff; background:#161b22; padding:2px 6px; border-radius:4px; }
+    #toc a { color:#8b949e; text-decoration:none; }
+    #toc a:hover { color:#fff; }
+    #toc li { padding:3px 0; }
+</style>
+
+@section Scripts {
+    <script>
+        (function () {
+            var content = document.getElementById('kbContent');
+            var toc = document.getElementById('toc');
+            var headings = content.querySelectorAll('h2, h3');
+            if (headings.length < 2) return;
+            headings.forEach(function (h, i) {
+                var id = 'sec-' + i; h.id = id;
+                var li = document.createElement('li');
+                if (h.tagName === 'H3') li.style.paddingLeft = '14px';
+                var link = document.createElement('a'); link.href = '#' + id; link.textContent = h.textContent;
+                li.appendChild(link); toc.appendChild(li);
+            });
+            document.getElementById('tocBox').classList.remove('d-none');
+        })();
+    </script>
+}

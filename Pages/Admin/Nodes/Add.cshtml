@@ -1,0 +1,149 @@
+@page
+@model SRXPanel.Pages.Admin.Nodes.AddModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Add Node";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Nodes/Index">Nodes</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Add</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Add a server node</h4>
+
+<form method="post" id="nodeForm" style="max-width:860px;">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">Server details</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Node name</label>
+                        <input name="name" id="name" class="form-control" placeholder="web-fra-02" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hostname</label>
+                        <input name="hostname" id="hostname" class="form-control" placeholder="web2.example.com" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">IP address</label>
+                        <input name="ipAddress" id="ipAddress" class="form-control font-monospace" placeholder="203.0.113.12" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">SSH port</label>
+                        <input name="sshPort" id="sshPort" type="number" value="22" class="form-control" />
+                    </div>
+                </div>
+            </div></div>
+
+            <div class="card srx-card mb-3"><div class="card-body">
+                <h6 class="text-light mb-3">Authentication</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">SSH username</label>
+                        <input name="sshUsername" id="sshUsername" class="form-control" value="root" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Private key path <span class="text-secondary">(preferred)</span></label>
+                        <input name="sshKeyPath" id="sshKeyPath" class="form-control font-monospace" placeholder="/root/.ssh/id_rsa" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">…or SSH password</label>
+                        <input name="sshPassword" id="sshPassword" type="password" class="form-control" autocomplete="new-password" />
+                        <div class="form-text">Key auth is used when a key path is given; otherwise the password is used.</div>
+                    </div>
+                </div>
+            </div></div>
+
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Classification &amp; capacity</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Node type</label>
+                        <select name="type" class="form-select">
+                            @foreach (var t in Enum.GetValues<NodeType>())
+                            {
+                                <option value="@t">@t</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Location / datacenter</label>
+                        <input name="location" class="form-control" placeholder="Frankfurt, DE" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">CPU cores</label>
+                        <input name="cpuCores" id="cpuCores" type="number" value="4" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">RAM (GB)</label>
+                        <input name="ramGB" id="ramGB" type="number" value="16" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Disk (GB)</label>
+                        <input name="diskGB" id="diskGB" type="number" value="250" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Weight</label>
+                        <input name="weight" type="number" value="100" class="form-control" title="Higher = preferred for new placement" />
+                    </div>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Connection test</h6>
+                <p class="text-secondary small">
+                    Test SSH connectivity and auto-detect which services are installed before saving.
+                </p>
+                <button type="button" class="btn btn-outline-secondary w-100 mb-3" id="testBtn">
+                    <i class="bi bi-plug"></i> Test connection &amp; detect
+                </button>
+                <div id="testResult"></div>
+            </div></div>
+
+            <div class="mt-3">
+                <button class="btn btn-primary w-100"><i class="bi bi-check-lg"></i> Add node</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <form style="display:none">@Html.AntiForgeryToken()</form>
+    <script>
+        document.getElementById('testBtn').addEventListener('click', function () {
+            var result = document.getElementById('testResult');
+            result.innerHTML = '<div class="text-secondary small"><span class="spinner-border spinner-border-sm"></span> Connecting…</div>';
+
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            var body = new URLSearchParams({
+                hostname: document.getElementById('hostname').value,
+                ipAddress: document.getElementById('ipAddress').value,
+                sshPort: document.getElementById('sshPort').value,
+                sshUsername: document.getElementById('sshUsername').value,
+                sshKeyPath: document.getElementById('sshKeyPath').value,
+                sshPassword: document.getElementById('sshPassword').value
+            });
+
+            fetch('?handler=Test', { method: 'POST', headers: { 'RequestVerificationToken': token, 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (!d.ok) { result.innerHTML = '<div class="alert alert-danger py-2 px-3 small mb-0">' + d.message + '</div>'; return; }
+                    var svc = (d.services || []).map(function (s) {
+                        return '<span class="badge text-bg-secondary">' + s.service + ' · ' + s.status + '</span>';
+                    }).join(' ');
+                    result.innerHTML =
+                        '<div class="alert alert-success py-2 px-3 small mb-2"><i class="bi bi-check-circle"></i> Connected — ' + d.latency + ' ms</div>' +
+                        '<div class="text-secondary small mb-2 font-monospace" style="word-break:break-all;">' + (d.os || '') + '</div>' +
+                        '<div class="d-flex flex-wrap gap-1">' + (svc || '<span class="text-secondary small">No services detected</span>') + '</div>';
+                    // Auto-fill CPU/RAM would come from the probe in production; left to the admin here.
+                })
+                .catch(function () { result.innerHTML = '<div class="alert alert-danger py-2 px-3 small mb-0">Test failed.</div>'; });
+        });
+    </script>
+}

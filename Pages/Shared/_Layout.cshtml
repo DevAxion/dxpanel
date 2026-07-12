@@ -1,0 +1,348 @@
+@using Microsoft.AspNetCore.Identity
+@using SRXPanel.Services.Reseller
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var branding = Context.Branding();
+}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @branding.PanelTitle</title>
+    @if (branding.FaviconPath != null)
+    {
+        <link rel="icon" href="@branding.FaviconPath" />
+    }
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (branding.IsWhiteLabel)
+    {
+        <style>
+            :root {
+                --srx-sidebar-active: @branding.PrimaryColor;
+                --srx-accent: @branding.AccentColor;
+            }
+            .btn-primary { background-color: @branding.PrimaryColor; border-color: @branding.PrimaryColor; }
+            .srx-sidebar-nav .nav-link.active { background-color: @branding.PrimaryColor; }
+        </style>
+    }
+</head>
+<body>
+    <div class="srx-shell">
+        <aside class="srx-sidebar">
+            <div class="srx-sidebar-brand">
+                @if (branding.IsWhiteLabel)
+                {
+                    @if (branding.LogoPath != null)
+                    {
+                        <img src="@branding.LogoPath" alt="@branding.PanelTitle" style="max-height:34px; max-width:100%;" />
+                    }
+                    else
+                    {
+                        @branding.PanelTitle
+                    }
+                }
+                else
+                {
+                    @:SRX<span class="srx-accent">Panel</span>
+                }
+            </div>
+            @{
+                var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+                string Active(string prefix) => currentPage.StartsWith(prefix) ? "active" : "";
+            }
+            <nav class="srx-sidebar-nav">
+                @if (User.IsInRole(Roles.Client))
+                {
+                    <a class="nav-link @Active("/Client/Dashboard")" asp-page="/Client/Dashboard">
+                        <i class="bi bi-speedometer2"></i> My Account
+                    </a>
+
+                    <div class="nav-section-title">Hosting</div>
+                    <a class="nav-link @Active("/Client/Domains")" asp-page="/Client/Domains"><i class="bi bi-globe2"></i> Domains</a>
+                    <a class="nav-link @Active("/Client/Databases")" asp-page="/Client/Databases"><i class="bi bi-database"></i> Databases</a>
+                    <a class="nav-link @Active("/Client/Ftp")" asp-page="/Client/Ftp"><i class="bi bi-folder2-open"></i> FTP</a>
+                    <a class="nav-link @Active("/Client/Email")" asp-page="/Client/Email"><i class="bi bi-envelope"></i> Email</a>
+                    <a class="nav-link @Active("/Client/Ssl")" asp-page="/Client/Ssl"><i class="bi bi-shield-lock"></i> SSL</a>
+                    <a class="nav-link @Active("/Client/Dns")" asp-page="/Client/Dns"><i class="bi bi-hdd-network"></i> DNS</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Cloudflare") ? "active" : "")" asp-page="/Client/Cloudflare/Index"><i class="bi bi-cloud"></i> Cloudflare</a>
+                    <a class="nav-link @Active("/Client/FileManager")" asp-page="/Client/FileManager"><i class="bi bi-files"></i> File Manager</a>
+                    <a class="nav-link @Active("/Client/Backup")" asp-page="/Client/Backup"><i class="bi bi-hdd-stack"></i> Backup</a>
+                    <a class="nav-link @Active("/Client/Stats")" asp-page="/Client/Stats"><i class="bi bi-graph-up"></i> Statistics</a>
+
+                    <div class="nav-section-title">Mail</div>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Queue") ? "active" : "")" asp-page="/Client/Email/Queue"><i class="bi bi-envelope-paper"></i> Mail Queue</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Logs") ? "active" : "")" asp-page="/Client/Email/Logs"><i class="bi bi-journal-text"></i> Email Logs</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Blacklist") ? "active" : "")" asp-page="/Client/Email/Blacklist"><i class="bi bi-shield-exclamation"></i> Blacklist</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Bounces") ? "active" : "")" asp-page="/Client/Email/Bounces"><i class="bi bi-arrow-return-left"></i> Bounces</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/MailServer") ? "active" : "")" asp-page="/Client/Email/MailServer"><i class="bi bi-server"></i> Mail Server</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Deliverability") ? "active" : "")" asp-page="/Client/Email/Deliverability"><i class="bi bi-graph-up-arrow"></i> Deliverability</a>
+
+                    <a class="nav-link @Active("/Client/ApiAccess")" asp-page="/Client/ApiAccess"><i class="bi bi-code-slash"></i> API Access</a>
+
+                    <div class="nav-section-title">Developer</div>
+                    <a class="nav-link @Active("/Client/Cron")" asp-page="/Client/Cron/Index"><i class="bi bi-clock"></i> Cron Jobs</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Ssh") ? "active" : "")" asp-page="/Client/Developer/Ssh"><i class="bi bi-key"></i> SSH</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Git") ? "active" : "")" asp-page="/Client/Developer/Git"><i class="bi bi-git"></i> Git Deployment</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Terminal") ? "active" : "")" asp-page="/Client/Developer/Terminal"><i class="bi bi-terminal"></i> Terminal</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/PackageManager") ? "active" : "")" asp-page="/Client/Developer/PackageManager"><i class="bi bi-box2"></i> Package Manager</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Logs") ? "active" : "")" asp-page="/Client/Developer/Logs"><i class="bi bi-journal-text"></i> Logs</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/PhpInfo") ? "active" : "")" asp-page="/Client/Developer/PhpInfo"><i class="bi bi-filetype-php"></i> PHP Configuration</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Staging") ? "active" : "")" asp-page="/Client/Developer/Staging"><i class="bi bi-layers"></i> Staging</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Database") ? "active" : "")" asp-page="/Client/Developer/Database"><i class="bi bi-database-gear"></i> Database Tools</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/DnsLookup") ? "active" : "")" asp-page="/Client/Developer/DnsLookup"><i class="bi bi-search"></i> DNS Lookup</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Performance") ? "active" : "")" asp-page="/Client/Developer/Performance"><i class="bi bi-speedometer2"></i> Performance</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Settings") ? "active" : "")" asp-page="/Client/Developer/Settings"><i class="bi bi-sliders"></i> Developer Settings</a>
+
+                    <div class="nav-section-title">Applications</div>
+                    <a class="nav-link @(currentPage == "/Client/Apps/Index" ? "active" : "")" asp-page="/Client/Apps/Index"><i class="bi bi-box"></i> My Apps</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Apps/Catalog") || currentPage.StartsWith("/Client/Apps/Detail") ? "active" : "")" asp-page="/Client/Apps/Catalog"><i class="bi bi-grid"></i> App Catalog</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Apps/Hosted") ? "active" : "")" asp-page="/Client/Apps/Hosted/Index"><i class="bi bi-rocket-takeoff"></i> Hosted Apps</a>
+
+                    <div class="nav-section-title">Store</div>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Vps") ? "active" : "")" asp-page="/Client/Vps/Index"><i class="bi bi-hdd-rack"></i> VPS</a>
+                    <a class="nav-link @Active("/Client/Services")" asp-page="/Client/Services"><i class="bi bi-box-seam"></i> Services</a>
+                    <a class="nav-link @Active("/Client/Store")" asp-page="/Client/Store"><i class="bi bi-cart-plus"></i> Order Hosting</a>
+                    <a class="nav-link @Active("/Client/Invoices")" asp-page="/Client/Invoices"><i class="bi bi-receipt"></i> Invoices</a>
+                    <a class="nav-link @Active("/Client/Cart")" asp-page="/Client/Cart"><i class="bi bi-cart3"></i> Cart</a>
+
+                    <div class="nav-section-title">Security</div>
+                    <a class="nav-link @Active("/Client/Security")" asp-page="/Client/Security/Index"><i class="bi bi-shield-check"></i> Security Score</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Security/Antivirus") ? "active" : "")" asp-page="/Client/Security/Antivirus"><i class="bi bi-bug"></i> Antivirus</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Security/Waf") ? "active" : "")" asp-page="/Client/Security/Waf"><i class="bi bi-shield-shaded"></i> Firewall / WAF</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/EmailSecurity") ? "active" : "")" asp-page="/Client/EmailSecurity"><i class="bi bi-envelope-check"></i> Email Security</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Security/Blacklist") ? "active" : "")" asp-page="/Client/Security/Blacklist"><i class="bi bi-shield-exclamation"></i> IP Blacklist</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Client/Security/Malware") ? "active" : "")" asp-page="/Client/Security/Malware"><i class="bi bi-file-earmark-lock"></i> Malware Scanner</a>
+
+                    <div class="nav-section-title">Account</div>
+                    <a class="nav-link @Active("/Billing")" asp-page="/Billing/Index"><i class="bi bi-credit-card"></i> Billing</a>
+                    <a class="nav-link @Active("/Affiliate")" asp-page="/Affiliate/Index"><i class="bi bi-share"></i> Affiliate</a>
+                    <a class="nav-link @Active("/Client/Support")" asp-page="/Client/Support"><i class="bi bi-life-preserver"></i> Support</a>
+                    <a class="nav-link @Active("/Client/Settings")" asp-page="/Client/Settings"><i class="bi bi-gear"></i> Settings</a>
+                }
+                else if (User.IsInRole(Roles.Reseller))
+                {
+                    <a class="nav-link @Active("/Reseller/Dashboard")" asp-page="/Reseller/Dashboard">
+                        <i class="bi bi-speedometer2"></i> My Business
+                    </a>
+
+                    <div class="nav-section-title">Reseller</div>
+                    <a class="nav-link @Active("/Reseller/Clients")" asp-page="/Reseller/Clients"><i class="bi bi-people"></i> Clients</a>
+                    <a class="nav-link @Active("/Reseller/Packages")" asp-page="/Reseller/Packages"><i class="bi bi-box-seam"></i> Packages</a>
+                    <a class="nav-link @Active("/Reseller/Branding")" asp-page="/Reseller/Branding"><i class="bi bi-palette"></i> Branding</a>
+
+                    <div class="nav-section-title">Billing</div>
+                    <a class="nav-link @Active("/Reseller/Billing")" asp-page="/Reseller/Billing"><i class="bi bi-wallet2"></i> Balance &amp; Invoices</a>
+                    <a class="nav-link @Active("/Reseller/PaymentSettings")" asp-page="/Reseller/PaymentSettings"><i class="bi bi-stripe"></i> Payment Settings</a>
+                    <a class="nav-link @Active("/Reseller/InvoiceSettings")" asp-page="/Reseller/InvoiceSettings"><i class="bi bi-receipt-cutoff"></i> Invoice Settings</a>
+                    <a class="nav-link @Active("/Affiliate")" asp-page="/Affiliate/Index"><i class="bi bi-share"></i> Affiliate</a>
+                }
+                else
+                {
+                <a class="nav-link @(currentPage == "/Dashboard/Index" ? "active" : "")" asp-page="/Dashboard/Index">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+
+                <div class="nav-section-title">Hosting</div>
+                <a class="nav-link @Active("/Domains")" asp-page="/Domains/Index">
+                    <i class="bi bi-globe2"></i> Domains
+                </a>
+                <a class="nav-link @Active("/Databases")" asp-page="/Databases/Index">
+                    <i class="bi bi-database"></i> Databases
+                </a>
+                <a class="nav-link @Active("/Ftp")" asp-page="/Ftp/Index">
+                    <i class="bi bi-folder2-open"></i> FTP Accounts
+                </a>
+                <a class="nav-link @Active("/Email")" asp-page="/Email/Index">
+                    <i class="bi bi-envelope"></i> Email
+                </a>
+                <a class="nav-link @Active("/Ssl")" asp-page="/Ssl/Index">
+                    <i class="bi bi-shield-lock"></i> SSL
+                </a>
+                <a class="nav-link @Active("/Dns")" asp-page="/Dns/Index">
+                    <i class="bi bi-hdd-network"></i> DNS
+                </a>
+                <a class="nav-link @Active("/FileManager")" asp-page="/FileManager/Index">
+                    <i class="bi bi-files"></i> File Manager
+                </a>
+
+                @if (User.IsInRole(Roles.SuperAdmin) || User.IsInRole(Roles.Reseller))
+                {
+                    <div class="nav-section-title">Management</div>
+                    <a class="nav-link @Active("/Users")" asp-page="/Users/Index">
+                        <i class="bi bi-people"></i> Users
+                    </a>
+                }
+
+                @if (User.IsInRole(Roles.SuperAdmin))
+                {
+                    <a class="nav-link @Active("/Packages")" asp-page="/Packages/Index">
+                        <i class="bi bi-box-seam"></i> Packages
+                    </a>
+                    <a class="nav-link @Active("/Admin/Resellers")" asp-page="/Admin/Resellers">
+                        <i class="bi bi-shop"></i> Resellers
+                    </a>
+
+                    <div class="nav-section-title">Billing Admin</div>
+                    <a class="nav-link @Active("/Admin/Plans")" asp-page="/Admin/Plans">
+                        <i class="bi bi-tags"></i> Plans
+                    </a>
+                    <a class="nav-link @Active("/Admin/Subscriptions")" asp-page="/Admin/Subscriptions">
+                        <i class="bi bi-arrow-repeat"></i> Subscriptions
+                    </a>
+                    <a class="nav-link @Active("/Admin/Invoices")" asp-page="/Admin/Invoices">
+                        <i class="bi bi-receipt"></i> Invoices
+                    </a>
+                    <a class="nav-link @Active("/Admin/Coupons")" asp-page="/Admin/Coupons">
+                        <i class="bi bi-tag"></i> Coupons
+                    </a>
+                    <a class="nav-link @Active("/Admin/Addons")" asp-page="/Admin/Addons">
+                        <i class="bi bi-plus-square"></i> Add-ons
+                    </a>
+                    <a class="nav-link @Active("/Admin/ResellerBilling")" asp-page="/Admin/ResellerBilling">
+                        <i class="bi bi-cash-stack"></i> Reseller Billing
+                    </a>
+                    <a class="nav-link @Active("/Admin/Currencies")" asp-page="/Admin/Currencies">
+                        <i class="bi bi-currency-exchange"></i> Currencies
+                    </a>
+                    <a class="nav-link @Active("/Admin/Affiliates")" asp-page="/Admin/Affiliates">
+                        <i class="bi bi-share"></i> Affiliates
+                    </a>
+
+                    <a class="nav-link @Active("/Admin/Support")" asp-page="/Admin/Support">
+                        <i class="bi bi-life-preserver"></i> Support
+                    </a>
+
+                    <div class="nav-section-title">Website</div>
+                    <a class="nav-link @Active("/Admin/Frontend")" asp-page="/Admin/Frontend">
+                        <i class="bi bi-window-desktop"></i> Frontend
+                    </a>
+                    <a class="nav-link @Active("/Admin/Content")" asp-page="/Admin/Content">
+                        <i class="bi bi-card-heading"></i> Homepage Content
+                    </a>
+                    <a class="nav-link @(Active("/Admin/Blog"))" asp-page="/Admin/Blog">
+                        <i class="bi bi-newspaper"></i> Blog
+                    </a>
+                    <a class="nav-link @(Active("/Admin/Kb"))" asp-page="/Admin/Kb">
+                        <i class="bi bi-journal-text"></i> Knowledge Base
+                    </a>
+                    <a class="nav-link @Active("/Admin/Messages")" asp-page="/Admin/Messages">
+                        <i class="bi bi-inbox"></i> Messages
+                    </a>
+
+                    <div class="nav-section-title">Applications</div>
+                    <a class="nav-link @(currentPage == "/Admin/Apps/Index" ? "active" : "")" asp-page="/Admin/Apps/Index"><i class="bi bi-box"></i> App Catalog</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Apps/Updates") ? "active" : "")" asp-page="/Admin/Apps/Updates"><i class="bi bi-arrow-repeat"></i> App Updates</a>
+                    <a class="nav-link @(currentPage == "/Admin/Apps/Hosted" ? "active" : "")" asp-page="/Admin/Apps/Hosted"><i class="bi bi-rocket-takeoff"></i> Hosted Apps</a>
+                    <a class="nav-link @(currentPage == "/Admin/Apps/Runtimes" ? "active" : "")" asp-page="/Admin/Apps/Runtimes"><i class="bi bi-box-seam"></i> Runtimes</a>
+                    <a class="nav-link @(currentPage == "/Admin/Apps/ProcessMonitor" ? "active" : "")" asp-page="/Admin/Apps/ProcessMonitor"><i class="bi bi-cpu"></i> Process Monitor</a>
+
+                    <div class="nav-section-title">Fleet</div>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Nodes") ? "active" : "")" asp-page="/Admin/Nodes/Index"><i class="bi bi-hdd-stack"></i> Nodes</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Vps") ? "active" : "")" asp-page="/Admin/Vps/Index"><i class="bi bi-hdd-rack"></i> VPS Instances</a>
+                    <a class="nav-link @(currentPage == "/Admin/Proxmox" ? "active" : "")" asp-page="/Admin/Proxmox"><i class="bi bi-hdd-stack-fill"></i> Proxmox</a>
+                    <a class="nav-link @(currentPage == "/Admin/LoadBalancer" ? "active" : "")" asp-page="/Admin/LoadBalancer"><i class="bi bi-diagram-3"></i> Load Balancer</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Dns/Cluster") ? "active" : "")" asp-page="/Admin/Dns/Cluster"><i class="bi bi-hdd-network"></i> DNS Cluster</a>
+                    <a class="nav-link @(currentPage == "/Admin/Alerts" ? "active" : "")" asp-page="/Admin/Alerts"><i class="bi bi-bell"></i> Alerts</a>
+
+                    <div class="nav-section-title">Mail</div>
+                    <a class="nav-link @(currentPage == "/Admin/Email/Index" ? "active" : "")" asp-page="/Admin/Email/Index"><i class="bi bi-envelope-at"></i> Overview</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Email/Queue") ? "active" : "")" asp-page="/Admin/Email/Queue"><i class="bi bi-envelope-paper"></i> Queue</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Email/Blacklist") ? "active" : "")" asp-page="/Admin/Email/Blacklist"><i class="bi bi-shield-exclamation"></i> Blacklist</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Email/Logs") ? "active" : "")" asp-page="/Admin/Email/Logs"><i class="bi bi-journal-text"></i> Logs</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Email/Bounces") ? "active" : "")" asp-page="/Admin/Email/Bounces"><i class="bi bi-arrow-return-left"></i> Bounces</a>
+
+                    <div class="nav-section-title">Security</div>
+                    <a class="nav-link @(currentPage == "/Admin/Security/Index" ? "active" : "")" asp-page="/Admin/Security/Index"><i class="bi bi-shield-check"></i> Overview</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Security/Waf") ? "active" : "")" asp-page="/Admin/Security/Waf"><i class="bi bi-shield-shaded"></i> WAF</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Security/Antivirus") ? "active" : "")" asp-page="/Admin/Security/Antivirus"><i class="bi bi-bug"></i> Antivirus</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Security/Malware") ? "active" : "")" asp-page="/Admin/Security/Malware"><i class="bi bi-file-earmark-lock"></i> Malware</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Security/BruteForce") ? "active" : "")" asp-page="/Admin/Security/BruteForce"><i class="bi bi-fingerprint"></i> Brute Force</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Security/IpManager") ? "active" : "")" asp-page="/Admin/Security/IpManager"><i class="bi bi-hdd-network"></i> IP Manager</a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Reports/Security") ? "active" : "")" asp-page="/Admin/Reports/Security"><i class="bi bi-file-earmark-bar-graph"></i> Security Report</a>
+                    <a class="nav-link @(currentPage == "/Admin/Cloudflare" ? "active" : "")" asp-page="/Admin/Cloudflare"><i class="bi bi-cloud"></i> Cloudflare</a>
+
+                    <div class="nav-section-title">System</div>
+                    <a class="nav-link @Active("/Admin/Settings")" asp-page="/Admin/Settings">
+                        <i class="bi bi-sliders"></i> Platform Settings
+                    </a>
+                    <a class="nav-link @Active("/Settings/Index")" asp-page="/Settings/Index">
+                        <i class="bi bi-gear"></i> Server Settings
+                    </a>
+                    <a class="nav-link @Active("/Settings/CommandLog")" asp-page="/Settings/CommandLog">
+                        <i class="bi bi-terminal"></i> Command Log
+                    </a>
+                    <a class="nav-link @Active("/Admin/Updates")" asp-page="/Admin/Updates">
+                        <i class="bi bi-arrow-repeat"></i> Updates
+                    </a>
+                    <a class="nav-link @Active("/Admin/Installation")" asp-page="/Admin/Installation">
+                        <i class="bi bi-hdd-rack"></i> Installation
+                    </a>
+                    <a class="nav-link @(currentPage.StartsWith("/Admin/Developer/Terminals") ? "active" : "")" asp-page="/Admin/Developer/Terminals">
+                        <i class="bi bi-terminal"></i> Terminal Sessions
+                    </a>
+                    <a class="nav-link @Active("/Docs/Whmcs")" asp-page="/Docs/Whmcs">
+                        <i class="bi bi-plug"></i> API Docs
+                    </a>
+                    <a class="nav-link @Active("/Docs/Api")" asp-page="/Docs/Api">
+                        <i class="bi bi-braces"></i> REST API Reference
+                    </a>
+                }
+                }
+            </nav>
+            <div class="srx-sidebar-footer">
+                Signed in as<br />
+                <strong class="text-light">@User.Identity?.Name</strong>
+            </div>
+        </aside>
+
+        <div class="srx-main">
+            <header class="srx-topbar">
+                @RenderSection("Breadcrumb", required: false)
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <partial name="_NotificationBell" />
+                    <form method="post" asp-page="/Account/Logout">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="srx-content">
+                @if (User.FindFirst("OriginalAdminName") is System.Security.Claims.Claim adminClaim)
+                {
+                    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-badge"></i> You are impersonating <strong>@User.Identity?.Name</strong> (as @adminClaim.Value).</span>
+                        <form method="post" asp-page="/Account/StopImpersonation">
+                            <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-arrow-return-left"></i> Return to my account</button>
+                        </form>
+                    </div>
+                }
+                <partial name="_FlashMessages" />
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <span class="srx-version-badge">
+        @if (branding.IsWhiteLabel)
+        {
+            @(branding.FooterText ?? branding.PanelTitle)
+        }
+        else
+        {
+            @:SRXPanel v@(SRXPanel.AppInfo.Version)
+        }
+    </span>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

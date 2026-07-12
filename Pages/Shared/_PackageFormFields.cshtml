@@ -1,0 +1,45 @@
+@model SRXPanel.Pages.Packages.PackageInput
+
+<div class="row g-3">
+    <div class="col-md-12">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="DiskQuotaMB" class="form-label"></label>
+        <input asp-for="DiskQuotaMB" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="BandwidthQuotaMB" class="form-label"></label>
+        <input asp-for="BandwidthQuotaMB" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="MaxDomains" class="form-label"></label>
+        <input asp-for="MaxDomains" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="MaxEmails" class="form-label"></label>
+        <input asp-for="MaxEmails" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="MaxDatabases" class="form-label"></label>
+        <input asp-for="MaxDatabases" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="MaxFtpAccounts" class="form-label"></label>
+        <input asp-for="MaxFtpAccounts" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="MaxCronJobs" class="form-label"></label>
+        <input asp-for="MaxCronJobs" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="MaxBackups" class="form-label"></label>
+        <input asp-for="MaxBackups" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Price" class="form-label"></label>
+        <input asp-for="Price" class="form-control" />
+    </div>
+</div>

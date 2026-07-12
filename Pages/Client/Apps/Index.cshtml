@@ -1,0 +1,97 @@
+@page
+@model SRXPanel.Pages.Client.Apps.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "My Applications";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Applications</li>
+        <li class="breadcrumb-item active" aria-current="page">My Installations</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-light mb-0">My Applications</h4>
+    <a href="/Client/Apps/Catalog" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Install New App</a>
+</div>
+
+<form method="get" class="row g-2 mb-4" style="max-width:620px;">
+    <div class="col-md-7"><input name="search" value="@Model.Search" class="form-control form-control-sm" placeholder="Search installations…" /></div>
+    <div class="col-md-3">
+        <select name="category" class="form-select form-select-sm">
+            <option value="">All types</option>
+            @foreach (var c in Enum.GetValues<AppCategory>())
+            {
+                <option value="@c" selected="@(Model.Category == c)">@c</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-outline-secondary btn-sm w-100">Filter</button></div>
+</form>
+
+@if (!Model.Installations.Any())
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-box text-secondary" style="font-size:48px;"></i>
+        <h5 class="text-light mt-3">No applications installed yet</h5>
+        <p class="text-secondary">Install WordPress, Laravel, Nextcloud and more with a single click.</p>
+        <a href="/Client/Apps/Catalog" class="btn btn-primary"><i class="bi bi-grid"></i> Browse App Catalog</a>
+    </div></div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var i in Model.Installations)
+        {
+            var app = i.AppDefinition;
+            <div class="col-lg-6">
+                <div class="card srx-card h-100"><div class="card-body">
+                    <div class="d-flex gap-3">
+                        <i class="bi @(app?.IconPath ?? "bi-box") accent" style="font-size:36px;"></i>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-light mb-0">
+                                        @i.SiteTitle
+                                        @if (i.IsStaging) { <span class="badge text-bg-info">Staging</span> }
+                                    </h6>
+                                    <div class="text-secondary small">@(app?.Name) @i.InstalledVersion · @(i.Domain?.DomainName)@(i.InstallPath == "/" ? "" : i.InstallPath)</div>
+                                </div>
+                                @switch (i.Status)
+                                {
+                                    case AppInstallStatus.Active: <span class="badge text-bg-success">Active</span> break;
+                                    case AppInstallStatus.UpdateAvailable: <span class="badge text-bg-warning">Update @i.AvailableVersion</span> break;
+                                    case AppInstallStatus.Installing: <span class="badge text-bg-info">Installing</span> break;
+                                    default: <span class="badge text-bg-danger">Error</span> break;
+                                }
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-1 mt-3">
+                                <a href="@i.SiteUrl" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right"></i> Visit</a>
+                                <a href="@i.AdminUrl" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-speedometer2"></i> Admin</a>
+                                @if (app?.Slug is "wordpress" or "woocommerce")
+                                {
+                                    <a href="/Client/Apps/WordPress/@i.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-wordpress"></i> WP Manager</a>
+                                }
+                                <a href="/Client/Apps/Manage/@i.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-gear"></i> Manage</a>
+                                @if (i.Status == AppInstallStatus.UpdateAvailable)
+                                {
+                                    <form method="post" asp-page-handler="Update" class="d-inline" onsubmit="return confirm('Update @app?.Name to @i.AvailableVersion? A restore point will be created first.');">
+                                        <input type="hidden" name="id" value="@i.Id" />
+                                        <button class="btn btn-sm btn-warning"><i class="bi bi-arrow-up-circle"></i> Update</button>
+                                    </form>
+                                }
+                                <form method="post" asp-page-handler="Uninstall" class="d-inline" onsubmit="return confirm('Uninstall @i.SiteTitle? Files and the database will be removed. A restore point will be created first.');">
+                                    <input type="hidden" name="id" value="@i.Id" />
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div></div>
+            </div>
+        }
+    </div>
+}

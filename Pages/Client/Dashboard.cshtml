@@ -1,0 +1,221 @@
+@page
+@model SRXPanel.Pages.Client.DashboardModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "My Account";
+    string BarColor(int p) => p >= 90 ? "bg-danger" : p >= 75 ? "bg-warning" : "bg-success";
+    string Limit(int m) => m == 0 ? "∞" : m.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item active" aria-current="page">My Account</li>
+        </ol>
+    </nav>
+}
+
+@{
+    var status = Model.Subscription?.Status;
+    var (bannerClass, bannerIcon, bannerText) = status switch
+    {
+        SubscriptionStatus.Trialing => ("alert-info", "bi-hourglass-split", "You're on a free trial"),
+        SubscriptionStatus.PastDue => ("alert-warning", "bi-exclamation-triangle", "Your payment is past due"),
+        SubscriptionStatus.Cancelled => ("alert-secondary", "bi-x-circle", "Your subscription is cancelled"),
+        SubscriptionStatus.Active => ("alert-success", "bi-check-circle", "Your account is active"),
+        _ => Model.CurrentUser.IsActive ? ("alert-success", "bi-check-circle", "Your account is active")
+                                        : ("alert-danger", "bi-slash-circle", "Your account is suspended")
+    };
+}
+
+<div class="alert @bannerClass d-flex justify-content-between align-items-center">
+    <div><i class="bi @bannerIcon"></i> <strong>@bannerText</strong>@(Model.Plan != null ? $" — {Model.Plan.Name} plan" : "")</div>
+    <a asp-page="/Billing/Index" class="btn btn-sm btn-outline-light">Manage Billing</a>
+</div>
+
+@if (status == SubscriptionStatus.Trialing && Model.Subscription?.TrialEndsAt != null)
+{
+    var days = Math.Max(0, (int)Math.Ceiling((Model.Subscription.TrialEndsAt.Value - DateTime.UtcNow).TotalDays));
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history"></i> <strong>@days day(s)</strong> left in your trial (ends @Model.Subscription.TrialEndsAt.Value.ToString("yyyy-MM-dd")).</span>
+        <a asp-page="/Billing/Index" class="btn btn-sm btn-primary">Add Payment Method</a>
+    </div>
+}
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a asp-page="/Client/Domains" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Domain</a>
+    <a asp-page="/Client/Email" class="btn btn-outline-secondary"><i class="bi bi-envelope"></i> Create Email</a>
+    <a asp-page="/Client/FileManager" class="btn btn-outline-secondary"><i class="bi bi-files"></i> File Manager</a>
+    <a asp-page="/Client/Store" class="btn btn-outline-primary"><i class="bi bi-cart-plus"></i> Order More</a>
+    <a asp-page="/Client/Support" class="btn btn-outline-secondary"><i class="bi bi-life-preserver"></i> Get Support</a>
+</div>
+
+@if (Model.RenewalDays is int rd && rd <= 30)
+{
+    <div class="alert @(rd <= 1 ? "alert-danger" : rd <= 7 ? "alert-warning" : "alert-info") d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar-event"></i>
+            @if (rd <= 1) { <strong>Your service renews tomorrow</strong> } else { <text>Your service renews in <strong>@rd day(s)</strong></text> }
+            (@Model.Subscription?.CurrentPeriodEnd.ToString("MMM d, yyyy")).
+        </span>
+        <a asp-page="/Client/Invoices" class="btn btn-sm btn-outline-light">View Invoices</a>
+    </div>
+}
+
+@if (Model.SuggestUpgrade)
+{
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-graph-up-arrow"></i> You're using <strong>@Model.DiskUsagePercent%</strong> of your disk. Consider upgrading for more space.</span>
+        @{ var upgradable = Model.Services.FirstOrDefault(x => x.CanUpgrade); }
+        @if (upgradable != null)
+        {
+            <a href="/Client/Services/Upgrade/@upgradable.Id" class="btn btn-sm btn-primary">Upgrade Plan</a>
+        }
+    </div>
+}
+
+<div class="card srx-card mb-4"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-light mb-0"><i class="bi bi-box-seam"></i> My Services</h6>
+        <a asp-page="/Client/Services" class="btn btn-sm btn-outline-secondary">Manage all</a>
+    </div>
+    @if (!Model.Services.Any())
+    {
+        <p class="text-secondary mb-0">No active services. <a href="/Client/Store" class="accent">Order hosting</a> to get started.</p>
+    }
+    else
+    {
+        <div class="row g-2">
+            @foreach (var svc in Model.Services)
+            {
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center p-2" style="background:#0d1117;border:1px solid #30363d;border-radius:8px;">
+                        <div>
+                            <span class="text-light">@svc.Name</span>
+                            @switch (svc.Status)
+                            {
+                                case SubscriptionStatus.Active: <span class="badge text-bg-success ms-1">Active</span> break;
+                                case SubscriptionStatus.Trialing: <span class="badge text-bg-info ms-1">Trial</span> break;
+                                case SubscriptionStatus.PastDue: <span class="badge text-bg-danger ms-1">Past Due</span> break;
+                            }
+                            <div class="text-secondary small">Renews @svc.Expiry.ToString("MMM d, yyyy")</div>
+                        </div>
+                        @if (svc.CanUpgrade)
+                        {
+                            <a href="/Client/Services/Upgrade/@svc.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-up-circle"></i></a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div></div>
+
+<div class="row g-3 mb-4">
+    @{
+        var stats = new[] {
+            ("Domains", Model.DomainCount, Model.MaxDomains, "bi-globe2", "/Client/Domains"),
+            ("Email", Model.EmailCount, Model.MaxEmails, "bi-envelope", "/Client/Email"),
+            ("Databases", Model.DatabaseCount, Model.MaxDatabases, "bi-database", "/Client/Databases"),
+            ("FTP", Model.FtpCount, Model.MaxFtp, "bi-folder2-open", "/Client/Ftp"),
+        };
+    }
+    @foreach (var (label, used, max, icon, link) in stats)
+    {
+        <div class="col-md-3 col-6">
+            <a href="@link" class="text-decoration-none">
+                <div class="srx-stat-card">
+                    <div class="srx-stat-value">@used<span class="text-secondary fs-6"> / @Limit(max)</span></div>
+                    <div class="srx-stat-label"><i class="bi @icon"></i> @label</div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-speedometer"></i> Resource Usage</h6>
+                @{
+                    var diskPct = DashboardModel.Pct(Model.DiskUsedMB, Model.CurrentUser.DiskQuotaMB);
+                    var bwPct = DashboardModel.Pct(Model.BandwidthUsedMB, Model.CurrentUser.BandwidthQuotaMB);
+                }
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span><i class="bi bi-hdd"></i> Disk</span>
+                        <span>@Model.DiskUsedMB MB / @(Model.CurrentUser.DiskQuotaMB == 0 ? "∞" : $"{Model.CurrentUser.DiskQuotaMB} MB")</span>
+                    </div>
+                    <div class="progress" style="height:8px;"><div class="progress-bar @BarColor(diskPct)" style="width:@diskPct%"></div></div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span><i class="bi bi-activity"></i> Bandwidth</span>
+                        <span>@Model.BandwidthUsedMB MB / @(Model.CurrentUser.BandwidthQuotaMB == 0 ? "∞" : $"{Model.CurrentUser.BandwidthQuotaMB} MB")</span>
+                    </div>
+                    <div class="progress" style="height:8px;"><div class="progress-bar @BarColor(bwPct)" style="width:@bwPct%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Recent Activity</h6>
+                @if (Model.RecentActivity.Any())
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var a in Model.RecentActivity)
+                        {
+                            <li class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                                <span><span class="badge text-bg-secondary">@a.Action</span> @a.Entity @(a.Details != null ? $"— {a.Details}" : "")</span>
+                                <span class="text-secondary">@a.Timestamp.ToString("MM-dd HH:mm")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No recent activity.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-light mb-0"><i class="bi bi-bell"></i> Notifications</h6>
+                    <a asp-page="/Notifications/Index" class="small">View all</a>
+                </div>
+                @if (Model.UnreadNotifications.Any())
+                {
+                    @foreach (var n in Model.UnreadNotifications)
+                    {
+                        <div class="d-flex gap-2 py-2 border-bottom border-secondary-subtle @(n.IsRead ? "" : "")">
+                            <i class="bi bi-dot fs-4 @(n.IsRead ? "text-secondary" : "text-primary")"></i>
+                            <div class="small">
+                                <div class="text-light">@n.Title</div>
+                                <div class="text-secondary">@n.Message</div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-secondary mb-0 small">You're all caught up.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-light mb-1"><i class="bi bi-life-preserver"></i> Support</h6>
+                    <span class="text-secondary small">@Model.OpenTickets open ticket(s)</span>
+                </div>
+                <a asp-page="/Client/Support" class="btn btn-sm btn-outline-primary">Open Tickets</a>
+            </div>
+        </div>
+    </div>
+</div>

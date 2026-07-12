@@ -1,0 +1,169 @@
+@page
+@model SRXPanel.Pages.Reseller.DashboardModel
+@{
+    ViewData["Title"] = "Reseller Dashboard";
+    string BarColor(int p) => p >= 90 ? "bg-danger" : p >= 80 ? "bg-warning" : "bg-success";
+    string Limit(int m) => m == 0 ? "∞" : m.ToString();
+    string LimitL(long m) => m == 0 ? "∞" : m.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item active" aria-current="page">Reseller</li>
+        </ol>
+    </nav>
+}
+
+@if (Model.Profile == null)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Your reseller account has no resource allocation yet.
+        Please contact your administrator to set up your quotas.
+    </div>
+    return;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">@Model.Profile.CompanyName</h4>
+    <a asp-page="/Reseller/Clients" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Client</a>
+</div>
+
+@{
+    var warn = Model.Usage.DiskPercent >= 80 || Model.Usage.ClientPercent >= 80 || Model.Usage.DomainPercent >= 80;
+}
+@if (warn)
+{
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i>
+        You are using over 80% of one or more of your resource allocations. Consider requesting an upgrade.
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    @{
+        var cards = new (string Label, int Value, string Icon)[] {
+            ("Total Clients", Model.Usage.ClientCount, "bi-people"),
+            ("Active", Model.Usage.ActiveClients, "bi-check-circle"),
+            ("Suspended", Model.Usage.SuspendedClients, "bi-slash-circle"),
+            ("On Trial", Model.Usage.TrialClients, "bi-hourglass-split"),
+        };
+    }
+    @foreach (var (label, value, icon) in cards)
+    {
+        <div class="col-md-3 col-6">
+            <div class="srx-stat-card">
+                <div class="srx-stat-value">@value</div>
+                <div class="srx-stat-label"><i class="bi @icon"></i> @label</div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-speedometer"></i> Resource Allocation</h6>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span><i class="bi bi-hdd"></i> Disk (all clients)</span>
+                        <span>@Model.Usage.DiskUsedMB MB / @LimitL(Model.Usage.DiskQuotaMB) MB</span>
+                    </div>
+                    <div class="progress" style="height:8px;"><div class="progress-bar @BarColor(Model.Usage.DiskPercent)" style="width:@Model.Usage.DiskPercent%"></div></div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span><i class="bi bi-people"></i> Clients</span>
+                        <span>@Model.Usage.ClientCount / @Limit(Model.Usage.MaxClients)</span>
+                    </div>
+                    <div class="progress" style="height:8px;"><div class="progress-bar @BarColor(Model.Usage.ClientPercent)" style="width:@Model.Usage.ClientPercent%"></div></div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span><i class="bi bi-globe2"></i> Domains</span>
+                        <span>@Model.Usage.DomainsUsed / @Limit(Model.Usage.MaxDomains)</span>
+                    </div>
+                    <div class="progress" style="height:8px;"><div class="progress-bar @BarColor(Model.Usage.DomainPercent)" style="width:@Model.Usage.DomainPercent%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-person-plus"></i> Recent Client Signups</h6>
+                @if (Model.RecentClients.Any())
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <tbody>
+                            @foreach (var c in Model.RecentClients)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-light">@c.UserName</strong>
+                                        <div class="small text-secondary">@c.Email</div>
+                                    </td>
+                                    <td>
+                                        @if (c.IsActive)
+                                        {
+                                            <span class="badge text-bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-secondary">Suspended</span>
+                                        }
+                                    </td>
+                                    <td class="text-end text-secondary small">@c.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No clients yet. <a asp-page="/Reseller/Clients">Create your first client</a>.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-shield-exclamation"></i> Expiring SSL Certificates</h6>
+                @if (Model.ExpiringSsl.Any())
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var cert in Model.ExpiringSsl)
+                        {
+                            var days = (int)(cert.ExpiresAt.Date - DateTime.UtcNow.Date).TotalDays;
+                            <li class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                                <span>@(cert.Domain?.DomainName ?? "—")</span>
+                                <span class="@(days < 0 ? "text-danger" : "text-warning")">
+                                    @(days < 0 ? "expired" : $"{days}d")
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0 small">No certificates expiring soon.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-lightning-charge"></i> Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    <a asp-page="/Reseller/Clients" class="btn btn-outline-primary btn-sm"><i class="bi bi-people"></i> Manage Clients</a>
+                    <a asp-page="/Reseller/Packages" class="btn btn-outline-primary btn-sm"><i class="bi bi-box-seam"></i> Hosting Packages</a>
+                    <a asp-page="/Reseller/Branding" class="btn btn-outline-primary btn-sm"><i class="bi bi-palette"></i> White-Label Branding</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

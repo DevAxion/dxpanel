@@ -1,0 +1,158 @@
+@page
+@model SRXPanel.Pages.Client.SettingsModel
+@{
+    ViewData["Title"] = "Account Settings";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Settings</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">Account Settings</h4>
+
+@if (Model.RecoveryCodes != null)
+{
+    <div class="alert alert-warning">
+        <strong>Save your recovery codes</strong> — use them if you lose your authenticator. Shown once:
+        <div class="font-monospace mt-2">@Model.RecoveryCodes</div>
+    </div>
+}
+@if (Model.NewApiKey != null)
+{
+    <div class="alert alert-success"><strong>New API key</strong> (copy now): <code class="ms-2">@Model.NewApiKey</code></div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-person"></i> Profile</h6>
+                <form method="post" asp-page-handler="Profile">
+                    <div class="mb-2"><label class="form-label">Full Name</label><input name="fullName" value="@Model.CurrentUser.FullName" class="form-control" /></div>
+                    <div class="mb-2"><label class="form-label">Email</label><input value="@Model.CurrentUser.Email" class="form-control" disabled /></div>
+                    <div class="mb-2"><label class="form-label">Phone</label><input name="phone" value="@Model.CurrentUser.PhoneNumber" class="form-control" /></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><label class="form-label">Timezone</label>
+                            <select name="timeZone" class="form-select">
+                                @foreach (var tz in SRXPanel.Pages.Client.SettingsModel.TimeZones)
+                                {
+                                    if (tz == Model.CurrentUser.TimeZone) { <option value="@tz" selected>@tz</option> } else { <option value="@tz">@tz</option> }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-6"><label class="form-label">Language</label>
+                            <select name="language" class="form-select">
+                                @foreach (var (code, lname) in SRXPanel.Pages.Client.SettingsModel.Languages)
+                                {
+                                    if (code == Model.CurrentUser.Language) { <option value="@code" selected>@lname</option> } else { <option value="@code">@lname</option> }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary"><i class="bi bi-save"></i> Save Profile</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-key"></i> Change Password</h6>
+                <form method="post" asp-page-handler="Password">
+                    <div class="mb-2"><label class="form-label">Current Password</label><input name="currentPassword" type="password" class="form-control" required /></div>
+                    <div class="mb-2"><label class="form-label">New Password</label><input name="newPassword" type="password" class="form-control" required /></div>
+                    <div class="mb-3"><label class="form-label">Confirm Password</label><input name="confirmPassword" type="password" class="form-control" required /></div>
+                    <button class="btn btn-primary"><i class="bi bi-shield-check"></i> Change Password</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-bell"></i> Notification Preferences</h6>
+                <form method="post" asp-page-handler="Notifications">
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="invoices" value="true" @(Model.CurrentUser.NotifyInvoices ? "checked" : "") /><label class="form-check-label">Invoice emails</label></div>
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="ssl" value="true" @(Model.CurrentUser.NotifySslExpiry ? "checked" : "") /><label class="form-check-label">SSL expiry warnings</label></div>
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="disk" value="true" @(Model.CurrentUser.NotifyDiskUsage ? "checked" : "") /><label class="form-check-label">Disk usage warnings</label></div>
+                    <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="support" value="true" @(Model.CurrentUser.NotifySupport ? "checked" : "") /><label class="form-check-label">Support reply emails</label></div>
+                    <button class="btn btn-primary"><i class="bi bi-save"></i> Save Preferences</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3"><i class="bi bi-shield-lock"></i> Two-Factor Authentication</h6>
+                @if (Model.TwoFactorEnabled)
+                {
+                    <p class="text-success"><i class="bi bi-check-circle"></i> 2FA is <strong>enabled</strong> on your account.</p>
+                    <form method="post" asp-page-handler="Disable2fa" class="srx-confirm-form" data-confirm-message="Disable two-factor authentication?">
+                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-slash-circle"></i> Disable 2FA</button>
+                    </form>
+                }
+                else if (Model.AuthenticatorUri != null)
+                {
+                    <p class="small">1. Scan this QR code with Google Authenticator / Authy:</p>
+                    <div id="qrcode" class="bg-white d-inline-block p-2 rounded mb-2"></div>
+                    <p class="small">Or enter this key manually: <code>@Model.SharedKey</code></p>
+                    <form method="post" asp-page-handler="Enable2fa" class="row g-2 align-items-end">
+                        <div class="col-8"><label class="form-label small">2. Enter the 6-digit code</label><input name="verificationCode" class="form-control" placeholder="123456" autocomplete="off" /></div>
+                        <div class="col-4"><button class="btn btn-primary w-100">Verify &amp; Enable</button></div>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-secondary small">Add an extra layer of security with an authenticator app.</p>
+                    <a asp-page="/Client/Settings" asp-route-setup="true" class="btn btn-outline-primary btn-sm"><i class="bi bi-qr-code"></i> Set up 2FA</a>
+                }
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-light mb-0"><i class="bi bi-code-slash"></i> API Access</h6>
+                    <a href="/swagger" target="_blank" class="small">API Docs</a>
+                </div>
+                <form method="post" asp-page-handler="GenerateApiKey" class="input-group input-group-sm mb-3">
+                    <input name="name" class="form-control" placeholder="Key name (e.g. CI deploy)" />
+                    <button class="btn btn-primary">Generate Key</button>
+                </form>
+                @if (Model.Keys.Any())
+                {
+                    <table class="table table-sm align-middle mb-0">
+                        <tbody>
+                            @foreach (var k in Model.Keys)
+                            {
+                                <tr>
+                                    <td><strong class="text-light">@k.Name</strong><div class="small text-secondary"><code>@k.Prefix…</code> · @k.CreatedAt.ToString("yyyy-MM-dd")</div></td>
+                                    <td class="text-end"><form method="post" asp-page-handler="RevokeApiKey" asp-route-id="@k.Id" class="srx-confirm-form" data-confirm-message="Revoke this API key?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary small mb-0">No API keys yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.AuthenticatorUri != null)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+        <text><script>
+            new QRCode(document.getElementById("qrcode"), { text: "@Html.Raw(Model.AuthenticatorUri)", width: 160, height: 160 });
+        </script></text>
+    }
+}

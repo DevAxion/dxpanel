@@ -1,0 +1,142 @@
+@page
+@model SRXPanel.Pages.Admin.SupportModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Support";
+    string PriBadge(TicketPriority p) => p switch { TicketPriority.Urgent => "text-bg-danger", TicketPriority.High => "text-bg-warning", TicketPriority.Low => "text-bg-secondary", _ => "text-bg-info" };
+    string StatBadge(TicketStatus s) => s switch { TicketStatus.Open => "srx-badge-active", TicketStatus.InProgress => "text-bg-warning", _ => "text-bg-secondary" };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Support</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-3">Support Tickets</h4>
+
+<form method="get" class="d-flex gap-2 mb-3">
+    <select name="StatusFilter" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width:160px;">
+        <option value="">All statuses</option>
+        @foreach (var s in Enum.GetNames<TicketStatus>())
+        {
+            if (s == Model.StatusFilter) { <option value="@s" selected>@s</option> } else { <option value="@s">@s</option> }
+        }
+    </select>
+    <select name="PriorityFilter" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width:160px;">
+        <option value="">All priorities</option>
+        @foreach (var p in Enum.GetNames<TicketPriority>())
+        {
+            if (p == Model.PriorityFilter) { <option value="@p" selected>@p</option> } else { <option value="@p">@p</option> }
+        }
+    </select>
+</form>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="list-group" style="max-height:70vh;overflow-y:auto;">
+            @foreach (var t in Model.Tickets)
+            {
+                <a asp-page="/Admin/Support" asp-route-id="@t.Id" asp-route-StatusFilter="@Model.StatusFilter" asp-route-PriorityFilter="@Model.PriorityFilter" class="list-group-item list-group-item-action bg-transparent @(Model.Id == t.Id ? "active" : "")">
+                    <div class="d-flex justify-content-between">
+                        <strong class="text-light">#@t.Id @(t.User?.UserName)</strong>
+                        <span class="badge @StatBadge(t.Status)">@t.Status</span>
+                    </div>
+                    <div class="small text-truncate">@t.Subject</div>
+                    <span class="badge @PriBadge(t.Priority) mt-1">@t.Priority</span>
+                </a>
+            }
+            @if (!Model.Tickets.Any()) { <div class="text-secondary small p-2">No tickets.</div> }
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        @if (Model.Selected is { } ticket)
+        {
+            <div class="card srx-card mb-3">
+                <div class="card-body">
+                    <h5 class="text-light">#@ticket.Id — @ticket.Subject</h5>
+                    <div class="small text-secondary mb-3">From @ticket.User?.UserName (@ticket.User?.Email)</div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <form method="post" asp-page-handler="Status" asp-route-ticketId="@ticket.Id" class="input-group input-group-sm">
+                                <select name="status" class="form-select">
+                                    @foreach (var s in Enum.GetValues<TicketStatus>())
+                                    {
+                                        if (s == ticket.Status) { <option value="@s" selected>@s</option> } else { <option value="@s">@s</option> }
+                                    }
+                                </select>
+                                <button class="btn btn-outline-secondary">Set</button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form method="post" asp-page-handler="Priority" asp-route-ticketId="@ticket.Id" class="input-group input-group-sm">
+                                <select name="priority" class="form-select">
+                                    @foreach (var p in Enum.GetValues<TicketPriority>())
+                                    {
+                                        if (p == ticket.Priority) { <option value="@p" selected>@p</option> } else { <option value="@p">@p</option> }
+                                    }
+                                </select>
+                                <button class="btn btn-outline-secondary">Set</button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form method="post" asp-page-handler="Assign" asp-route-ticketId="@ticket.Id" class="input-group input-group-sm">
+                                <select name="staffId" asp-items="Model.Staff" class="form-select"><option value="">Unassigned</option></select>
+                                <button class="btn btn-outline-secondary">Assign</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" style="max-height:40vh;overflow-y:auto;">
+                        @foreach (var r in Model.Replies)
+                        {
+                            <div class="d-flex @(r.IsStaff ? "justify-content-end" : "justify-content-start") mb-2">
+                                <div class="p-3 rounded @(r.IsStaff ? "bg-primary bg-opacity-25" : "bg-body-tertiary")" style="max-width:80%;">
+                                    <div class="small text-secondary mb-1">@(r.IsStaff ? "Staff" : r.User?.UserName) · @r.CreatedAt.ToString("MM-dd HH:mm")</div>
+                                    <div class="text-light" style="white-space:pre-wrap;">@r.Message</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <form method="post" asp-page-handler="Reply" asp-route-ticketId="@ticket.Id">
+                        @if (Model.Canned.Any())
+                        {
+                            <select class="form-select form-select-sm mb-2" onchange="if(this.value){document.getElementById('staffMsg').value=this.value;}">
+                                <option value="">Insert canned response…</option>
+                                @foreach (var c in Model.Canned)
+                                {
+                                    <option value="@c.Body">@c.Title</option>
+                                }
+                            </select>
+                        }
+                        <div class="input-group">
+                            <textarea name="message" id="staffMsg" class="form-control" rows="3" placeholder="Reply as staff..." required></textarea>
+                            <button class="btn btn-primary"><i class="bi bi-send"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card srx-card"><div class="card-body text-center py-5 text-secondary"><i class="bi bi-inbox fs-1"></i><p class="mt-2 mb-0">Select a ticket.</p></div></div>
+        }
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light mb-3">Canned Responses</h6>
+                <form method="post" asp-page-handler="AddCanned" class="row g-2">
+                    <div class="col-md-4"><input name="title" class="form-control form-control-sm" placeholder="Title" /></div>
+                    <div class="col-md-6"><input name="body" class="form-control form-control-sm" placeholder="Response text" /></div>
+                    <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Add</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

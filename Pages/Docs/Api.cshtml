@@ -1,0 +1,283 @@
+@page "/docs/api"
+@model SRXPanel.Pages.Docs.ApiModel
+@{
+    Layout = null;
+    ViewData["Title"] = "API Documentation";
+    var baseUrl = Model.BaseUrl;
+}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Documentation — SRXPanel</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css" />
+    <style>
+        body { background:#0d1117; color:#c9d1d9; }
+        .docs-nav { border-bottom:1px solid #30363d; position:sticky; top:0; background:rgba(13,17,23,.92); backdrop-filter:blur(8px); z-index:100; }
+        .docs-wrap { display:grid; grid-template-columns:240px 1fr; gap:40px; max-width:1280px; margin:0 auto; padding:32px 20px 80px; }
+        .docs-side { position:sticky; top:80px; align-self:start; height:max-content; }
+        .docs-side a { display:block; padding:6px 10px; border-radius:6px; color:#8b949e; text-decoration:none; font-size:14px; }
+        .docs-side a:hover { background:#161b22; color:#fff; }
+        .docs-side .grp { color:#6e7681; text-transform:uppercase; font-size:11px; letter-spacing:.5px; margin:16px 0 4px 10px; }
+        h2 { color:#fff; font-weight:700; margin-top:8px; padding-top:12px; scroll-margin-top:80px; }
+        h3 { color:#e6edf3; font-size:18px; margin-top:24px; }
+        pre { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; overflow:auto; font-size:13px; }
+        code { color:#79c0ff; }
+        pre code { color:#c9d1d9; }
+        table { color:#c9d1d9; }
+        .tab-pane pre { margin-bottom:0; }
+        .swagger-ui { background:#fff; border-radius:10px; padding:12px; }
+        @@media (max-width:900px) { .docs-wrap { grid-template-columns:1fr; } .docs-side { position:static; } }
+    </style>
+</head>
+<body>
+    <nav class="docs-nav py-3 px-4 d-flex justify-content-between align-items-center">
+        <a href="/" class="text-decoration-none fs-5 fw-bold text-white">SRX<span style="color:#3b82f6;">Panel</span></a>
+        <div class="d-flex gap-3 align-items-center">
+            <span class="badge text-bg-secondary">API @Model.Version</span>
+            <a href="/openapi/v1.json" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-json"></i> OpenAPI spec</a>
+            <a href="/Docs/Whmcs" class="btn btn-sm btn-outline-secondary">WHMCS / Blesta</a>
+        </div>
+    </nav>
+
+    <div class="docs-wrap">
+        <aside class="docs-side">
+            <div class="grp">Getting started</div>
+            <a href="#auth">Authentication</a>
+            <a href="#examples">Code examples</a>
+            <a href="#limits">Rate limits</a>
+            <div class="grp">Reference</div>
+            <a href="#explorer">API explorer</a>
+            <a href="#webhooks">Webhooks</a>
+            <div class="grp">About</div>
+            <a href="#changelog">Changelog</a>
+        </aside>
+
+        <main>
+            <h2 id="auth">Authentication</h2>
+            <p>
+                Every request is authenticated in one of two ways. Machine-to-machine callers exchange an
+                API key for a short-lived JWT; the JWT then authorises every subsequent call.
+            </p>
+
+            <h3>1. Create an API key</h3>
+            <p>
+                Generate a key under <a href="/Client/Developer/Settings">Developer → Settings</a>.
+                The plaintext key is shown once and stored only as a BCrypt hash — if you lose it, revoke it and
+                generate another.
+            </p>
+
+            <h3>2. Exchange the key for a token</h3>
+<pre><code>curl -X POST @baseUrl/api/v1/auth/token \
+  -H "X-API-Key: srx_live_your_key_here"</code></pre>
+<pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 86400
+}</code></pre>
+
+            <h3>3. Call the API with the token</h3>
+<pre><code>curl @baseUrl/api/v1/domains \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+
+            <div class="alert alert-secondary small">
+                <i class="bi bi-shield-lock"></i>
+                Tokens are valid for 24 hours and scoped to the account that owns the key. Send them only over HTTPS,
+                and never embed a key in client-side code — it grants full access to your hosting account.
+            </div>
+
+            <h2 id="examples">Code examples</h2>
+            <p>Fetching the account's domains, in four languages.</p>
+
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ex-curl" type="button">curl</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ex-php" type="button">PHP</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ex-py" type="button">Python</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ex-js" type="button">JavaScript</button></li>
+            </ul>
+            <div class="tab-content border border-top-0 rounded-bottom p-3" style="border-color:#30363d !important;">
+                <div class="tab-pane fade show active" id="ex-curl">
+<pre><code>TOKEN=$(curl -s -X POST @baseUrl/api/v1/auth/token \
+  -H "X-API-Key: $SRX_API_KEY" | jq -r .token)
+
+curl -s @baseUrl/api/v1/domains \
+  -H "Authorization: Bearer $TOKEN" | jq
+
+# Create a domain
+curl -s -X POST @baseUrl/api/v1/domains \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"domainName":"example.com"}'</code></pre>
+                </div>
+
+                <div class="tab-pane fade" id="ex-php">
+<pre><code>&lt;?php
+$base = '@baseUrl';
+
+// Exchange the API key for a token.
+$ch = curl_init("$base/api/v1/auth/token");
+curl_setopt_array($ch, [
+    CURLOPT_POST           =&gt; true,
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_HTTPHEADER     =&gt; ['X-API-Key: ' . getenv('SRX_API_KEY')],
+]);
+$token = json_decode(curl_exec($ch), true)['token'];
+curl_close($ch);
+
+// Call the API.
+$ch = curl_init("$base/api/v1/domains");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_HTTPHEADER     =&gt; ["Authorization: Bearer $token"],
+]);
+$domains = json_decode(curl_exec($ch), true);
+curl_close($ch);
+
+print_r($domains);</code></pre>
+                </div>
+
+                <div class="tab-pane fade" id="ex-py">
+<pre><code>import os
+import requests
+
+BASE = "@baseUrl"
+
+token = requests.post(
+    f"{BASE}/api/v1/auth/token",
+    headers={"X-API-Key": os.environ["SRX_API_KEY"]},
+    timeout=10,
+).json()["token"]
+
+session = requests.Session()
+session.headers["Authorization"] = f"Bearer {token}"
+
+domains = session.get(f"{BASE}/api/v1/domains", timeout=10).json()
+print(domains)
+
+# Create a domain
+session.post(f"{BASE}/api/v1/domains", json={"domainName": "example.com"}, timeout=10)</code></pre>
+                </div>
+
+                <div class="tab-pane fade" id="ex-js">
+<pre><code>const BASE = '@baseUrl';
+
+const { token } = await fetch(`${BASE}/api/v1/auth/token`, {
+  method: 'POST',
+  headers: { 'X-API-Key': process.env.SRX_API_KEY },
+}).then(r =&gt; r.json());
+
+const domains = await fetch(`${BASE}/api/v1/domains`, {
+  headers: { Authorization: `Bearer ${token}` },
+}).then(r =&gt; r.json());
+
+console.log(domains);</code></pre>
+                </div>
+            </div>
+
+            <h2 id="limits">Rate limits</h2>
+            <table class="table table-sm">
+                <thead><tr><th>Surface</th><th>Limit</th><th>Window</th><th>On exceeding</th></tr></thead>
+                <tbody>
+                    <tr><td><code>X-API-Key</code> authentication</td><td>100 requests</td><td>per minute, per key</td><td><code>429 Too Many Requests</code></td></tr>
+                    <tr><td>Resource creation (domains, databases, mailboxes, FTP)</td><td>10 requests</td><td>per minute, per account</td><td><code>429 Too Many Requests</code></td></tr>
+                    <tr><td>Terminal sessions</td><td>2 concurrent</td><td>per account</td><td><code>429 Too Many Requests</code></td></tr>
+                    <tr><td>Webhook endpoints</td><td>10 registered</td><td>per account</td><td><code>400 Bad Request</code></td></tr>
+                </tbody>
+            </table>
+            <p class="small text-secondary">
+                Every authenticated call is recorded in the request log, visible under
+                <a href="/Client/ApiAccess">API Access</a>.
+            </p>
+
+            <h2 id="explorer">API explorer</h2>
+            <p>
+                Generated from the live route table. Use <strong>Authorize</strong> to paste a bearer token, then call
+                the endpoints directly against this panel.
+            </p>
+            <div id="swagger-ui" class="swagger-ui"></div>
+
+            <h2 id="webhooks">Webhooks</h2>
+            <p>
+                Register endpoints under <a href="/Client/Developer/Settings">Developer → Settings</a>. Each delivery is a
+                JSON <code>POST</code> whose body is signed with HMAC-SHA256 using the endpoint's secret.
+            </p>
+
+            <h3>Request</h3>
+<pre><code>POST /your/endpoint HTTP/1.1
+Content-Type: application/json
+X-SRX-Event: ssl_renewed
+X-SRX-Signature: sha256=9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+
+{
+  "event": "ssl_renewed",
+  "data": { "domain": "example.com", "expiresAt": "2026-10-08T00:00:00Z" },
+  "at": "2026-07-10T09:15:42Z"
+}</code></pre>
+
+            <h3>Verifying the signature</h3>
+<pre><code>$expected = 'sha256=' . hash_hmac('sha256', file_get_contents('php://input'), $secret);
+
+if (!hash_equals($expected, $_SERVER['HTTP_X_SRX_SIGNATURE'])) {
+    http_response_code(401);
+    exit('bad signature');
+}</code></pre>
+
+            <h3>Events</h3>
+            <table class="table table-sm">
+                <thead><tr><th>Event</th><th>Fires when</th></tr></thead>
+                <tbody>
+                    <tr><td><code>domain_created</code></td><td>A domain or subdomain is added.</td></tr>
+                    <tr><td><code>domain_deleted</code></td><td>A domain is removed.</td></tr>
+                    <tr><td><code>email_created</code></td><td>A mailbox or forwarder is created or removed.</td></tr>
+                    <tr><td><code>ssl_renewed</code></td><td>A certificate is issued, renewed, or nearing expiry.</td></tr>
+                    <tr><td><code>backup_complete</code></td><td>A manual or scheduled backup finishes.</td></tr>
+                    <tr><td><code>app_installed</code></td><td>A one-click application finishes installing.</td></tr>
+                    <tr><td><code>invoice_paid</code></td><td>An invoice is paid.</td></tr>
+                    <tr><td><code>deploy_finished</code></td><td>A git deployment succeeds or fails.</td></tr>
+                </tbody>
+            </table>
+
+            <p class="small text-secondary">
+                Reply with any <code>2xx</code> status within 10 seconds. Non-2xx responses and timeouts are recorded
+                in the delivery log.
+            </p>
+
+            <h3>Git deployment webhook</h3>
+            <p>
+                Separate from the outbound webhooks above: this one is <em>inbound</em>, called by GitHub, GitLab or
+                Bitbucket when you push. The URL embeds a per-repository secret and is shown on each repository's page.
+            </p>
+<pre><code>POST @baseUrl/api/git/webhook/{repositoryId}/{secret}</code></pre>
+
+            <h2 id="changelog">Changelog</h2>
+            @foreach (var entry in SRXPanel.Pages.Docs.ApiModel.Changelog)
+            {
+                <h3>@entry.Version <span class="text-secondary" style="font-size:14px;font-weight:400;">— @entry.Date</span></h3>
+                <ul>
+                    @foreach (var change in entry.Changes)
+                    {
+                        <li>@change</li>
+                    }
+                </ul>
+            }
+        </main>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+    <script>
+        window.addEventListener('load', function () {
+            SwaggerUIBundle({
+                url: '/openapi/v1.json',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                docExpansion: 'list',
+                defaultModelsExpandDepth: -1,
+                persistAuthorization: true
+            });
+        });
+    </script>
+</body>
+</html>

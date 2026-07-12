@@ -1,0 +1,93 @@
+@page
+@model SRXPanel.Pages.Docs.WhmcsModel
+@{
+    ViewData["Title"] = "WHMCS / Blesta Integration";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Docs</li>
+            <li class="breadcrumb-item active" aria-current="page">WHMCS / Blesta</li>
+        </ol>
+    </nav>
+}
+
+<div class="row">
+    <div class="col-lg-9">
+        <h4 class="text-light mb-3">WHMCS &amp; Blesta Integration</h4>
+        <p class="text-secondary">Automate provisioning from your billing system. All endpoints authenticate with an API key sent in the <code>X-API-Key</code> header and are rate limited to <strong>100 requests/minute</strong>. Every call is recorded in the API request log.</p>
+
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light"><i class="bi bi-1-circle"></i> Base URLs</h6>
+                <pre class="bg-black p-3 rounded small mb-0"><code>WHMCS   POST /api/v1/whmcs/{action}
+Blesta  POST /api/v1/blesta/{action}</code></pre>
+            </div>
+        </div>
+
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light"><i class="bi bi-2-circle"></i> Endpoint Reference</h6>
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Action</th><th>Method</th><th>Body</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>CreateAccount</code></td><td>POST</td><td>username, password, email, plan, domain</td></tr>
+                        <tr><td><code>SuspendAccount</code></td><td>POST</td><td>username, reason</td></tr>
+                        <tr><td><code>UnsuspendAccount</code></td><td>POST</td><td>username</td></tr>
+                        <tr><td><code>TerminateAccount</code></td><td>POST</td><td>username</td></tr>
+                        <tr><td><code>ChangePassword</code></td><td>POST</td><td>username, newPassword</td></tr>
+                        <tr><td><code>ChangePackage</code></td><td>POST</td><td>username, newPlan</td></tr>
+                        <tr><td><code>GetUsage</code></td><td>GET</td><td>?username=</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card srx-card mb-4">
+            <div class="card-body">
+                <h6 class="text-light"><i class="bi bi-3-circle"></i> PHP Example (WHMCS module)</h6>
+                <pre class="bg-black p-3 rounded small mb-0"><code>&lt;?php
+function srxpanel_CreateAccount(array $params) {
+    $ch = curl_init($params['serverhttpprefix'].'://'.$params['serverhostname'].'/api/v1/whmcs/CreateAccount');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER =&gt; true,
+        CURLOPT_POST =&gt; true,
+        CURLOPT_HTTPHEADER =&gt; ['Content-Type: application/json', 'X-API-Key: '.$params['serverpassword']],
+        CURLOPT_POSTFIELDS =&gt; json_encode([
+            'username' =&gt; $params['username'],
+            'password' =&gt; $params['password'],
+            'email'    =&gt; $params['clientsdetails']['email'],
+            'plan'     =&gt; $params['configoption1'],
+            'domain'   =&gt; $params['domain'],
+        ]),
+    ]);
+    $res = json_decode(curl_exec($ch), true);
+    return $res['result'] === 'success' ? 'success' : $res['message'];
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="card srx-card">
+            <div class="card-body">
+                <h6 class="text-light"><i class="bi bi-4-circle"></i> Response Format</h6>
+                <p class="small text-secondary mb-1">WHMCS:</p>
+                <pre class="bg-black p-2 rounded small"><code>{ "result": "success", "message": "Account created", "data": { ... } }</code></pre>
+                <p class="small text-secondary mb-1">Blesta:</p>
+                <pre class="bg-black p-2 rounded small mb-0"><code>{ "success": true, "message": "Account created", "data": { ... } }</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card srx-card">
+            <div class="card-body text-center">
+                <i class="bi bi-download fs-1 text-primary"></i>
+                <h6 class="text-light mt-2">Module Download</h6>
+                <p class="small text-secondary">Ready-made provisioning modules.</p>
+                <a href="#" class="btn btn-outline-primary btn-sm mb-2 w-100"><i class="bi bi-file-earmark-zip"></i> WHMCS module</a>
+                <a href="#" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-file-earmark-zip"></i> Blesta module</a>
+            </div>
+        </div>
+    </div>
+</div>

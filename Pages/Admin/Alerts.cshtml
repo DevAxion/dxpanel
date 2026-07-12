@@ -1,0 +1,98 @@
+@page
+@model SRXPanel.Pages.Admin.AlertsModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Alerts";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Infrastructure</li>
+        <li class="breadcrumb-item active" aria-current="page">Alerts</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi bi-bell accent"></i> Node Alerts</h4>
+        <div class="text-secondary small">
+            <span class="badge text-bg-danger">@Model.Critical critical</span>
+            <span class="badge text-bg-warning">@Model.Warning warning</span>
+            <span class="badge text-bg-secondary">@Model.Unacknowledged unacknowledged</span>
+        </div>
+    </div>
+    @if (Model.Unacknowledged > 0)
+    {
+        <form method="post" asp-page-handler="AcknowledgeAll">
+            <input type="hidden" name="filter" value="@Model.Filter" />
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-check-all"></i> Acknowledge all</button>
+        </form>
+    }
+</div>
+
+<ul class="nav nav-pills mb-3">
+    @foreach (var (key, label) in new[] { ("unacked", "Unacknowledged"), ("critical", "Critical"), ("all", "All") })
+    {
+        <li class="nav-item">
+            <a class="nav-link @(Model.Filter == key ? "active" : "")" asp-page="/Admin/Alerts" asp-route-filter="@key">@label</a>
+        </li>
+    }
+</ul>
+
+<div class="card srx-card"><div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Severity</th><th>Node</th><th>Type</th><th>Message</th><th>Raised</th><th class="text-end"></th></tr></thead>
+        <tbody>
+            @foreach (var alert in Model.Alerts)
+            {
+                <tr class="@(alert.IsAcknowledged ? "opacity-50" : "")">
+                    <td>
+                        @switch (alert.Severity)
+                        {
+                            case AlertSeverity.Critical: <span class="badge text-bg-danger">Critical</span> break;
+                            case AlertSeverity.Warning: <span class="badge text-bg-warning">Warning</span> break;
+                            default: <span class="badge text-bg-info">Info</span> break;
+                        }
+                    </td>
+                    <td class="text-light">@alert.Node?.Name</td>
+                    <td class="text-secondary small">@alert.Type</td>
+                    <td class="text-light small">@alert.Message</td>
+                    <td class="text-secondary small">
+                        @alert.CreatedAt.ToString("MMM dd, HH:mm")
+                        @if (alert.Escalated) { <span class="badge text-bg-dark border border-secondary" title="Escalated to email/SMS">escalated</span> }
+                    </td>
+                    <td class="text-end">
+                        @if (alert.IsAcknowledged)
+                        {
+                            <span class="text-secondary small"><i class="bi bi-check-all"></i> @alert.AcknowledgedBy</span>
+                        }
+                        else
+                        {
+                            <form method="post" asp-page-handler="Acknowledge" class="d-inline">
+                                <input type="hidden" name="id" value="@alert.Id" />
+                                <input type="hidden" name="filter" value="@Model.Filter" />
+                                <button class="btn btn-sm btn-outline-secondary">Acknowledge</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Alerts.Any())
+            {
+                <tr><td colspan="6" class="text-center text-secondary py-5">
+                    <i class="bi bi-check-circle text-success" style="font-size:32px;"></i>
+                    <div class="mt-2">No alerts@(Model.Filter == "unacked" ? " — everything is acknowledged" : "").</div>
+                </td></tr>
+            }
+        </tbody>
+    </table>
+</div></div>
+
+<div class="card srx-card mt-3"><div class="card-body">
+    <h6 class="text-light mb-2"><i class="bi bi-info-circle"></i> Escalation rules</h6>
+    <div class="text-secondary small">
+        Unacknowledged <strong>critical</strong> alerts email all SuperAdmins after 15 minutes and send an SMS
+        (Twilio) after 30 minutes. CPU alerts require the threshold to be exceeded for 5 minutes before firing.
+        Configure per-node thresholds on each node's <strong>Alerts</strong> tab.
+    </div>
+</div></div>

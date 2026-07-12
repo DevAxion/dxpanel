@@ -1,0 +1,152 @@
+@page
+@model SRXPanel.Pages.Email.IndexModel
+@{
+    ViewData["Title"] = "Email";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Email</li>
+        </ol>
+    </nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0">Email</h4>
+    <div class="d-flex gap-2">
+        <a asp-page="/Email/Forwarders" class="btn btn-outline-secondary"><i class="bi bi-arrow-left-right"></i> Add Forwarder</a>
+        <a asp-page="/Email/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Email Account</a>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#accounts" type="button">
+            <i class="bi bi-envelope"></i> Accounts <span class="badge text-bg-secondary">@Model.Accounts.Count</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#forwarders" type="button">
+            <i class="bi bi-arrow-left-right"></i> Forwarders <span class="badge text-bg-secondary">@Model.Forwarders.Count</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="accounts">
+        <div class="card srx-card">
+            <div class="card-body">
+                @if (Model.Accounts.Any())
+                {
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Email Address</th>
+                                @if (Model.ShowOwner)
+                                {
+                                    <th>Owner</th>
+                                }
+                                <th>Quota</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model.Accounts)
+                            {
+                                <tr>
+                                    <td>@e.EmailAddress</td>
+                                    @if (Model.ShowOwner)
+                                    {
+                                        <td>@(e.User?.UserName ?? "-")</td>
+                                    }
+                                    <td>@(e.QuotaMB == 0 ? "Unlimited" : $"{e.QuotaMB} MB")</td>
+                                    <td>
+                                        @if (e.IsActive)
+                                        {
+                                            <span class="badge srx-badge-active">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge srx-badge-suspended">Disabled</span>
+                                        }
+                                    </td>
+                                    <td>@e.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-page="/Email/Edit" asp-route-id="@e.Id" class="btn btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                            <form method="post" asp-page-handler="ToggleActive" asp-route-id="@e.Id" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-warning" title="@(e.IsActive ? "Disable" : "Enable")">
+                                                    <i class="bi @(e.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete email account '@e.EmailAddress'?">
+                                                <button type="submit" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No email accounts found.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="forwarders">
+        <div class="card srx-card">
+            <div class="card-body">
+                @if (Model.Forwarders.Any())
+                {
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th></th>
+                                <th>Destination</th>
+                                @if (Model.ShowOwner)
+                                {
+                                    <th>Owner</th>
+                                }
+                                <th>Created</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in Model.Forwarders)
+                            {
+                                <tr>
+                                    <td>@f.Source</td>
+                                    <td><i class="bi bi-arrow-right text-secondary"></i></td>
+                                    <td>@f.Destination</td>
+                                    @if (Model.ShowOwner)
+                                    {
+                                        <td>@(f.User?.UserName ?? "-")</td>
+                                    }
+                                    <td>@f.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td class="text-end">
+                                        <form method="post" asp-page-handler="DeleteForwarder" asp-route-id="@f.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this forwarder?">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0">No forwarders configured. <a asp-page="/Email/Forwarders">Add one</a>.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

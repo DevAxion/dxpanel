@@ -1,0 +1,130 @@
+@page
+@model SRXPanel.Pages.Client.Cloudflare.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Cloudflare";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Cloudflare</li>
+        <li class="breadcrumb-item active" aria-current="page">Overview</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi bi-cloud accent"></i> Cloudflare</h4>
+        <div class="text-secondary small">CDN, DNS, SSL, caching, WAF and analytics for your domains.</div>
+    </div>
+    @if (Model.Account != null)
+    {
+        <div class="d-flex gap-2">
+            <a asp-page="/Client/Cloudflare/Tunnel" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3"></i> Tunnels</a>
+            <a asp-page="/Client/Cloudflare/Connect" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus-lg"></i> Link domain</a>
+        </div>
+    }
+</div>
+
+@if (Model.Account == null)
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-cloud text-secondary" style="font-size:52px;"></i>
+        <h5 class="text-light mt-3">Connect your Cloudflare account</h5>
+        <p class="text-secondary mb-4" style="max-width:520px;margin:0 auto;">
+            Manage DNS, purge cache, tune SSL and see analytics for your domains — all from here.
+            You only need a scoped API token; SRXPanel never sees your Cloudflare password.
+        </p>
+        <a asp-page="/Client/Cloudflare/Connect" class="btn btn-primary"><i class="bi bi-plug"></i> Connect Cloudflare</a>
+    </div></div>
+}
+else
+{
+    <div class="card srx-card mb-4"><div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> Connected</span>
+            <span class="text-light ms-2">@(Model.Account.AccountName ?? Model.Account.Email ?? "Cloudflare account")</span>
+            <div class="text-secondary small mt-1">
+                Token <code>@Model.Account.MaskedToken</code>
+                @if (Model.Account.LastValidatedAt is DateTime validated)
+                {
+                    <span>· validated @validated.ToString("MMM dd, HH:mm")</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.Account.TokenScopes))
+                {
+                    <div>Scopes: @Model.Account.TokenScopes</div>
+                }
+            </div>
+        </div>
+        <form method="post" asp-page-handler="Disconnect"
+              onsubmit="return confirm('Disconnect Cloudflare? Linked domains will be unlinked from the panel (zones stay in Cloudflare).');">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Disconnect</button>
+        </form>
+    </div></div>
+
+    <h6 class="text-light mb-3">Managed domains (@Model.Domains.Count)</h6>
+
+    @if (!Model.Domains.Any())
+    {
+        <div class="alert alert-secondary">
+            No domains linked yet.
+            <a asp-page="/Client/Cloudflare/Connect" class="alert-link">Link a domain to Cloudflare</a> to get started.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var cf in Model.Domains)
+            {
+                <div class="col-lg-6">
+                    <div class="card srx-card h-100"><div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="text-light mb-0"><i class="bi bi-globe2 accent"></i> @cf.Domain?.DomainName</h6>
+                                <div class="text-secondary small">
+                                    @if (cf.DevelopmentMode) { <span class="badge text-bg-warning">Dev mode</span> }
+                                    @if (cf.UnderAttackMode) { <span class="badge text-bg-danger">Under Attack</span> }
+                                    Cache: @cf.CacheLevel · SSL: @cf.SslMode
+                                </div>
+                            </div>
+                            @switch (cf.Status)
+                            {
+                                case CloudflareZoneStatus.Active: <span class="badge text-bg-success">Active</span> break;
+                                case CloudflareZoneStatus.Pending: <span class="badge text-bg-warning">Pending</span> break;
+                                case CloudflareZoneStatus.Paused: <span class="badge text-bg-secondary">Paused</span> break;
+                                default: <span class="badge text-bg-secondary">@cf.Status</span> break;
+                            }
+                        </div>
+
+                        @if (cf.Status == CloudflareZoneStatus.Pending && cf.NameServer1 != null)
+                        {
+                            <div class="alert alert-warning py-2 px-3 small mb-2">
+                                <i class="bi bi-exclamation-triangle"></i> Point your nameservers to
+                                <code>@cf.NameServer1</code> and <code>@cf.NameServer2</code> to activate.
+                            </div>
+                        }
+
+                        <div class="d-flex gap-1 flex-wrap mt-2">
+                            <a asp-page="/Client/Cloudflare/Domain" asp-route-domainId="@cf.DomainId" class="btn btn-sm btn-primary">
+                                <i class="bi bi-gear"></i> Manage
+                            </a>
+                            <form method="post" asp-page-handler="Unlink" class="d-inline"
+                                  onsubmit="return confirm('Unlink @cf.Domain?.DomainName? The Cloudflare zone stays intact.');">
+                                <input type="hidden" name="id" value="@cf.Id" />
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg"></i></button>
+                            </form>
+                        </div>
+                    </div></div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.Linkable.Any())
+    {
+        <div class="text-secondary small">
+            <i class="bi bi-info-circle"></i> @Model.Linkable.Count more domain(s) can be linked.
+            <a asp-page="/Client/Cloudflare/Connect">Link them now →</a>
+        </div>
+    }
+}

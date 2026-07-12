@@ -1,0 +1,61 @@
+@page
+@model SRXPanel.Pages.Admin.KbEditModel
+@{
+    ViewData["Title"] = Model.IsNew ? "New Article" : "Edit Article";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item">Website</li>
+            <li class="breadcrumb-item"><a asp-page="/Admin/Kb">Knowledge Base</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@(Model.IsNew ? "New" : "Edit")</li>
+        </ol>
+    </nav>
+}
+
+<h4 class="text-light mb-4">@(Model.IsNew ? "New Article" : "Edit Article")</h4>
+
+<form method="post" id="kbForm">
+    <input type="hidden" asp-for="Input.Id" />
+    <input type="hidden" asp-for="Input.Content" id="Content" />
+    <div asp-validation-summary="All" class="text-danger small mb-2"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <div class="mb-3"><label class="form-label">Title</label><input asp-for="Input.Title" class="form-control form-control-lg" required /></div>
+                <div class="mb-3"><label class="form-label">Slug <span class="text-secondary small">(auto if blank)</span></label><input asp-for="Input.Slug" class="form-control" /></div>
+                <div class="mb-1"><label class="form-label">Content</label></div>
+                <div id="editor" style="height:380px;background:#fff;border-radius:6px;"></div>
+            </div></div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card srx-card mb-4"><div class="card-body">
+                <div class="mb-3"><label class="form-label">Category</label><select asp-for="Input.CategoryId" asp-items="Model.CategoryOptions" class="form-select"></select></div>
+                <div class="form-check form-switch mb-3"><input class="form-check-input" asp-for="Input.IsPublished" /><label class="form-check-label">Published</label></div>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i> Save article</button>
+            </div></div>
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">SEO</h6>
+                <div class="mb-0"><label class="form-label">Meta description</label><textarea asp-for="Input.MetaDescription" class="form-control" rows="3"></textarea></div>
+            </div></div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script>
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: { toolbar: [[{ header: [2, 3, false] }], ['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['blockquote', 'code-block'], ['link'], ['clean']] }
+        });
+        var initial = document.getElementById('Content').value;
+        if (initial) quill.clipboard.dangerouslyPasteHTML(initial);
+        document.getElementById('kbForm').addEventListener('submit', function () {
+            document.getElementById('Content').value = quill.root.innerHTML;
+        });
+    </script>
+}

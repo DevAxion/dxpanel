@@ -1,0 +1,80 @@
+@page "/Client/Apps/Hosted"
+@model SRXPanel.Pages.Client.Apps.Hosted.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Hosted Apps";
+    (string cls, string text) Badge(HostedAppStatus s) => s switch
+    {
+        HostedAppStatus.Running => ("text-bg-success", "Running"),
+        HostedAppStatus.Starting => ("text-bg-info", "Starting"),
+        HostedAppStatus.Stopped => ("text-bg-secondary", "Stopped"),
+        HostedAppStatus.Error => ("text-bg-danger", "Error"),
+        _ => ("text-bg-secondary", s.ToString())
+    };
+    string Uptime(long s) => s <= 0 ? "—" : s >= 86400 ? $"{s / 86400}d" : s >= 3600 ? $"{s / 3600}h" : $"{s / 60}m";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Applications</li>
+        <li class="breadcrumb-item active" aria-current="page">Hosted Apps</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="text-light mb-0"><i class="bi bi-rocket-takeoff accent"></i> Hosted Apps</h4>
+    <a asp-page="/Client/Apps/Hosted/Create" class="btn btn-primary @(Model.AtLimit ? "disabled" : "")"><i class="bi bi-plus-lg"></i> New App</a>
+</div>
+
+@if (Model.AtLimit)
+{
+    <div class="alert alert-warning">You have reached your limit of @Model.Limit hosted apps.</div>
+}
+
+@if (!Model.Apps.Any())
+{
+    <div class="card srx-card"><div class="card-body text-center py-5">
+        <i class="bi bi-rocket text-secondary" style="font-size:2.5rem;"></i>
+        <p class="text-secondary mt-3 mb-0">No hosted apps yet. Deploy a Node.js, Python, Ruby or Go app in minutes.</p>
+    </div></div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var a in Model.Apps)
+        {
+            var b = Badge(a.Status);
+            <div class="col-lg-6">
+                <div class="card srx-card h-100"><div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="text-light mb-1"><i class="bi @a.TypeIcon accent"></i> @a.Name</h5>
+                            <div class="text-secondary small">@a.Type · @(a.Domain?.DomainName ?? "no domain") · :@a.Port</div>
+                        </div>
+                        <span class="badge @b.cls">@b.text</span>
+                    </div>
+                    <div class="row text-secondary small g-2 mb-3">
+                        <div class="col-4"><i class="bi bi-cpu accent"></i> @a.CpuPercent.ToString("0.0")%</div>
+                        <div class="col-4"><i class="bi bi-memory accent"></i> @a.MemoryMB.ToString("0") MB</div>
+                        <div class="col-4"><i class="bi bi-clock accent"></i> @Uptime(a.Uptime)</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <form method="post" asp-page-handler="Power" class="d-inline">
+                            <input type="hidden" name="id" value="@a.Id" />
+                            @if (a.Status == HostedAppStatus.Running)
+                            {
+                                <button name="action" value="restart" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
+                                <button name="action" value="stop" class="btn btn-sm btn-outline-warning"><i class="bi bi-stop-circle"></i> Stop</button>
+                            }
+                            else
+                            {
+                                <button name="action" value="start" class="btn btn-sm btn-outline-success"><i class="bi bi-play-circle"></i> Start</button>
+                            }
+                        </form>
+                        <a asp-page="/Client/Apps/Hosted/Detail" asp-route-id="@a.Id" class="btn btn-sm btn-primary ms-auto"><i class="bi bi-gear"></i> Manage</a>
+                    </div>
+                </div></div>
+            </div>
+        }
+    </div>
+}

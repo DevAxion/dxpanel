@@ -1,0 +1,121 @@
+@page
+@model SRXPanel.Pages.Client.SupportModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Support";
+    string PriBadge(TicketPriority p) => p switch { TicketPriority.Urgent => "text-bg-danger", TicketPriority.High => "text-bg-warning", TicketPriority.Low => "text-bg-secondary", _ => "text-bg-info" };
+    string StatBadge(TicketStatus s) => s switch { TicketStatus.Open => "srx-badge-active", TicketStatus.InProgress => "text-bg-warning", _ => "text-bg-secondary" };
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb srx-breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Support</li>
+        </ol>
+    </nav>
+}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-light mb-0">Tickets</h5>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newTicket"><i class="bi bi-plus-lg"></i> New</button>
+        </div>
+        <div class="list-group">
+            @foreach (var t in Model.Tickets)
+            {
+                <a asp-page="/Client/Support" asp-route-id="@t.Id" class="list-group-item list-group-item-action bg-transparent @(Model.Id == t.Id ? "active" : "")">
+                    <div class="d-flex justify-content-between">
+                        <strong class="text-light">#@t.Id</strong>
+                        <span class="badge @StatBadge(t.Status)">@t.Status</span>
+                    </div>
+                    <div class="small text-truncate">@t.Subject</div>
+                    <span class="badge @PriBadge(t.Priority) mt-1">@t.Priority</span>
+                </a>
+            }
+            @if (!Model.Tickets.Any()) { <div class="text-secondary small p-2">No tickets yet.</div> }
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        @if (Model.Selected is { } ticket)
+        {
+            <div class="card srx-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="text-light mb-1">#@ticket.Id — @ticket.Subject</h5>
+                            <span class="badge @StatBadge(ticket.Status)">@ticket.Status</span>
+                            <span class="badge @PriBadge(ticket.Priority)">@ticket.Priority</span>
+                        </div>
+                        @if (ticket.Status != TicketStatus.Closed)
+                        {
+                            <form method="post" asp-page-handler="Close" asp-route-ticketId="@ticket.Id">
+                                <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-check-circle"></i> Close</button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="mb-3" style="max-height:50vh;overflow-y:auto;">
+                        @foreach (var r in Model.Replies)
+                        {
+                            <div class="d-flex @(r.IsStaff ? "justify-content-start" : "justify-content-end") mb-2">
+                                <div class="p-3 rounded @(r.IsStaff ? "bg-body-tertiary" : "bg-primary bg-opacity-25")" style="max-width:80%;">
+                                    <div class="small text-secondary mb-1">
+                                        @(r.IsStaff ? "Support" : (r.User?.UserName ?? "You")) · @r.CreatedAt.ToString("MM-dd HH:mm")
+                                    </div>
+                                    <div class="text-light" style="white-space:pre-wrap;">@r.Message</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (ticket.Status != TicketStatus.Closed)
+                    {
+                        <form method="post" asp-page-handler="Reply" asp-route-ticketId="@ticket.Id">
+                            <div class="input-group">
+                                <textarea name="message" class="form-control" rows="2" placeholder="Type your reply..." required></textarea>
+                                <button class="btn btn-primary"><i class="bi bi-send"></i></button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mb-0">This ticket is closed. Reply to reopen it.</div>
+                        <form method="post" asp-page-handler="Reply" asp-route-ticketId="@ticket.Id" class="mt-2">
+                            <div class="input-group">
+                                <textarea name="message" class="form-control" rows="2" placeholder="Reopen with a reply..."></textarea>
+                                <button class="btn btn-outline-primary"><i class="bi bi-send"></i></button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card srx-card"><div class="card-body text-center py-5 text-secondary">
+                <i class="bi bi-chat-dots fs-1"></i>
+                <p class="mt-2 mb-0">Select a ticket or open a new one.</p>
+            </div></div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="newTicket"><div class="modal-dialog"><form method="post" asp-page-handler="Create" class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Support Ticket</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-3"><label class="form-label">Subject</label><input name="subject" class="form-control" required /></div>
+        <div class="mb-3"><label class="form-label">Priority</label>
+            <select name="priority" class="form-select">
+                <option value="@TicketPriority.Low">Low</option>
+                <option value="@TicketPriority.Normal" selected>Normal</option>
+                <option value="@TicketPriority.High">High</option>
+                <option value="@TicketPriority.Urgent">Urgent</option>
+            </select>
+        </div>
+        <div class="mb-3"><label class="form-label">Message</label><textarea name="message" class="form-control" rows="4" required></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary">Submit Ticket</button></div>
+</form></div></div>

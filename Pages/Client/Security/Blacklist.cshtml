@@ -1,0 +1,126 @@
+@page
+@model SRXPanel.Pages.Client.Security.BlacklistModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "IP Blacklist";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Security/Index">Security</a></li>
+        <li class="breadcrumb-item active" aria-current="page">IP Blacklist</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">IP Blacklist</h4>
+
+@if (!Model.Domains.Any())
+{
+    <div class="card srx-card"><div class="card-body">
+        <p class="text-secondary mb-0">You have no domains yet. Add a domain to manage its IP access rules.</p>
+    </div></div>
+    return;
+}
+
+<div class="card srx-card mb-4"><div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label text-secondary small">Domain</label>
+            <select name="domainId" class="form-select" onchange="this.form.submit()">
+                @foreach (var d in Model.Domains)
+                {
+                    <option value="@d.Id" selected="@(Model.Selected?.Id == d.Id)">@d.DomainName</option>
+                }
+            </select>
+        </div>
+    </form>
+    <p class="text-secondary small mb-0 mt-2">
+        Block or allow individual IP addresses / CIDR ranges for <strong class="text-light">@Model.Selected?.DomainName</strong>.
+        Blocked addresses are denied at the web firewall (ModSecurity / Nginx). Whitelisted addresses bypass rate limiting.
+    </p>
+</div></div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card srx-card mb-4"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-shield-exclamation text-danger"></i> Blocked IP addresses</h6>
+            @if (!Model.Blocked.Any())
+            {
+                <p class="text-secondary mb-0">No IP addresses are blocked.</p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>IP / CIDR</th><th>Added</th><th class="text-end">Action</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in Model.Blocked)
+                    {
+                        <tr>
+                            <td class="text-light"><code>@r.IP</code></td>
+                            <td class="small text-secondary">@r.CreatedAt.ToString("MMM d, yyyy HH:mm")</td>
+                            <td class="text-end">
+                                <form method="post" asp-page-handler="Remove">
+                                    <input type="hidden" name="domainId" value="@Model.Selected?.Id" />
+                                    <input type="hidden" name="ruleId" value="@r.Id" />
+                                    <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-trash"></i> Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div>
+
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3"><i class="bi bi-shield-check text-success"></i> Whitelisted IP addresses</h6>
+            @if (!Model.Allowed.Any())
+            {
+                <p class="text-secondary mb-0">No IP addresses are whitelisted.</p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>IP / CIDR</th><th>Added</th><th class="text-end">Action</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in Model.Allowed)
+                    {
+                        <tr>
+                            <td class="text-light"><code>@r.IP</code></td>
+                            <td class="small text-secondary">@r.CreatedAt.ToString("MMM d, yyyy HH:mm")</td>
+                            <td class="text-end">
+                                <form method="post" asp-page-handler="Remove">
+                                    <input type="hidden" name="domainId" value="@Model.Selected?.Id" />
+                                    <input type="hidden" name="ruleId" value="@r.Id" />
+                                    <button class="btn btn-sm btn-outline-secondary py-0"><i class="bi bi-trash"></i> Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div></div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-3">Add IP Rule</h6>
+            <form method="post" asp-page-handler="Add">
+                <input type="hidden" name="domainId" value="@Model.Selected?.Id" />
+                <div class="mb-3">
+                    <label class="form-label">IP address or CIDR range</label>
+                    <input name="ip" class="form-control" placeholder="203.0.113.10 or 203.0.113.0/24" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Action</label>
+                    <select name="action" class="form-select">
+                        <option value="@WafIpAction.Block" selected>Block (deny access)</option>
+                        <option value="@WafIpAction.Whitelist">Whitelist (always allow)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> Add Rule</button>
+            </form>
+        </div></div>
+    </div>
+</div>

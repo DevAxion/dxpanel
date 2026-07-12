@@ -1,0 +1,82 @@
+@page "/Client/Services/Upgrade/{id:int}"
+@model SRXPanel.Pages.Client.ServiceUpgradeModel
+@{
+    ViewData["Title"] = "Change Plan";
+    string Money(decimal d) => $"${d:0.00}";
+    string Disk(long mb) => mb >= 1024 ? $"{mb / 1024} GB" : $"{mb} MB";
+    string Limit(int n) => n == 0 ? "Unlimited" : n.ToString();
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Store</li>
+        <li class="breadcrumb-item"><a asp-page="/Client/Services">Services</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Change Plan</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">Change Plan</h4>
+
+<div class="card srx-card mb-4"><div class="card-body">
+    <div class="text-secondary small">Current plan</div>
+    <div class="d-flex justify-content-between align-items-center">
+        <h5 class="text-light mb-0">@Model.CurrentPlan.Name</h5>
+        <span class="text-light">@Money(Model.CurrentPlan.Price)/mo</span>
+    </div>
+    <div class="text-secondary small mt-1">
+        @Disk(Model.CurrentPlan.DiskQuotaMB) disk · @Limit(Model.CurrentPlan.MaxDomains) domains ·
+        @Limit(Model.CurrentPlan.MaxEmails) emails · @Limit(Model.CurrentPlan.MaxDatabases) databases
+    </div>
+    <div class="text-secondary small">Current period ends @Model.Subscription.CurrentPeriodEnd.ToString("MMM d, yyyy")</div>
+</div></div>
+
+<div class="row g-3">
+    @foreach (var o in Model.Options)
+    {
+        var t = o.Target;
+        <div class="col-lg-4 col-md-6">
+            <div class="card srx-card h-100"><div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="text-light mb-0">@t.Name</h5>
+                    @if (o.IsUpgrade)
+                    {
+                        <span class="badge text-bg-success"><i class="bi bi-arrow-up"></i> Upgrade</span>
+                    }
+                    else
+                    {
+                        <span class="badge text-bg-secondary"><i class="bi bi-arrow-down"></i> Downgrade</span>
+                    }
+                </div>
+                <div class="my-2"><span class="fs-4 fw-bold text-light">@Money(t.Price)</span><span class="text-secondary">/mo</span></div>
+                <div class="text-secondary small py-1"><i class="bi bi-hdd accent"></i> @Disk(t.DiskQuotaMB) disk</div>
+                <div class="text-secondary small py-1"><i class="bi bi-globe2 accent"></i> @Limit(t.MaxDomains) domains</div>
+                <div class="text-secondary small py-1"><i class="bi bi-envelope accent"></i> @Limit(t.MaxEmails) emails</div>
+
+                <div class="alert @(o.IsUpgrade ? "alert-info" : "alert-secondary") small mt-2 mb-2 py-2">
+                    @if (o.IsUpgrade)
+                    {
+                        <span>You'll be charged <strong>@Money(o.ProratedAmount)</strong> now (prorated for @o.DaysRemaining day(s) remaining).</span>
+                    }
+                    else
+                    {
+                        <span>A credit of <strong>@Money(o.ProratedAmount)</strong> will be applied to your next invoice.</span>
+                    }
+                </div>
+
+                <form method="post" asp-page-handler="Apply" class="mt-auto"
+                      onsubmit="return confirm('@(o.IsUpgrade ? $"Upgrade to {t.Name} and charge {Money(o.ProratedAmount)} now?" : $"Downgrade to {t.Name}? New limits apply immediately.")');">
+                    <input type="hidden" name="id" value="@Model.Subscription.Id" />
+                    <input type="hidden" name="newPlanId" value="@t.Id" />
+                    <button class="btn @(o.IsUpgrade ? "btn-primary" : "btn-outline-secondary") w-100">
+                        @(o.IsUpgrade ? "Upgrade" : "Downgrade") to @t.Name
+                    </button>
+                </form>
+            </div></div>
+        </div>
+    }
+</div>
+
+@if (!Model.Options.Any())
+{
+    <p class="text-secondary">No other plans are available to switch to right now.</p>
+}

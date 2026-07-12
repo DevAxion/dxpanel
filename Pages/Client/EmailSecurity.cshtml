@@ -1,0 +1,131 @@
+@page "/Client/Email/Security"
+@model SRXPanel.Pages.Client.EmailSecurityModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Email Security";
+    string ScoreColor(int s) => s >= 75 ? "#3fb950" : s >= 40 ? "#d29922" : "#f85149";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-page="/Client/Security/Index">Security</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Email Security</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-3">Email Security — DKIM / SPF / DMARC</h4>
+
+@if (!Model.Domains.Any())
+{
+    <div class="alert alert-info">Add a domain first to configure email authentication.</div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+        <form method="get" style="max-width:320px;">
+            <label class="form-label text-secondary small">Domain</label>
+            <select name="domainId" class="form-select" onchange="this.form.submit()">
+                @foreach (var d in Model.Domains)
+                {
+                    <option value="@d.Id" selected="@(Model.Selected?.Id == d.Id)">@d.DomainName</option>
+                }
+            </select>
+        </form>
+        <div class="text-end">
+            <div class="text-secondary small">Deliverability score</div>
+            <span style="font-size:28px;font-weight:800;color:@ScoreColor(Model.Score);">@Model.Score / 100</span>
+            <form method="post" asp-page-handler="Test" class="d-inline ms-2"><input type="hidden" name="domainId" value="@Model.Selected!.Id" />
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat"></i> Re-test all</button></form>
+        </div>
+    </div>
+
+    var sec = Model.Security!;
+    var dom = Model.Selected!;
+    <div class="row g-4">
+        <!-- DKIM -->
+        <div class="col-lg-6">
+            <div class="card srx-card h-100"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-light mb-0"><i class="bi bi-key"></i> DKIM</h6>
+                    <span class="badge @(sec.DkimValid ? "text-bg-success" : "text-bg-secondary")">@(sec.DkimValid ? "Valid" : "Not configured")</span>
+                </div>
+                @if (sec.DkimEnabled && !string.IsNullOrEmpty(Model.DkimRecord))
+                {
+                    <p class="text-secondary small mb-1">Add this TXT record at <code>@(sec.DkimSelector)._domainkey.@dom.DomainName</code>:</p>
+                    <pre class="bg-black p-2 rounded small" style="white-space:pre-wrap;word-break:break-all;"><code>@Model.DkimRecord</code></pre>
+                    <form method="post" asp-page-handler="DisableDkim"><input type="hidden" name="domainId" value="@dom.Id" />
+                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Disable DKIM</button></form>
+                }
+                else
+                {
+                    <p class="text-secondary small">Generate a 2048-bit DKIM key and enable signing. The DNS record is added automatically if DNS is managed here.</p>
+                    <form method="post" asp-page-handler="GenerateDkim"><input type="hidden" name="domainId" value="@dom.Id" />
+                        <button class="btn btn-primary btn-sm"><i class="bi bi-magic"></i> Auto-configure DKIM</button></form>
+                }
+            </div></div>
+        </div>
+
+        <!-- SPF -->
+        <div class="col-lg-6">
+            <div class="card srx-card h-100"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-light mb-0"><i class="bi bi-shield"></i> SPF</h6>
+                    <span class="badge @(sec.SpfValid ? "text-bg-success" : "text-bg-secondary")">@(sec.SpfValid ? "Valid" : "Check")</span>
+                </div>
+                <form method="post" asp-page-handler="SetSpf">
+                    <input type="hidden" name="domainId" value="@dom.Id" />
+                    <input name="record" id="spfInput" class="form-control form-control-sm font-monospace mb-2" value="@sec.SpfRecord" />
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        <span class="text-secondary small">Presets:</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0" onclick="setSpf('v=spf1 include:_spf.google.com ~all')">Google</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0" onclick="setSpf('v=spf1 include:spf.protection.outlook.com ~all')">Microsoft 365</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0" onclick="setSpf('v=spf1 include:servers.mcsv.net ~all')">Mailchimp</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-0" onclick="setSpf('v=spf1 include:sendgrid.net ~all')">SendGrid</button>
+                    </div>
+                    <button class="btn btn-primary btn-sm"><i class="bi bi-save"></i> Save SPF</button>
+                </form>
+            </div></div>
+        </div>
+
+        <!-- DMARC -->
+        <div class="col-lg-12">
+            <div class="card srx-card"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-light mb-0"><i class="bi bi-clipboard-check"></i> DMARC</h6>
+                    <span class="badge @(sec.DmarcValid ? "text-bg-success" : "text-bg-secondary")">@(sec.DmarcValid ? "Valid" : "Not configured")</span>
+                </div>
+                <form method="post" asp-page-handler="SetDmarc" class="row g-2 align-items-end">
+                    <input type="hidden" name="domainId" value="@dom.Id" />
+                    <div class="col-md-3">
+                        <label class="form-label text-secondary small">Policy</label>
+                        <select name="policy" class="form-select form-select-sm">
+                            <option value="@DmarcPolicy.None" selected="@(sec.DmarcPolicy == DmarcPolicy.None)">none (monitor)</option>
+                            <option value="@DmarcPolicy.Quarantine" selected="@(sec.DmarcPolicy == DmarcPolicy.Quarantine)">quarantine</option>
+                            <option value="@DmarcPolicy.Reject" selected="@(sec.DmarcPolicy == DmarcPolicy.Reject)">reject</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-secondary small">Percentage</label>
+                        <input name="percentage" type="number" min="0" max="100" value="@sec.DmarcPercentage" class="form-control form-control-sm" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small">Report email</label>
+                        <input name="email" value="@sec.DmarcEmail" class="form-control form-control-sm" placeholder="dmarc@@@dom.DomainName" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary btn-sm w-100"><i class="bi bi-save"></i> Save DMARC</button>
+                    </div>
+                </form>
+                @if (sec.DmarcPolicy != DmarcPolicy.None)
+                {
+                    <p class="text-secondary small mt-2 mb-0">TXT record at <code>_dmarc.@dom.DomainName</code>:
+                        <code>v=DMARC1; p=@sec.DmarcPolicy.ToString().ToLower(); pct=@sec.DmarcPercentage; rua=mailto:@sec.DmarcEmail</code></p>
+                }
+            </div></div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>function setSpf(v){ document.getElementById('spfInput').value = v; }</script>
+}

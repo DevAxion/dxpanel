@@ -1,0 +1,115 @@
+@page
+@model SRXPanel.Pages.Admin.Nodes.IndexModel
+@using SRXPanel.Models
+@{
+    ViewData["Title"] = "Nodes";
+
+    string Bar(double pct, int threshold) =>
+        pct >= threshold ? "bg-danger" : pct >= threshold * 0.85 ? "bg-warning" : "bg-success";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Infrastructure</li>
+        <li class="breadcrumb-item active" aria-current="page">Nodes</li>
+    </ol></nav>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="text-light mb-0"><i class="bi bi-hdd-stack accent"></i> Server Fleet</h4>
+        <div class="text-secondary small">
+            <span class="badge text-bg-success">@Model.OnlineCount / @Model.TotalCount online</span>
+            Each node runs its own nginx/mysql/dns/ftp/mail; the panel orchestrates over SSH.
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-page="/Admin/LoadBalancer" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3"></i> Load Balancer</a>
+        <a asp-page="/Admin/Nodes/Migrate" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left-right"></i> Migrate</a>
+        <form method="post" asp-page-handler="Refresh" class="d-inline">
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Ping all</button>
+        </form>
+        <a asp-page="/Admin/Nodes/Add" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add node</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    @foreach (var row in Model.Nodes)
+    {
+        var node = row.Node;
+        var metric = row.Metric;
+        <div class="col-lg-6 col-xl-4">
+            <div class="card srx-card h-100"><div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="text-light mb-0">
+                            <i class="bi @(node.Type switch {
+                                NodeType.Mail => "bi-envelope",
+                                NodeType.Dns => "bi-hdd-network",
+                                NodeType.Storage => "bi-hdd",
+                                _ => "bi-server" }) accent"></i>
+                            @node.Name
+                        </h6>
+                        <div class="text-secondary small">
+                            @node.IpAddress · <i class="bi bi-geo-alt"></i> @node.Location
+                        </div>
+                    </div>
+                    @switch (node.Status)
+                    {
+                        case NodeStatus.Online: <span class="badge text-bg-success">Online</span> break;
+                        case NodeStatus.Offline: <span class="badge text-bg-danger">Offline</span> break;
+                        default: <span class="badge text-bg-warning">Maintenance</span> break;
+                    }
+                </div>
+
+                <div class="mb-3">
+                    @foreach (var (label, pct, threshold) in new[] {
+                        ("CPU", metric?.CpuPercent ?? 0, node.CpuThreshold),
+                        ("RAM", metric?.RamPercent ?? 0, node.RamThreshold),
+                        ("Disk", metric?.DiskPercent ?? 0, node.DiskThreshold) })
+                    {
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-secondary">@label</span>
+                            <span class="text-light">@pct.ToString("0")%</span>
+                        </div>
+                        <div class="progress mb-2" style="height:6px;">
+                            <div class="progress-bar @Bar(pct, threshold)" style="width:@pct%"></div>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    @foreach (var service in node.Services.OrderBy(s => s.ServiceType))
+                    {
+                        <span class="badge @(service.Status == ServerServiceStatus.Running ? "text-bg-secondary" : "text-bg-danger")"
+                              title="@service.Status @service.Version">
+                            <i class="bi @(service.Status == ServerServiceStatus.Running ? "bi-check-circle" : "bi-x-circle")"></i> @service.ServiceType
+                        </span>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-secondary small">
+                        <i class="bi bi-globe2"></i> @row.DomainCount · <i class="bi bi-people"></i> @row.UserCount
+                        @if (node.LatencyMs is int latency) { <span>· @latency ms</span> }
+                    </div>
+                    <a asp-page="/Admin/Nodes/Detail" asp-route-id="@node.Id" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-gear"></i> Manage
+                    </a>
+                </div>
+            </div></div>
+        </div>
+    }
+
+    @if (!Model.Nodes.Any())
+    {
+        <div class="col-12">
+            <div class="card srx-card"><div class="card-body text-center py-5">
+                <i class="bi bi-hdd-stack text-secondary" style="font-size:48px;"></i>
+                <h5 class="text-light mt-3">No nodes yet</h5>
+                <p class="text-secondary">Add your first server to start managing a fleet.</p>
+                <a asp-page="/Admin/Nodes/Add" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add node</a>
+            </div></div>
+        </div>
+    }
+</div>
