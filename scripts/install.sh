@@ -186,15 +186,21 @@ DB_NAME="srxpanel"
 DB_USER="srxpanel"
 DB_PW="$(gen_pw)"
 
-systemctl enable --now mysql
+systemctl enable --now mysql 2>/dev/null || true
 
-mysql -u root <<SQL
-CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PW}';
-GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';
+mysql -u root --connect-timeout=10 <<EOF
+CREATE DATABASE IF NOT EXISTS \`srxpanel\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'srxpanel'@'localhost' IDENTIFIED BY '${DB_PW}';
+GRANT ALL PRIVILEGES ON \`srxpanel\`.* TO 'srxpanel'@'localhost';
 FLUSH PRIVILEGES;
-SQL
+EOF
+
 info "✓ MySQL configured"
+
+# root now authenticates via the unix_socket plugin (no password is set), so the
+# persisted "root password" is empty. Defined so the db.conf and appsettings
+# references below don't trip `set -u`.
+MYSQL_ROOT_PW=""
 
 cat > "$CONFIG_DIR/db.conf" <<EOF
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PW}
