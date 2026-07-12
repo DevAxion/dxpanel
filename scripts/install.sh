@@ -179,38 +179,24 @@ mkdir -p "$APP_DIR" "$CONFIG_DIR" "$CONFIG_DIR/ssl" "$LOG_DIR" "$BACKUP_DIR" "$V
 chmod 700 "$CONFIG_DIR"
 
 # ---------------------------------------------------------------------------
-# MySQL setup
+# MySQL for CLIENT hosting only
 # ---------------------------------------------------------------------------
-info "Configuring MySQL…"
-DB_NAME="srxpanel"
-DB_USER="srxpanel"
-DB_PW="$(gen_pw)"
-
+# MySQL is installed so the panel can provision databases for CLIENTS' websites.
+# SRXPanel's OWN database is SQLite (configured in the deploy step below), so we
+# deliberately do NOT create a "srxpanel" database or user here.
+info "Enabling MySQL for client databases…"
 systemctl enable --now mysql 2>/dev/null || true
 
-# Run each statement as its own non-interactive `-e` command. A heredoc on stdin
-# can hang if the client waits for input; discrete -e calls with a connect timeout
-# never block.
-mysql -u root --connect-timeout=10 -e "CREATE DATABASE IF NOT EXISTS \`srxpanel\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root --connect-timeout=10 -e "CREATE USER IF NOT EXISTS 'srxpanel'@'localhost' IDENTIFIED BY '${DB_PW}';"
-mysql -u root --connect-timeout=10 -e "GRANT ALL PRIVILEGES ON \`srxpanel\`.* TO 'srxpanel'@'localhost';"
-mysql -u root --connect-timeout=10 -e "FLUSH PRIVILEGES;"
-
-info "✓ MySQL configured"
-
-# root now authenticates via the unix_socket plugin (no password is set), so the
-# persisted "root password" is empty. Defined so the db.conf and appsettings
-# references below don't trip `set -u`.
+# root authenticates via the unix_socket plugin (no password is set), so the
+# persisted "root password" is empty. The panel runs as root on the host and
+# provisions per-client databases through that socket on demand.
 MYSQL_ROOT_PW=""
 
 cat > "$CONFIG_DIR/db.conf" <<EOF
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PW}
-DB_NAME=${DB_NAME}
-DB_USER=${DB_USER}
-DB_PASSWORD=${DB_PW}
 EOF
 chmod 600 "$CONFIG_DIR/db.conf"
-ok "MySQL configured (credentials saved to ${CONFIG_DIR}/db.conf)"
+ok "MySQL ready for client databases"
 
 # ---------------------------------------------------------------------------
 # Application deploy
@@ -223,31 +209,58 @@ else
   git clone --depth 1 "$REPO_URL" "$APP_DIR/src"
 fi
 
-cat > "$APP_DIR/src/appsettings.Production.json" <<EOF
+# SRXPanel's own database is SQLite, stored under the publish dir's data folder.
+DB_PATH="$PUBLISH_DIR/data/srxpanel.db"
+
+# Write the production appsettings. Used both by `dotnet ef` at design time (from
+# the source project) and by the running app (from the publish dir), so we emit
+# identical copies to both locations.
+write_appsettings() {
+  cat > "$1" <<EOF
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=${APP_DIR}/srxpanel.db"
+    "DefaultConnection": "Data Source=${DB_PATH}"
   },
-  "Version": "${SRX_VERSION}",
-  "UpdateChannel": "stable",
-  "SimulationMode": false,
-  "Stripe": { "PublishableKey": "", "SecretKey": "", "WebhookSecret": "", "Currency": "usd" },
-  "Panel": {
-    "Hostname": "${PANEL_DOMAIN}",
-    "LetsEncryptEmail": "${LE_EMAIL}",
-    "Smtp": { "Host": "localhost", "Port": 587, "User": "", "Password": "", "From": "no-reply@${PANEL_DOMAIN}" },
-    "MySql": { "Host": "localhost", "Port": 3306, "RootUser": "root", "RootPassword": "${MYSQL_ROOT_PW}" }
+  "PanelSettings": {
+    "SimulationMode": false,
+    "PanelUrl": "http://${PANEL_DOMAIN}"
   },
-  "Admin": { "Email": "${ADMIN_EMAIL}", "Password": "${ADMIN_PASSWORD}" }
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  }
 }
 EOF
-chmod 600 "$APP_DIR/src/appsettings.Production.json"
+  chmod 600 "$1"
+}
+write_appsettings "$APP_DIR/src/appsettings.Production.json"
 
 info "Publishing (dotnet publish -c Release)…"
 dotnet publish "$APP_DIR/src/SRXPanel.csproj" -c Release -o "$PUBLISH_DIR"
-cp "$APP_DIR/src/appsettings.Production.json" "$PUBLISH_DIR/appsettings.Production.json"
 
-# Migrations run automatically on startup (Program.cs calls Database.Migrate()).
+# SQLite data directory for the panel's own database.
+mkdir -p "$PUBLISH_DIR/data"
+
+# appsettings.Production.json in the publish dir (what the running app reads).
+write_appsettings "$PUBLISH_DIR/appsettings.Production.json"
+chown -R www-data:www-data "$PUBLISH_DIR"
+
+# Apply EF Core migrations up-front so the schema exists before first boot.
+# Export the operator's chosen admin password so the seeder uses THAT password
+# (see Data/DbSeeder.cs) instead of a generated fallback.
+info "Applying database migrations…"
+dotnet tool install --global dotnet-ef >/dev/null 2>&1 \
+  || dotnet tool update --global dotnet-ef >/dev/null 2>&1 || true
+export PATH="$PATH:/root/.dotnet/tools"
+(
+  cd "$APP_DIR/src"
+  ASPNETCORE_ENVIRONMENT=Production \
+  SRXPANEL_ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+  dotnet ef database update --project "$APP_DIR/src/SRXPanel.csproj"
+) || warn "Migration via 'dotnet ef' failed; the app will migrate on first start instead."
+
+# Ensure the SQLite db and its directory are writable by the service account.
 chown -R www-data:www-data "$APP_DIR" "$LOG_DIR" "$BACKUP_DIR" "$VHOST_DIR"
 ok "Application published"
 
@@ -404,9 +417,10 @@ cat <<EOF
 ╠═══════════════════════════════════════════════════╣
 ║ Panel URL:  ${PROTO}://${PANEL_DOMAIN}
 ║ Username:   admin
-║ Password:   (the admin password you entered)
+║ Password:   ${ADMIN_PASSWORD}
+║             (this is the admin password you entered)
 ║
-║ MySQL Root: saved to ${CONFIG_DIR}/db.conf
+║ MySQL Root: unix_socket auth (see ${CONFIG_DIR}/db.conf)
 ║
 ║ Next steps:
 ║  1. Login and configure Stripe (Admin → Platform Settings)
