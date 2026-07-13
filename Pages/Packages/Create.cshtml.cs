@@ -43,7 +43,12 @@ public class CreateModel : PageModel
             MaxFtpAccounts = Input.MaxFtpAccounts,
             MaxCronJobs = Input.MaxCronJobs,
             MaxBackups = Input.MaxBackups,
-            Price = Input.Price
+            Price = Input.Price,
+            AllowVpsStore = Input.AllowVpsStore,
+            AllowAppHosting = Input.AllowAppHosting,
+            AllowCloudflare = Input.AllowCloudflare,
+            AllowAdvancedMail = Input.AllowAdvancedMail,
+            AllowDeveloperTools = Input.AllowDeveloperTools
         };
 
         _db.Packages.Add(package);
@@ -95,4 +100,20 @@ public class PackageInput
 
     [Range(0, double.MaxValue)]
     public decimal Price { get; set; }
+
+    // ---- Feature flags (gate Client sidebar sections) ----
+    [Display(Name = "VPS Store")]
+    public bool AllowVpsStore { get; set; } = true;
+
+    [Display(Name = "App Hosting (Hosted Apps)")]
+    public bool AllowAppHosting { get; set; } = true;
+
+    [Display(Name = "Cloudflare")]
+    public bool AllowCloudflare { get; set; } = true;
+
+    [Display(Name = "Advanced Mail (Mail Server, Deliverability)")]
+    public bool AllowAdvancedMail { get; set; } = true;
+
+    [Display(Name = "Developer Tools")]
+    public bool AllowDeveloperTools { get; set; } = true;
 }

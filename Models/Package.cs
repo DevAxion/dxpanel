@@ -41,5 +41,14 @@ public class Package
     [DataType(DataType.Currency)]
     public decimal Price { get; set; }
 
+    // ---- Feature flags ----
+    // Gate which Client sidebar sections a customer on this package can see.
+    // Default true so existing packages keep their current (show-everything) behavior.
+    public bool AllowVpsStore { get; set; } = true;
+    public bool AllowAppHosting { get; set; } = true;
+    public bool AllowCloudflare { get; set; } = true;
+    public bool AllowAdvancedMail { get; set; } = true;
+    public bool AllowDeveloperTools { get; set; } = true;
+
     public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
 }

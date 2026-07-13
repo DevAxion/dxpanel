@@ -49,5 +49,14 @@ public class ResellerPackage
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // ---- Feature flags ----
+    // Reseller-provisioned clients also go through the Client sidebar, so mirror
+    // the same gating flags here. Default true to preserve existing behavior.
+    public bool AllowVpsStore { get; set; } = true;
+    public bool AllowAppHosting { get; set; } = true;
+    public bool AllowCloudflare { get; set; } = true;
+    public bool AllowAdvancedMail { get; set; } = true;
+    public bool AllowDeveloperTools { get; set; } = true;
+
     public ICollection<ApplicationUser> Clients { get; set; } = new List<ApplicationUser>();
 }

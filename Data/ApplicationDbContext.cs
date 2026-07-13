@@ -422,6 +422,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             b.HasIndex(x => x.ResellerId);
         });
 
+        // Package / ResellerPackage feature flags: default the store column to true so
+        // existing rows (added before this migration) keep the show-everything behavior.
+        foreach (var flag in new[]
+                 {
+                     nameof(Package.AllowVpsStore), nameof(Package.AllowAppHosting),
+                     nameof(Package.AllowCloudflare), nameof(Package.AllowAdvancedMail),
+                     nameof(Package.AllowDeveloperTools)
+                 })
+        {
+            builder.Entity<Package>().Property<bool>(flag).HasDefaultValue(true);
+            builder.Entity<ResellerPackage>().Property<bool>(flag).HasDefaultValue(true);
+        }
+
         builder.Entity<ImpersonationSession>(b =>
         {
             b.HasIndex(x => new { x.ImpersonatorId, x.IsActive });

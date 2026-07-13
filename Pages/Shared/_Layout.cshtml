@@ -2,6 +2,7 @@
 @using SRXPanel.Services.Reseller
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject SRXPanel.Data.ApplicationDbContext Db
 @{
     var branding = Context.Branding();
 }
@@ -53,6 +54,37 @@
             @{
                 var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
                 string Active(string prefix) => currentPage.StartsWith(prefix) ? "active" : "";
+
+                // Sidebar feature flags for Client accounts come from the client's assigned
+                // Package, or their ResellerPackage if a reseller provisioned them. If neither
+                // is set, every gated flag stays false (the section is hidden) instead of erroring.
+                bool allowVpsStore = false, allowAppHosting = false, allowCloudflare = false,
+                     allowAdvancedMail = false, allowDeveloperTools = false;
+                if (User.IsInRole(Roles.Client))
+                {
+                    var navUser = await UserManager.GetUserAsync(User);
+                    if (navUser is not null)
+                    {
+                        if (navUser.PackageId is int navPkgId
+                            && await Db.Packages.FindAsync(navPkgId) is { } navPkg)
+                        {
+                            allowVpsStore = navPkg.AllowVpsStore;
+                            allowAppHosting = navPkg.AllowAppHosting;
+                            allowCloudflare = navPkg.AllowCloudflare;
+                            allowAdvancedMail = navPkg.AllowAdvancedMail;
+                            allowDeveloperTools = navPkg.AllowDeveloperTools;
+                        }
+                        else if (navUser.ResellerPackageId is int navRpkgId
+                            && await Db.ResellerPackages.FindAsync(navRpkgId) is { } navRpkg)
+                        {
+                            allowVpsStore = navRpkg.AllowVpsStore;
+                            allowAppHosting = navRpkg.AllowAppHosting;
+                            allowCloudflare = navRpkg.AllowCloudflare;
+                            allowAdvancedMail = navRpkg.AllowAdvancedMail;
+                            allowDeveloperTools = navRpkg.AllowDeveloperTools;
+                        }
+                    }
+                }
             }
             <nav class="srx-sidebar-nav">
                 @if (User.IsInRole(Roles.Client))
@@ -68,42 +100,57 @@
                     <a class="nav-link @Active("/Client/Email")" asp-page="/Client/Email"><i class="bi bi-envelope"></i> Email</a>
                     <a class="nav-link @Active("/Client/Ssl")" asp-page="/Client/Ssl"><i class="bi bi-shield-lock"></i> SSL</a>
                     <a class="nav-link @Active("/Client/Dns")" asp-page="/Client/Dns"><i class="bi bi-hdd-network"></i> DNS</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Cloudflare") ? "active" : "")" asp-page="/Client/Cloudflare/Index"><i class="bi bi-cloud"></i> Cloudflare</a>
+                    @if (allowCloudflare)
+                    {
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Cloudflare") ? "active" : "")" asp-page="/Client/Cloudflare/Index"><i class="bi bi-cloud"></i> Cloudflare</a>
+                    }
                     <a class="nav-link @Active("/Client/FileManager")" asp-page="/Client/FileManager"><i class="bi bi-files"></i> File Manager</a>
                     <a class="nav-link @Active("/Client/Backup")" asp-page="/Client/Backup"><i class="bi bi-hdd-stack"></i> Backup</a>
                     <a class="nav-link @Active("/Client/Stats")" asp-page="/Client/Stats"><i class="bi bi-graph-up"></i> Statistics</a>
 
-                    <div class="nav-section-title">Mail</div>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Queue") ? "active" : "")" asp-page="/Client/Email/Queue"><i class="bi bi-envelope-paper"></i> Mail Queue</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Logs") ? "active" : "")" asp-page="/Client/Email/Logs"><i class="bi bi-journal-text"></i> Email Logs</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Blacklist") ? "active" : "")" asp-page="/Client/Email/Blacklist"><i class="bi bi-shield-exclamation"></i> Blacklist</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Bounces") ? "active" : "")" asp-page="/Client/Email/Bounces"><i class="bi bi-arrow-return-left"></i> Bounces</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/MailServer") ? "active" : "")" asp-page="/Client/Email/MailServer"><i class="bi bi-server"></i> Mail Server</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Email/Deliverability") ? "active" : "")" asp-page="/Client/Email/Deliverability"><i class="bi bi-graph-up-arrow"></i> Deliverability</a>
+                    @if (allowAdvancedMail)
+                    {
+                        <div class="nav-section-title">Mail</div>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Email/Queue") ? "active" : "")" asp-page="/Client/Email/Queue"><i class="bi bi-envelope-paper"></i> Mail Queue</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Email/Logs") ? "active" : "")" asp-page="/Client/Email/Logs"><i class="bi bi-journal-text"></i> Email Logs</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Email/Blacklist") ? "active" : "")" asp-page="/Client/Email/Blacklist"><i class="bi bi-shield-exclamation"></i> Blacklist</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Email/Bounces") ? "active" : "")" asp-page="/Client/Email/Bounces"><i class="bi bi-arrow-return-left"></i> Bounces</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Email/MailServer") ? "active" : "")" asp-page="/Client/Email/MailServer"><i class="bi bi-server"></i> Mail Server</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Email/Deliverability") ? "active" : "")" asp-page="/Client/Email/Deliverability"><i class="bi bi-graph-up-arrow"></i> Deliverability</a>
+                    }
 
                     <a class="nav-link @Active("/Client/ApiAccess")" asp-page="/Client/ApiAccess"><i class="bi bi-code-slash"></i> API Access</a>
 
-                    <div class="nav-section-title">Developer</div>
-                    <a class="nav-link @Active("/Client/Cron")" asp-page="/Client/Cron/Index"><i class="bi bi-clock"></i> Cron Jobs</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Ssh") ? "active" : "")" asp-page="/Client/Developer/Ssh"><i class="bi bi-key"></i> SSH</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Git") ? "active" : "")" asp-page="/Client/Developer/Git"><i class="bi bi-git"></i> Git Deployment</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Terminal") ? "active" : "")" asp-page="/Client/Developer/Terminal"><i class="bi bi-terminal"></i> Terminal</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/PackageManager") ? "active" : "")" asp-page="/Client/Developer/PackageManager"><i class="bi bi-box2"></i> Package Manager</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Logs") ? "active" : "")" asp-page="/Client/Developer/Logs"><i class="bi bi-journal-text"></i> Logs</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/PhpInfo") ? "active" : "")" asp-page="/Client/Developer/PhpInfo"><i class="bi bi-filetype-php"></i> PHP Configuration</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Staging") ? "active" : "")" asp-page="/Client/Developer/Staging"><i class="bi bi-layers"></i> Staging</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Database") ? "active" : "")" asp-page="/Client/Developer/Database"><i class="bi bi-database-gear"></i> Database Tools</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/DnsLookup") ? "active" : "")" asp-page="/Client/Developer/DnsLookup"><i class="bi bi-search"></i> DNS Lookup</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Performance") ? "active" : "")" asp-page="/Client/Developer/Performance"><i class="bi bi-speedometer2"></i> Performance</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Settings") ? "active" : "")" asp-page="/Client/Developer/Settings"><i class="bi bi-sliders"></i> Developer Settings</a>
+                    @if (allowDeveloperTools)
+                    {
+                        <div class="nav-section-title">Developer</div>
+                        <a class="nav-link @Active("/Client/Cron")" asp-page="/Client/Cron/Index"><i class="bi bi-clock"></i> Cron Jobs</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Ssh") ? "active" : "")" asp-page="/Client/Developer/Ssh"><i class="bi bi-key"></i> SSH</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Git") ? "active" : "")" asp-page="/Client/Developer/Git"><i class="bi bi-git"></i> Git Deployment</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Terminal") ? "active" : "")" asp-page="/Client/Developer/Terminal"><i class="bi bi-terminal"></i> Terminal</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/PackageManager") ? "active" : "")" asp-page="/Client/Developer/PackageManager"><i class="bi bi-box2"></i> Package Manager</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Logs") ? "active" : "")" asp-page="/Client/Developer/Logs"><i class="bi bi-journal-text"></i> Logs</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/PhpInfo") ? "active" : "")" asp-page="/Client/Developer/PhpInfo"><i class="bi bi-filetype-php"></i> PHP Configuration</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Staging") ? "active" : "")" asp-page="/Client/Developer/Staging"><i class="bi bi-layers"></i> Staging</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Database") ? "active" : "")" asp-page="/Client/Developer/Database"><i class="bi bi-database-gear"></i> Database Tools</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/DnsLookup") ? "active" : "")" asp-page="/Client/Developer/DnsLookup"><i class="bi bi-search"></i> DNS Lookup</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Performance") ? "active" : "")" asp-page="/Client/Developer/Performance"><i class="bi bi-speedometer2"></i> Performance</a>
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Developer/Settings") ? "active" : "")" asp-page="/Client/Developer/Settings"><i class="bi bi-sliders"></i> Developer Settings</a>
+                    }
 
                     <div class="nav-section-title">Applications</div>
                     <a class="nav-link @(currentPage == "/Client/Apps/Index" ? "active" : "")" asp-page="/Client/Apps/Index"><i class="bi bi-box"></i> My Apps</a>
                     <a class="nav-link @(currentPage.StartsWith("/Client/Apps/Catalog") || currentPage.StartsWith("/Client/Apps/Detail") ? "active" : "")" asp-page="/Client/Apps/Catalog"><i class="bi bi-grid"></i> App Catalog</a>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Apps/Hosted") ? "active" : "")" asp-page="/Client/Apps/Hosted/Index"><i class="bi bi-rocket-takeoff"></i> Hosted Apps</a>
+                    @if (allowAppHosting)
+                    {
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Apps/Hosted") ? "active" : "")" asp-page="/Client/Apps/Hosted/Index"><i class="bi bi-rocket-takeoff"></i> Hosted Apps</a>
+                    }
 
                     <div class="nav-section-title">Store</div>
-                    <a class="nav-link @(currentPage.StartsWith("/Client/Vps") ? "active" : "")" asp-page="/Client/Vps/Index"><i class="bi bi-hdd-rack"></i> VPS</a>
+                    @if (allowVpsStore)
+                    {
+                        <a class="nav-link @(currentPage.StartsWith("/Client/Vps") ? "active" : "")" asp-page="/Client/Vps/Index"><i class="bi bi-hdd-rack"></i> VPS</a>
+                    }
                     <a class="nav-link @Active("/Client/Services")" asp-page="/Client/Services"><i class="bi bi-box-seam"></i> Services</a>
                     <a class="nav-link @Active("/Client/Store")" asp-page="/Client/Store"><i class="bi bi-cart-plus"></i> Order Hosting</a>
                     <a class="nav-link @Active("/Client/Invoices")" asp-page="/Client/Invoices"><i class="bi bi-receipt"></i> Invoices</a>

@@ -41,7 +41,12 @@ public class EditModel : PageModel
             MaxFtpAccounts = package.MaxFtpAccounts,
             MaxCronJobs = package.MaxCronJobs,
             MaxBackups = package.MaxBackups,
-            Price = package.Price
+            Price = package.Price,
+            AllowVpsStore = package.AllowVpsStore,
+            AllowAppHosting = package.AllowAppHosting,
+            AllowCloudflare = package.AllowCloudflare,
+            AllowAdvancedMail = package.AllowAdvancedMail,
+            AllowDeveloperTools = package.AllowDeveloperTools
         };
 
         return Page();
@@ -70,6 +75,11 @@ public class EditModel : PageModel
         package.MaxCronJobs = Input.MaxCronJobs;
         package.MaxBackups = Input.MaxBackups;
         package.Price = Input.Price;
+        package.AllowVpsStore = Input.AllowVpsStore;
+        package.AllowAppHosting = Input.AllowAppHosting;
+        package.AllowCloudflare = Input.AllowCloudflare;
+        package.AllowAdvancedMail = Input.AllowAdvancedMail;
+        package.AllowDeveloperTools = Input.AllowDeveloperTools;
 
         await _db.SaveChangesAsync();
 

@@ -43,3 +43,39 @@
         <input asp-for="Price" class="form-control" />
     </div>
 </div>
+
+<hr class="my-3" />
+<h6 class="mb-2">Features</h6>
+<p class="text-secondary small mb-2">Controls which sidebar sections clients on this package can see.</p>
+<div class="row g-2">
+    <div class="col-md-4">
+        <div class="form-check">
+            <input asp-for="AllowVpsStore" class="form-check-input" />
+            <label asp-for="AllowVpsStore" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-check">
+            <input asp-for="AllowAppHosting" class="form-check-input" />
+            <label asp-for="AllowAppHosting" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-check">
+            <input asp-for="AllowCloudflare" class="form-check-input" />
+            <label asp-for="AllowCloudflare" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-check">
+            <input asp-for="AllowAdvancedMail" class="form-check-input" />
+            <label asp-for="AllowAdvancedMail" class="form-check-label"></label>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-check">
+            <input asp-for="AllowDeveloperTools" class="form-check-input" />
+            <label asp-for="AllowDeveloperTools" class="form-check-label"></label>
+        </div>
+    </div>
+</div>
