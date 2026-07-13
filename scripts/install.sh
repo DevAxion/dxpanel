@@ -18,7 +18,7 @@ CONFIG_DIR="/etc/srxpanel"
 LOG_DIR="/var/log/srxpanel"
 BACKUP_DIR="/var/backups/srxpanel"
 VHOST_DIR="/var/www/vhosts"
-REPO_URL="${SRX_REPO_URL:-https://github.com/srxpanel/srxpanel.git}"
+REPO_URL="${SRX_REPO_URL:-https://github.com/SeniorSRX/srxpanel.git}"
 
 C_RESET='\033[0m'; C_GREEN='\033[0;32m'; C_YELLOW='\033[1;33m'; C_RED='\033[0;31m'; C_BLUE='\033[0;34m'
 info()  { echo -e "${C_BLUE}==>${C_RESET} $*"; }
