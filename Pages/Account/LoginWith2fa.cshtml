@@ -1,0 +1,45 @@
+@page
+@model SRXPanel.Pages.Account.LoginWith2faModel
+@{
+    ViewData["Title"] = "Two-factor sign in";
+    Layout = "_LoginLayout";
+}
+
+<div class="srx-login-wrapper">
+    <div class="srx-login-card">
+        <div class="text-center mb-4">
+            <div class="srx-login-brand">Two-step verification</div>
+            <div class="text-secondary small mt-1">Enter the code from your authenticator app</div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+            <input type="hidden" asp-for="RememberMe" />
+
+            <div class="mb-3">
+                <label asp-for="Input.TwoFactorCode" class="form-label">Authenticator code</label>
+                <input asp-for="Input.TwoFactorCode" class="form-control" autocomplete="one-time-code"
+                       inputmode="numeric" placeholder="123456" autofocus />
+                <span asp-validation-for="Input.TwoFactorCode" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="Input.RememberMachine" class="form-check-input" />
+                <label asp-for="Input.RememberMachine" class="form-check-label">Remember this device</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-shield-check"></i> Verify</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a asp-page="/Account/LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl" class="accent small">
+                Can't access your device? Use a recovery code
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

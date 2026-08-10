@@ -176,6 +176,14 @@ public class LoginModel : PageModel
             return LocalRedirect(returnUrl);
         }
 
+        // Password was correct but the account has 2FA enabled — go to the
+        // authenticator challenge to finish signing in.
+        if (result.RequiresTwoFactor)
+        {
+            await RecordAsync(true);
+            return RedirectToPage("./LoginWith2fa", new { returnUrl, rememberMe = Input.RememberMe });
+        }
+
         await RecordAsync(false);
 
         if (result.IsLockedOut)

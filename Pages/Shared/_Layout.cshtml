@@ -352,6 +352,9 @@
                 @RenderSection("Breadcrumb", required: false)
                 <div class="ms-auto d-flex align-items-center gap-2">
                     <partial name="_NotificationBell" />
+                    <a asp-page="/Account/TwoFactor" class="btn btn-sm btn-outline-secondary" title="Two-factor authentication">
+                        <i class="bi bi-shield-lock"></i>
+                    </a>
                     <form method="post" asp-page="/Account/Logout">
                         <button type="submit" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-box-arrow-right"></i> Logout

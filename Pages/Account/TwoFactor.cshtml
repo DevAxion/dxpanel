@@ -1,0 +1,131 @@
+@page
+@model SRXPanel.Pages.Account.TwoFactorModel
+@{
+    ViewData["Title"] = "Two-Factor Authentication";
+}
+
+@section Breadcrumb {
+    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+        <li class="breadcrumb-item">Account</li>
+        <li class="breadcrumb-item active" aria-current="page">Two-Factor Authentication</li>
+    </ol></nav>
+}
+
+<h4 class="text-light mb-4">Two-Factor Authentication (2FA)</h4>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @* ---- Recovery codes (shown once, right after generating) ---- *@
+        @if (Model.RecoveryCodes is { Length: > 0 })
+        {
+            <div class="card srx-card mb-4 border-warning">
+                <div class="card-body">
+                    <h6 class="text-warning mb-2"><i class="bi bi-key"></i> Save your recovery codes</h6>
+                    <p class="text-secondary small mb-3">
+                        Store these somewhere safe. Each code can be used once to sign in if you lose access to your
+                        authenticator device. They won't be shown again.
+                    </p>
+                    <div class="row row-cols-2 g-2 mb-2">
+                        @foreach (var code in Model.RecoveryCodes)
+                        {
+                            <div class="col"><code class="text-light">@code</code></div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!Model.Is2faEnabled && !Model.ShowSetup)
+        {
+            <div class="card srx-card"><div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge text-bg-secondary"><i class="bi bi-shield-slash"></i> Disabled</span>
+                </div>
+                <h6 class="text-light">Protect your account with an authenticator app</h6>
+                <p class="text-secondary small">
+                    Two-factor authentication adds an extra step at sign-in: after your password, you enter a
+                    6-digit code from an app like Google Authenticator, Microsoft Authenticator, or Authy.
+                </p>
+                <a asp-page="/Account/TwoFactor" asp-route-setup="true" class="btn btn-primary">
+                    <i class="bi bi-shield-lock"></i> Set up authenticator
+                </a>
+            </div></div>
+        }
+
+        @if (Model.ShowSetup)
+        {
+            <div class="card srx-card"><div class="card-body">
+                <h6 class="text-light mb-3">Set up your authenticator app</h6>
+                <ol class="text-secondary small mb-3" style="line-height:1.9;">
+                    <li>Install an authenticator app (Google Authenticator, Microsoft Authenticator, Authy…).</li>
+                    <li>Scan the QR code below, or enter the key manually.</li>
+                    <li>Enter the 6-digit code the app shows to finish.</li>
+                </ol>
+
+                <div class="d-flex flex-wrap gap-4 align-items-start mb-3">
+                    <div style="background:#fff;padding:10px;border-radius:10px;">
+                        <img src="@Model.QrCodeDataUri" alt="Authenticator QR code" width="180" height="180" />
+                    </div>
+                    <div>
+                        <div class="text-secondary small">Manual entry key</div>
+                        <div class="mb-2"><code class="text-light" style="font-size:1rem;letter-spacing:1px;">@Model.SharedKey</code></div>
+                        <div class="text-secondary small">Type: Time-based · Digits: 6</div>
+                    </div>
+                </div>
+
+                <form method="post" asp-page-handler="Enable" class="row g-2 align-items-end" style="max-width:420px;">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small col-12"></div>
+                    <div class="col-auto">
+                        <label class="form-label text-secondary small">Verification code</label>
+                        <input asp-for="VerificationCode" class="form-control" autocomplete="off"
+                               inputmode="numeric" placeholder="123456" autofocus />
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Verify &amp; enable</button>
+                    </div>
+                </form>
+            </div></div>
+        }
+
+        @if (Model.Is2faEnabled)
+        {
+            <div class="card srx-card"><div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge srx-badge-active"><i class="bi bi-shield-check"></i> Enabled</span>
+                </div>
+                <h6 class="text-light">Two-factor authentication is on</h6>
+                <p class="text-secondary small mb-3">
+                    You have <strong class="text-light">@Model.RecoveryCodesLeft</strong> recovery code(s) remaining.
+                    @if (Model.RecoveryCodesLeft <= 3)
+                    {
+                        <span class="text-warning">Running low — generate a new set.</span>
+                    }
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="post" asp-page-handler="RegenerateCodes" class="srx-confirm-form"
+                          data-confirm-message="Generate new recovery codes? Your old codes will stop working.">
+                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat"></i> Regenerate recovery codes</button>
+                    </form>
+                    <form method="post" asp-page-handler="Disable" class="srx-confirm-form"
+                          data-confirm-message="Disable two-factor authentication? Your account will be less secure.">
+                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-shield-slash"></i> Disable 2FA</button>
+                    </form>
+                </div>
+            </div></div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card srx-card"><div class="card-body">
+            <h6 class="text-light mb-2"><i class="bi bi-info-circle"></i> How it works</h6>
+            <p class="text-secondary small mb-0">
+                With 2FA on, signing in needs both your password and a one-time code from your authenticator app.
+                Keep your recovery codes somewhere safe in case you lose your device.
+            </p>
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
