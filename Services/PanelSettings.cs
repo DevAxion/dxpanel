@@ -50,6 +50,13 @@ public class NginxPaths
     public string SitesEnabled { get; set; } = "/etc/nginx/sites-enabled";
     public string LogDir { get; set; } = "/var/log/nginx";
     public string PhpFpmSocketPattern { get; set; } = "/run/php/php{version}-fpm.sock";
+
+    // Brotli and HTTP/3 (QUIC) need a non-stock nginx build (ngx_brotli / http_v3
+    // module). Stock Ubuntu nginx lacks them, so these are OFF by default — with
+    // them off the generated vhost passes `nginx -t` everywhere. Operators running
+    // a capable nginx can enable them in appsettings.
+    public bool EnableBrotli { get; set; } = false;
+    public bool EnableHttp3 { get; set; } = false;
 }
 
 public class BindPaths

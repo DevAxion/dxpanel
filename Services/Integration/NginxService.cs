@@ -128,12 +128,16 @@ public class NginxService : INginxService
                 gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss image/svg+xml;
         """;
 
-        var brotli = """
+        // Brotli only when the operator has enabled it (needs the ngx_brotli module);
+        // otherwise gzip alone keeps the config valid on a stock nginx.
+        var brotli = _settings.Nginx.EnableBrotli
+            ? """
                 # Brotli compression (requires the ngx_brotli module)
                 brotli on;
                 brotli_comp_level 6;
                 brotli_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss image/svg+xml;
-        """;
+        """
+            : "";
 
         var phpBlock = $$"""
                 location ~ \.php$ {
@@ -192,13 +196,18 @@ public class NginxService : INginxService
         """ + "\n";
         }
 
+        // HTTP/3 (QUIC) listeners + advertisement, only when explicitly enabled.
+        var http3Listen = _settings.Nginx.EnableHttp3
+            ? "\n                # HTTP/3 (QUIC) — requires an nginx build with the http_v3 module.\n                listen 443 quic reuseport;\n                listen [::]:443 quic reuseport;"
+            : "";
+        var http3AltSvc = _settings.Nginx.EnableHttp3
+            ? "\n                # Advertise HTTP/3 availability to clients.\n                add_header Alt-Svc 'h3=\":443\"; ma=86400' always;\n"
+            : "";
+
         var sslServer = $$"""
         server {
                 listen 443 ssl http2;
-                listen [::]:443 ssl http2;
-                # HTTP/3 (QUIC) — requires an nginx build with the http_v3 module.
-                listen 443 quic reuseport;
-                listen [::]:443 quic reuseport;
+                listen [::]:443 ssl http2;{{http3Listen}}
                 server_name {{domain}} www.{{domain}};
 
                 ssl_certificate     {{certPath}};
@@ -206,10 +215,7 @@ public class NginxService : INginxService
                 ssl_protocols TLSv1.2 TLSv1.3;
                 ssl_ciphers HIGH:!aNULL:!MD5;
                 ssl_prefer_server_ciphers on;
-
-                # Advertise HTTP/3 availability to clients.
-                add_header Alt-Svc 'h3=":443"; ma=86400' always;
-
+        {{http3AltSvc}}
         {{commonBody}}
         }
         """;
