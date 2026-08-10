@@ -1,0 +1,33 @@
+# Build artifacts — must NOT be copied into the image. Copying the host's
+# obj/ over the container's restored obj/ breaks `dotnet publish`.
+**/bin/
+**/obj/
+
+# Local dev database and backups (image starts with a fresh DB on the volume)
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*
+App_Data/
+
+# Version control / CI / IDE
+.git/
+.github/
+.gitignore
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Docker + local env
+docker/
+.dockerignore
+**/.env
+**/.env.local
+
+# Scratch / logs / OS files
+*.log
+Thumbs.db
+.DS_Store
+.claude/
+.claude_backup/

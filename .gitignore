@@ -9,7 +9,9 @@ publish/
 *.db
 *.db-shm
 *.db-wal
+*.db.bak*
 App_Data/
+data/
 /var/
 
 # Secrets & local config

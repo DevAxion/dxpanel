@@ -15,9 +15,19 @@ services:
       # SQLite lives on the named volume by default. To use the MySQL service
       # instead, point the connection string at it here.
       ConnectionStrings__DefaultConnection: "Data Source=/app/data/srxpanel.db"
+      # Persist DataProtection keys on the volume (survives restarts).
+      DataProtection__KeysDirectory: "/app/data/keys"
+      # The nginx service in front of us terminates TLS and forwards X-Forwarded-*.
+      ForwardedHeaders__Enabled: "true"
       Version: "1.0.0"
       UpdateChannel: "stable"
-      SimulationMode: "false"
+      # Default to simulation: this container runs the panel only, not a full
+      # hosting node (no nginx/bind/postfix inside). Set SIMULATION_MODE=false in
+      # .env when deploying on a real host with the services installed.
+      SimulationMode: "${SIMULATION_MODE:-true}"
+      # Password for the initial 'admin' account. If left blank the app generates
+      # a random one and prints it to the log on first start.
+      SRXPANEL_ADMIN_PASSWORD: "${SRXPANEL_ADMIN_PASSWORD:-}"
       Panel__Hostname: "${PANEL_DOMAIN}"
       Panel__LetsEncryptEmail: "${LETSENCRYPT_EMAIL}"
       Panel__MySql__Host: "mysql"

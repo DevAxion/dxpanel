@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SRXPanel.Data;
@@ -48,6 +50,40 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
+
+// Persist DataProtection keys to the data directory so login cookies, antiforgery
+// tokens, 2FA and password-reset tokens survive restarts. Critical in containers,
+// where the filesystem is ephemeral — without this every restart regenerates the
+// keys and logs everyone out. Defaults next to the SQLite DB (the mounted volume).
+var keysDirectory = builder.Configuration["DataProtection:KeysDirectory"];
+if (string.IsNullOrWhiteSpace(keysDirectory))
+    keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "data", "keys");
+try
+{
+    Directory.CreateDirectory(keysDirectory);
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))
+        .SetApplicationName("SRXPanel");
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"DataProtection: could not persist keys to '{keysDirectory}': {ex.Message}. Using default key storage.");
+}
+
+// When running behind a reverse proxy (the Docker nginx), honor X-Forwarded-* so
+// the app sees the original scheme/client IP, and let the proxy own TLS/redirects.
+var behindProxy = builder.Configuration.GetValue<bool>("ForwardedHeaders:Enabled");
+if (behindProxy)
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        // The panel container is only reachable from our own proxy on a private
+        // network, so trust the forwarded headers it sends.
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ISystemStatsService, SystemStatsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
@@ -312,6 +348,11 @@ builder.Services.AddRazorPages(options =>
 
 var app = builder.Build();
 
+// Behind a reverse proxy: rewrite scheme/remote-IP from X-Forwarded-* before any
+// middleware inspects them. Must be first.
+if (behindProxy)
+    app.UseForwardedHeaders();
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -319,7 +360,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// The reverse proxy terminates TLS; only self-redirect to HTTPS when we're the edge.
+if (!behindProxy)
+    app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
