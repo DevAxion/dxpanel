@@ -1,6 +1,6 @@
 @page
-@using SRXPanel.Services
-@model SRXPanel.Pages.IndexModel
+@using DXPanel.Services
+@model DXPanel.Pages.IndexModel
 @inject IFrontendService Frontend
 @{
     Layout = "_PublicLayout";
@@ -89,7 +89,7 @@
             @foreach (var st in steps)
             {
                 <div class="col-md-4">
-                    <div style="width:64px;height:64px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <div style="width:64px;height:64px;border-radius:50%;background:var(--dx-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
                         <i class="bi @st.Icon" style="font-size:26px;color:#fff;"></i>
                     </div>
                     <h5 class="text-light">@(n++). @st.Title</h5>
@@ -112,7 +112,7 @@
                 {
                     var featured = idx == 1; idx++;
                     <div class="col-lg-4 col-md-6">
-                        <div style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(featured ? "box-shadow:0 0 0 1px var(--srx-primary);" : "")">
+                        <div style="background:#161b22;border:1px solid @(featured ? "var(--dx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(featured ? "box-shadow:0 0 0 1px var(--dx-primary);" : "")">
                             @if (featured) { <span class="badge text-bg-primary mb-2">Most Popular</span> }
                             <h4 class="text-light">@plan.Name</h4>
                             <p class="text-secondary small" style="min-height:40px;">@plan.Description</p>
@@ -155,7 +155,7 @@
                                 }
                                 else
                                 {
-                                    <div style="width:40px;height:40px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">@t.Name.Substring(0,1)</div>
+                                    <div style="width:40px;height:40px;border-radius:50%;background:var(--dx-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">@t.Name.Substring(0,1)</div>
                                 }
                                 <div>
                                     <div class="text-light small fw-semibold">@t.Name</div>

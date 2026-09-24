@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Cloudflare;
+using DXPanel.Models;
+using DXPanel.Services.Cloudflare;
 
-namespace SRXPanel.Pages.Client.Cloudflare;
+namespace DXPanel.Pages.Client.Cloudflare;
 
 public class MigrateModel : PageModel
 {

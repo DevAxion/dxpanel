@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.DnsModel
+@model DXPanel.Pages.Client.DnsModel
 @{
     ViewData["Title"] = "DNS";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">DNS</li>
         </ol>
@@ -22,14 +22,14 @@
 
 @foreach (var r in Model.Rows)
 {
-    <div class="card srx-card mb-3">
+    <div class="card dx-card mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <i class="bi bi-hdd-network"></i> <span class="text-light fw-semibold">@r.Domain.DomainName</span>
                     @if (r.Zone != null)
                     {
-                        <span class="badge srx-badge-active ms-1">Zone active · @r.RecordCount records</span>
+                        <span class="badge dx-badge-active ms-1">Zone active · @r.RecordCount records</span>
                     }
                     else
                     {
@@ -66,5 +66,5 @@
 
 @if (!Model.Rows.Any())
 {
-    <div class="card srx-card"><div class="card-body text-secondary">No domains yet. Add a domain to manage DNS.</div></div>
+    <div class="card dx-card"><div class="card-body text-secondary">No domains yet. Add a domain to manage DNS.</div></div>
 }

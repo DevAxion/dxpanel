@@ -2,10 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Pages.Admin.Reports;
+namespace DXPanel.Pages.Admin.Reports;
 
 public class SecurityModel : PageModel
 {

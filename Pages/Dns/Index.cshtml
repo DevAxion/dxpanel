@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Dns.IndexModel
+@model DXPanel.Pages.Dns.IndexModel
 @{
     ViewData["Title"] = "DNS Zones";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">DNS</li>
         </ol>
@@ -15,7 +15,7 @@
 
 <h4 class="text-light mb-4">DNS Zones</h4>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Zones.Any())
         {
@@ -44,7 +44,7 @@
                             <td>
                                 @if (z.Zone != null)
                                 {
-                                    <span class="badge srx-badge-active">Zone Active</span>
+                                    <span class="badge dx-badge-active">Zone Active</span>
                                 }
                                 else
                                 {
@@ -59,7 +59,7 @@
                                         <a asp-page="/Dns/Records" asp-route-domainId="@z.Domain.Id" class="btn btn-outline-primary" title="Manage Records">
                                             <i class="bi bi-list-ul"></i> Records
                                         </a>
-                                        <form method="post" asp-page-handler="DeleteZone" asp-route-zoneId="@z.Zone.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete the DNS zone for '@z.Domain.DomainName' and all its records?">
+                                        <form method="post" asp-page-handler="DeleteZone" asp-route-zoneId="@z.Zone.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete the DNS zone for '@z.Domain.DomainName' and all its records?">
                                             <button type="submit" class="btn btn-outline-danger" title="Delete Zone"><i class="bi bi-trash"></i></button>
                                         </form>
                                     </div>

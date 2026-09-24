@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# SRXPanel Node Agent
+# DXPanel Node Agent
 # -------------------
 # A lightweight monitoring/orchestration agent installed on each managed node.
 # It listens ONLY on localhost:9876 — the panel reaches it through an SSH tunnel,
@@ -8,14 +8,14 @@
 # valid HMAC-SHA256 signature, and only whitelisted commands may run.
 #
 # Install:
-#   sudo cp srxpanel-agent.sh /usr/local/bin/srxpanel-agent
-#   sudo chmod +x /usr/local/bin/srxpanel-agent
-#   sudo tee /etc/srxpanel/agent.env >/dev/null <<EOF
-#   SRX_AGENT_SECRET=<shared-secret-from-panel>
+#   sudo cp dxpanel-agent.sh /usr/local/bin/dxpanel-agent
+#   sudo chmod +x /usr/local/bin/dxpanel-agent
+#   sudo tee /etc/dxpanel/agent.env >/dev/null <<EOF
+#   DX_AGENT_SECRET=<shared-secret-from-panel>
 #   EOF
-#   sudo systemctl enable --now srxpanel-agent
+#   sudo systemctl enable --now dxpanel-agent
 #
-# Endpoints (all require X-SRX-Signature: sha256=<hmac of body>):
+# Endpoints (all require X-DX-Signature: sha256=<hmac of body>):
 #   GET  /health          -> service statuses (json)
 #   GET  /metrics         -> cpu/ram/disk/network (json)
 #   GET  /processes       -> top 10 processes (json)
@@ -26,9 +26,9 @@
 
 set -euo pipefail
 
-AGENT_PORT="${SRX_AGENT_PORT:-9876}"
+AGENT_PORT="${DX_AGENT_PORT:-9876}"
 AGENT_BIND="127.0.0.1"
-SECRET="${SRX_AGENT_SECRET:-}"
+SECRET="${DX_AGENT_SECRET:-}"
 
 # Commands the panel is permitted to run. Anything else is rejected.
 WHITELIST=(
@@ -103,7 +103,7 @@ handle_request() {
     line="${line%$'\r'}"
     [ -z "$line" ] && break
     case "$line" in
-      X-SRX-Signature:*) signature="${line#X-SRX-Signature: }" ;;
+      X-DX-Signature:*) signature="${line#X-DX-Signature: }" ;;
       Content-Length:*)  content_length="${line#Content-Length: }" ;;
     esac
   done
@@ -143,8 +143,8 @@ handle_request() {
 
 # ---- Main loop ---------------------------------------------------------------
 main() {
-  [ -f /etc/srxpanel/agent.env ] && . /etc/srxpanel/agent.env
-  log "SRXPanel agent listening on ${AGENT_BIND}:${AGENT_PORT} (localhost only)"
+  [ -f /etc/dxpanel/agent.env ] && . /etc/dxpanel/agent.env
+  log "DXPanel agent listening on ${AGENT_BIND}:${AGENT_PORT} (localhost only)"
 
   # Requires socat or ncat; systemd socket activation is preferred in production.
   while true; do

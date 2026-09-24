@@ -2,13 +2,13 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Stripe;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
-using Plan = SRXPanel.Models.Plan;
-using Coupon = SRXPanel.Models.Coupon;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
+using Plan = DXPanel.Models.Plan;
+using Coupon = DXPanel.Models.Coupon;
 
-namespace SRXPanel.Services.Billing;
+namespace DXPanel.Services.Billing;
 
 public class StripeGateway : IStripeGateway
 {

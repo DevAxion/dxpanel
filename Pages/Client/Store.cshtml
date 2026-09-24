@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Client.StoreModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.StoreModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Order Hosting";
     string Money(decimal d) => $"${d:0.00}";
@@ -9,7 +9,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Store</li>
         <li class="breadcrumb-item active" aria-current="page">Order Hosting</li>
     </ol></nav>
@@ -41,7 +41,7 @@
             {
                 var featured = i == 1; i++;
                 <div class="col-lg-4 col-md-6">
-                    <div class="card srx-card h-100 @(featured ? "border-primary" : "")"><div class="card-body">
+                    <div class="card dx-card h-100 @(featured ? "border-primary" : "")"><div class="card-body">
                         @if (featured) { <span class="badge text-bg-primary mb-2">Most Popular</span> }
                         <h5 class="text-light">@plan.Name</h5>
                         <div class="my-2"><span class="fs-3 fw-bold text-light">@Money(plan.Price)</span><span class="text-secondary">/mo</span></div>
@@ -81,7 +81,7 @@
                 @foreach (var v in Model.VpsPlans)
                 {
                     <div class="col-lg-4 col-md-6">
-                        <div class="card srx-card h-100 @(v.IsPopular ? "border-primary" : "")"><div class="card-body">
+                        <div class="card dx-card h-100 @(v.IsPopular ? "border-primary" : "")"><div class="card-body">
                             @if (v.IsPopular) { <span class="badge text-bg-primary mb-2">Popular</span> }
                             <h5 class="text-light">@v.Name</h5>
                             <div class="text-secondary small mb-1"><i class="bi bi-geo-alt accent"></i> @v.Location</div>
@@ -111,7 +111,7 @@
                 @foreach (var r in Model.ResellerPackages)
                 {
                     <div class="col-lg-4 col-md-6">
-                        <div class="card srx-card h-100"><div class="card-body">
+                        <div class="card dx-card h-100"><div class="card-body">
                             <h5 class="text-light">@r.Name</h5>
                             <p class="text-secondary small">@r.Description</p>
                             <div class="my-2"><span class="fs-3 fw-bold text-light">@Money(r.Price)</span><span class="text-secondary">/mo</span></div>

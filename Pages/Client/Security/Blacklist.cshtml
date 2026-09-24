@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.Security.BlacklistModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Security.BlacklistModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "IP Blacklist";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Security/Index">Security</a></li>
         <li class="breadcrumb-item active" aria-current="page">IP Blacklist</li>
     </ol></nav>
@@ -16,13 +16,13 @@
 
 @if (!Model.Domains.Any())
 {
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <p class="text-secondary mb-0">You have no domains yet. Add a domain to manage its IP access rules.</p>
     </div></div>
     return;
 }
 
-<div class="card srx-card mb-4"><div class="card-body">
+<div class="card dx-card mb-4"><div class="card-body">
     <form method="get" class="row g-2 align-items-end">
         <div class="col-auto">
             <label class="form-label text-secondary small">Domain</label>
@@ -42,7 +42,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-shield-exclamation text-danger"></i> Blocked IP addresses</h6>
             @if (!Model.Blocked.Any())
             {
@@ -72,7 +72,7 @@
             }
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-shield-check text-success"></i> Whitelisted IP addresses</h6>
             @if (!Model.Allowed.Any())
             {
@@ -104,7 +104,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Add IP Rule</h6>
             <form method="post" asp-page-handler="Add">
                 <input type="hidden" name="domainId" value="@Model.Selected?.Id" />

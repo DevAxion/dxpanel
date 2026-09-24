@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Settings.CommandLogModel
+@model DXPanel.Pages.Settings.CommandLogModel
 @{
     ViewData["Title"] = "Command Log";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Settings/Index">Settings</a></li>
             <li class="breadcrumb-item active" aria-current="page">Command Log</li>
@@ -33,13 +33,13 @@
                 }
             </select>
         </form>
-        <form method="post" asp-page-handler="Clear" class="srx-confirm-form" data-confirm-message="Clear the entire command log?">
+        <form method="post" asp-page-handler="Clear" class="dx-confirm-form" data-confirm-message="Clear the entire command log?">
             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Clear</button>
         </form>
     </div>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Logs.Any())
         {
@@ -74,11 +74,11 @@
                                 <td>
                                     @if (log.ExitCode == 0)
                                     {
-                                        <span class="badge srx-badge-active">0</span>
+                                        <span class="badge dx-badge-active">0</span>
                                     }
                                     else
                                     {
-                                        <span class="badge srx-badge-suspended">@log.ExitCode</span>
+                                        <span class="badge dx-badge-suspended">@log.ExitCode</span>
                                     }
                                 </td>
                                 <td>

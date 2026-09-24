@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Pages.Ftp;
+namespace DXPanel.Pages.Ftp;
 
 public class CreateModel : PageModel
 {

@@ -2,11 +2,11 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.Client;
+namespace DXPanel.Pages.Client;
 
 public class StatsModel : PageModel
 {

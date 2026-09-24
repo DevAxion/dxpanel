@@ -18,7 +18,7 @@ data/
 appsettings.Production.json
 appsettings.*.local.json
 docker/.env
-/etc/srxpanel/
+/etc/dxpanel/
 
 # IDE
 .vs/

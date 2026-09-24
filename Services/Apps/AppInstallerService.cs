@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
-using SRXPanel.Services.Portal;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
+using DXPanel.Services.Portal;
 
-namespace SRXPanel.Services.Apps;
+namespace DXPanel.Services.Apps;
 
 public record InstallRequest(
     int AppDefinitionId, int DomainId, string Path, string SiteTitle,
@@ -209,7 +209,7 @@ public class AppInstallerService : IAppInstallerService
         await runner.RunAsync($"mkdir -p {installDir} && tar -xzf /tmp/{app.Slug}.tar.gz -C {installDir} --strip-components=1", ServiceName);
 
         await StepAsync(db, bc, job, 50, "Configure", $"Writing configuration (PHP {req.PhpVersion}, language {req.Language})…");
-        await runner.WriteFileAsync($"{installDir}/srx-install.json",
+        await runner.WriteFileAsync($"{installDir}/dx-install.json",
             $"{{\"app\":\"{app.Slug}\",\"version\":\"{app.Version}\",\"title\":\"{req.SiteTitle}\"}}", ServiceName);
 
         string? dbName = null, dbUser = null;

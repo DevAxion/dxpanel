@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>
 /// A hosting plan authored by a reseller and offered to their own clients.

@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 /// <summary>Outcome of validating a raw cron expression.</summary>
 public record CronValidation(bool IsValid, string Description, string? Error, DateTime? NextRun);

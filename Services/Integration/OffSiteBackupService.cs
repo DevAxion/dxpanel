@@ -2,9 +2,9 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 public record OffSiteBackupItem(string FileName, long SizeBytes, DateTime LastModified);
 

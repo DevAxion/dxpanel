@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 public interface IPlatformSettingsService
 {

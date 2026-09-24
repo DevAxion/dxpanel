@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Billing;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Billing;
 
-namespace SRXPanel.Services.Vps;
+namespace DXPanel.Services.Vps;
 
 public interface IVpsProvisioningService
 {

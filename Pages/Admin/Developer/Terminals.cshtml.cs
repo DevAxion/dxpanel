@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Developer;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Developer;
 
-namespace SRXPanel.Pages.Admin.Developer;
+namespace DXPanel.Pages.Admin.Developer;
 
 public class TerminalsModel : PageModel
 {

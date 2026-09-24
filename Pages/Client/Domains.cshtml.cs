@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
-using SRXPanel.Services.Reseller;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
+using DXPanel.Services.Reseller;
 
-namespace SRXPanel.Pages.Client;
+namespace DXPanel.Pages.Client;
 
 public class DomainsModel : PageModel
 {

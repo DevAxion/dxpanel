@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.AppHosting;
+namespace DXPanel.Services.AppHosting;
 
 public record ProcMetrics(string Status, long UptimeSeconds, double CpuPercent, double MemoryMB, int Pid, int Restarts);
 
@@ -133,8 +133,8 @@ module.exports = {
     exec_mode: "{{(app.ClusterMode || app.ProcessCount > 1 ? "cluster" : "fork")}}",
     watch: {{(app.WatchMode ? "true" : "false")}},
     env: {{envObj}},
-    error_file: "/var/log/srxpanel/apps/{{app.Id}}/error.log",
-    out_file: "/var/log/srxpanel/apps/{{app.Id}}/out.log",
+    error_file: "/var/log/dxpanel/apps/{{app.Id}}/error.log",
+    out_file: "/var/log/dxpanel/apps/{{app.Id}}/out.log",
     max_memory_restart: "{{app.MaxMemoryRestartMB}}M"
   }]
 };

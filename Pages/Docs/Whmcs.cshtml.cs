@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace SRXPanel.Pages.Docs;
+namespace DXPanel.Pages.Docs;
 
 public class WhmcsModel : PageModel
 {

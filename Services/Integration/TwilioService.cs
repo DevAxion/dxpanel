@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Options;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 /// <summary>
 /// Sends transactional SMS via Twilio. In simulation mode (or when Twilio

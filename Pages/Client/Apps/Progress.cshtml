@@ -1,6 +1,6 @@
 @page "/Client/Apps/Progress/{jobId:int}"
-@model SRXPanel.Pages.Client.Apps.ProgressModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Apps.ProgressModel
+@using DXPanel.Models
 @{
     var j = Model.Job;
     ViewData["Title"] = $"{j.Type} {j.AppName}";
@@ -8,7 +8,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
         <li class="breadcrumb-item active" aria-current="page">@j.Type</li>
     </ol></nav>
@@ -16,7 +16,7 @@
 
 <h4 class="text-light mb-4">@j.Type — @j.AppName</h4>
 
-<div class="card srx-card mb-4" style="max-width:820px;"><div class="card-body">
+<div class="card dx-card mb-4" style="max-width:820px;"><div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="text-light" id="stepLabel">@j.CurrentStep</span>
         <span class="text-secondary" id="pctLabel">@j.Progress%</span>
@@ -35,13 +35,13 @@
     </div>
 </div></div>
 
-<div class="card srx-card mb-4" style="max-width:820px;"><div class="card-body">
+<div class="card dx-card mb-4" style="max-width:820px;"><div class="card-body">
     <h6 class="text-light mb-2"><i class="bi bi-terminal"></i> Live log</h6>
     <pre class="bg-black p-3 rounded small mb-0" style="max-height:260px;overflow:auto;" id="log"><code>@j.Log</code></pre>
 </div></div>
 
 <div id="successBox" class="@(j.Status == AppJobStatus.Success && Model.Installation != null ? "" : "d-none")" style="max-width:820px;">
-    <div class="card srx-card border-success"><div class="card-body">
+    <div class="card dx-card border-success"><div class="card-body">
         <h5 class="text-light"><i class="bi bi-check-circle-fill text-success"></i> All done!</h5>
         @if (Model.Installation is AppInstallation inst)
         {

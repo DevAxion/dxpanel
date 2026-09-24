@@ -3,11 +3,11 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Portal;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Portal;
 
-namespace SRXPanel.Pages.Client;
+namespace DXPanel.Pages.Client;
 
 public class SettingsModel : PageModel
 {
@@ -57,8 +57,8 @@ public class SettingsModel : PageModel
             }
             SharedKey = FormatKey(key!);
             var email = await _userManager.GetEmailAsync(user);
-            AuthenticatorUri = $"otpauth://totp/{_urlEncoder.Encode("SRXPanel")}:{_urlEncoder.Encode(email!)}" +
-                               $"?secret={key}&issuer={_urlEncoder.Encode("SRXPanel")}&digits=6";
+            AuthenticatorUri = $"otpauth://totp/{_urlEncoder.Encode("DXPanel")}:{_urlEncoder.Encode(email!)}" +
+                               $"?secret={key}&issuer={_urlEncoder.Encode("DXPanel")}&digits=6";
         }
         return user;
     }

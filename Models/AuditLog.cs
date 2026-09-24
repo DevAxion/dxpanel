@@ -1,4 +1,4 @@
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 public class AuditLog
 {

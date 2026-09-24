@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Pages.Ssl;
+namespace DXPanel.Pages.Ssl;
 
 public class IndexModel : PageModel
 {

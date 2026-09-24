@@ -1,13 +1,13 @@
 @page
-@model SRXPanel.Pages.Admin.AddonsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.AddonsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Add-ons";
     string Money(decimal d) => $"${d:0.00}";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Store Admin</li>
         <li class="breadcrumb-item active" aria-current="page">Add-ons</li>
     </ol></nav>
@@ -17,7 +17,7 @@
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <table class="table align-middle mb-0">
                 <thead><tr><th>Name</th><th>Type</th><th>Value</th><th class="text-end">Price</th><th>Active</th><th></th></tr></thead>
                 <tbody>
@@ -49,7 +49,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">@(Model.Editing ? "Edit add-on" : "New add-on")</h6>
             <form method="post" asp-page-handler="Save">
                 <input type="hidden" asp-for="Input.Id" />

@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Users.IndexModel
+@model DXPanel.Pages.Users.IndexModel
 @{
     ViewData["Title"] = "Users";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Users</li>
         </ol>
@@ -18,7 +18,7 @@
     <a asp-page="/Users/Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> New User</a>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Users.Any())
         {
@@ -49,11 +49,11 @@
                             <td>
                                 @if (u.IsActive)
                                 {
-                                    <span class="badge srx-badge-active">Active</span>
+                                    <span class="badge dx-badge-active">Active</span>
                                 }
                                 else
                                 {
-                                    <span class="badge srx-badge-suspended">Suspended</span>
+                                    <span class="badge dx-badge-suspended">Suspended</span>
                                 }
                             </td>
                             <td>@u.CreatedAt.ToString("yyyy-MM-dd")</td>
@@ -75,7 +75,7 @@
                                             <i class="bi @(u.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
                                         </button>
                                     </form>
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@u.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete user '@u.UserName'? This cannot be undone.">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@u.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete user '@u.UserName'? This cannot be undone.">
                                         <button type="submit" class="btn btn-outline-danger" title="Delete">
                                             <i class="bi bi-trash"></i>
                                         </button>

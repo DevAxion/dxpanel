@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Api;
+namespace DXPanel.Services.Api;
 
 /// <summary>
 /// Delivers outbound webhooks to a client's configured endpoints. Simulation-safe:

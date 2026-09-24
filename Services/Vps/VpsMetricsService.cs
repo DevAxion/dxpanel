@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Services.Vps;
+namespace DXPanel.Services.Vps;
 
 /// <summary>
 /// Every 5 minutes: samples stats for each running VPS (→ VpsMetric), accounts monthly bandwidth
@@ -47,7 +47,7 @@ public class VpsMetricsService : BackgroundService
         var broadcast = sp.GetRequiredService<IVpsBroadcast>();
         var notifications = sp.GetRequiredService<INotificationService>();
         var manager = sp.GetRequiredService<IVpsManagerService>();
-        var sms = sp.GetRequiredService<SRXPanel.Services.Store.ISmsSender>();
+        var sms = sp.GetRequiredService<DXPanel.Services.Store.ISmsSender>();
 
         var instances = await db.VpsInstances.Include(v => v.Node)
             .Where(v => v.Status == VpsStatus.Running)
@@ -101,7 +101,7 @@ public class VpsMetricsService : BackgroundService
     }
 
     private static async Task CheckBandwidthAsync(ApplicationDbContext db, INotificationService notifications,
-        IVpsManagerService manager, SRXPanel.Services.Store.ISmsSender sms, VpsInstance vps, CancellationToken ct)
+        IVpsManagerService manager, DXPanel.Services.Store.ISmsSender sms, VpsInstance vps, CancellationToken ct)
     {
         // Reset the counter at the start of a new monthly cycle.
         if (DateTime.UtcNow - vps.BandwidthCycleStart >= TimeSpan.FromDays(30))
@@ -127,7 +127,7 @@ public class VpsMetricsService : BackgroundService
                 // SMS alert to the owner if a phone number is on file.
                 var phone = await db.Users.Where(u => u.Id == vps.UserId).Select(u => u.PhoneNumber).FirstOrDefaultAsync(ct);
                 await sms.SendAsync(phone,
-                    $"SRXPanel: {vps.Hostname} reached 100% of its bandwidth and has been suspended.");
+                    $"DXPanel: {vps.Hostname} reached 100% of its bandwidth and has been suspended.");
             }
         }
         else if (pct >= 95)

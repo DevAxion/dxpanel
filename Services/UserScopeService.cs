@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Centralizes role-based ownership scoping so every hosting module

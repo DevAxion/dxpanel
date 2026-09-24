@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
 
-namespace SRXPanel.Pages.Reseller;
+namespace DXPanel.Pages.Reseller;
 
 public class BillingModel : PageModel
 {

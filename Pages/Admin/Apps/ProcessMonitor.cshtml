@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Admin.Apps.ProcessMonitorModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Apps.ProcessMonitorModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Process Monitor";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Admin/Apps/Hosted">Applications</a></li>
         <li class="breadcrumb-item active" aria-current="page">Process Monitor</li>
     </ol></nav>
@@ -21,13 +21,13 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Processes.Count</div><div class="srx-stat-label">Processes</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalCpu.ToString("0.0")<span class="fs-6">%</span></div><div class="srx-stat-label">Total CPU</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalMemory.ToString("0")<span class="fs-6"> MB</span></div><div class="srx-stat-label">Total memory</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-success"><i class="bi bi-check-circle"></i></div><div class="srx-stat-label">Auto-start on boot</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.Processes.Count</div><div class="dx-stat-label">Processes</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.TotalCpu.ToString("0.0")<span class="fs-6">%</span></div><div class="dx-stat-label">Total CPU</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.TotalMemory.ToString("0")<span class="fs-6"> MB</span></div><div class="dx-stat-label">Total memory</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value text-success"><i class="bi bi-check-circle"></i></div><div class="dx-stat-label">Auto-start on boot</div></div></div>
 </div>
 
-<div class="card srx-card"><div class="card-body">
+<div class="card dx-card"><div class="card-body">
     @if (!Model.Processes.Any()) { <p class="text-secondary mb-0">No running processes.</p> }
     else
     {
@@ -47,7 +47,7 @@
                     <td class="text-secondary small">@p.MemoryMB.ToString("0") MB</td>
                     <td class="text-secondary">@p.RestartCount</td>
                     <td><span class="badge @(p.Status == HostedAppStatus.Running ? "text-bg-success" : "text-bg-danger")">@p.Status</span></td>
-                    <td class="text-end"><form method="post" asp-page-handler="Kill" class="srx-confirm-form" data-confirm-message="Kill process for @p.Name?"><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-octagon"></i> Kill</button></form></td>
+                    <td class="text-end"><form method="post" asp-page-handler="Kill" class="dx-confirm-form" data-confirm-message="Kill process for @p.Name?"><input type="hidden" name="id" value="@p.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-octagon"></i> Kill</button></form></td>
                 </tr>
             }
             </tbody>

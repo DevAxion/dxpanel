@@ -1,10 +1,10 @@
 services:
-  srxpanel:
+  dxpanel:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    image: srxpanel:latest
-    container_name: srxpanel
+    image: dxpanel:latest
+    container_name: dxpanel
     restart: unless-stopped
     depends_on:
       mysql:
@@ -14,7 +14,7 @@ services:
       ASPNETCORE_URLS: http://+:5000
       # SQLite lives on the named volume by default. To use the MySQL service
       # instead, point the connection string at it here.
-      ConnectionStrings__DefaultConnection: "Data Source=/app/data/srxpanel.db"
+      ConnectionStrings__DefaultConnection: "Data Source=/app/data/dxpanel.db"
       # Persist DataProtection keys on the volume (survives restarts).
       DataProtection__KeysDirectory: "/app/data/keys"
       # The nginx service in front of us terminates TLS and forwards X-Forwarded-*.
@@ -27,7 +27,7 @@ services:
       SimulationMode: "${SIMULATION_MODE:-true}"
       # Password for the initial 'admin' account. If left blank the app generates
       # a random one and prints it to the log on first start.
-      SRXPANEL_ADMIN_PASSWORD: "${SRXPANEL_ADMIN_PASSWORD:-}"
+      DXPANEL_ADMIN_PASSWORD: "${DXPANEL_ADMIN_PASSWORD:-}"
       Panel__Hostname: "${PANEL_DOMAIN}"
       Panel__LetsEncryptEmail: "${LETSENCRYPT_EMAIL}"
       Panel__MySql__Host: "mysql"
@@ -37,7 +37,7 @@ services:
       Stripe__SecretKey: "${STRIPE_SECRET_KEY}"
       Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET}"
     volumes:
-      - srx_data:/app/data
+      - dx_data:/app/data
     expose:
       - "5000"
     healthcheck:
@@ -49,15 +49,15 @@ services:
 
   mysql:
     image: mysql:8
-    container_name: srxpanel-mysql
+    container_name: dxpanel-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE:-srxpanel}"
-      MYSQL_USER: "${MYSQL_USER:-srxpanel}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-dxpanel}"
+      MYSQL_USER: "${MYSQL_USER:-dxpanel}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
     volumes:
-      - srx_mysql:/var/lib/mysql
+      - dx_mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -66,17 +66,17 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: srxpanel-nginx
+    container_name: dxpanel-nginx
     restart: unless-stopped
     depends_on:
-      - srxpanel
+      - dxpanel
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - srx_certs:/etc/letsencrypt
-      - srx_certbot_www:/var/www/certbot
+      - dx_certs:/etc/letsencrypt
+      - dx_certbot_www:/var/www/certbot
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost/api/health"]
       interval: 30s
@@ -85,16 +85,16 @@ services:
 
   certbot:
     image: certbot/certbot
-    container_name: srxpanel-certbot
+    container_name: dxpanel-certbot
     restart: unless-stopped
     volumes:
-      - srx_certs:/etc/letsencrypt
-      - srx_certbot_www:/var/www/certbot
+      - dx_certs:/etc/letsencrypt
+      - dx_certbot_www:/var/www/certbot
     # Renew every 12h; nginx picks up new certs on reload.
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
 
 volumes:
-  srx_data:
-  srx_mysql:
-  srx_certs:
-  srx_certbot_www:
+  dx_data:
+  dx_mysql:
+  dx_certs:
+  dx_certbot_www:

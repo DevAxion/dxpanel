@@ -1,6 +1,6 @@
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Interfaces;
+namespace DXPanel.Services.Interfaces;
 
 public interface IDnsService
 {

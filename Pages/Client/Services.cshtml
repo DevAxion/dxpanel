@@ -1,16 +1,16 @@
 @page
-@model SRXPanel.Pages.Client.ServicesModel
-@using SRXPanel.Models
-@using SRXPanel.Services.Store
+@model DXPanel.Pages.Client.ServicesModel
+@using DXPanel.Models
+@using DXPanel.Services.Store
 @{
     ViewData["Title"] = "Services";
     string Disk(long mb) => mb >= 1024 ? $"{mb / 1024.0:0.#} GB" : $"{mb} MB";
     string Limit(int n) => n == 0 ? "Unlimited" : n.ToString();
-    string Money(decimal d, string c) => SRXPanel.Services.Billing.BillingService.FormatMoney(d, c);
+    string Money(decimal d, string c) => DXPanel.Services.Billing.BillingService.FormatMoney(d, c);
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Store</li>
         <li class="breadcrumb-item active" aria-current="page">Services</li>
     </ol></nav>
@@ -35,7 +35,7 @@
 
 @if (!Model.Services.Any() && !Model.Addons.Any() && !Model.Domains.Any())
 {
-    <div class="card srx-card"><div class="card-body text-center py-5">
+    <div class="card dx-card"><div class="card-body text-center py-5">
         <i class="bi bi-box-seam text-secondary" style="font-size:48px;"></i>
         <h5 class="text-light mt-3">No active services yet</h5>
         <p class="text-secondary">Order your first hosting plan to get started.</p>
@@ -46,7 +46,7 @@
 @* ---------------- Hosting services (shared + VPS + reseller) ---------------- *@
 @foreach (var s in Model.Services)
 {
-    <div class="card srx-card mb-3"><div class="card-body">
+    <div class="card dx-card mb-3"><div class="card-body">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
             <div>
                 <h5 class="text-light mb-1">@s.Name
@@ -115,7 +115,7 @@
 @if (Model.Addons.Any())
 {
     <h6 class="text-light mt-4 mb-2"><i class="bi bi-plus-square"></i> Add-ons</h6>
-    <div class="card srx-card mb-3"><div class="card-body">
+    <div class="card dx-card mb-3"><div class="card-body">
         <table class="table align-middle mb-0">
             <thead><tr><th>Add-on</th><th>Qty</th><th>Purchased</th><th>Renews</th></tr></thead>
             <tbody>
@@ -137,7 +137,7 @@
 @if (Model.Domains.Any())
 {
     <h6 class="text-light mt-4 mb-2"><i class="bi bi-globe2"></i> Domains</h6>
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <table class="table align-middle mb-0">
             <thead><tr><th>Domain</th><th>Status</th><th>Registered</th><th>Expires</th><th class="text-end">Price</th></tr></thead>
             <tbody>

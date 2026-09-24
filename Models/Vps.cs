@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 // ============================================================
 // Phase 12 — VPS provisioning (Proxmox)
@@ -18,7 +18,7 @@ public class ProxmoxNode
     public int Port { get; set; } = 8006;
 
     [StringLength(80)] public string Username { get; set; } = "root@pam";
-    /// <summary>API token id, e.g. "root@pam!srxpanel".</summary>
+    /// <summary>API token id, e.g. "root@pam!dxpanel".</summary>
     [StringLength(120)] public string TokenId { get; set; } = string.Empty;
     /// <summary>API token secret — treat as sensitive.</summary>
     public string? TokenSecret { get; set; }

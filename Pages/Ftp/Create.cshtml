@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Ftp.CreateModel
+@model DXPanel.Pages.Ftp.CreateModel
 @{
     ViewData["Title"] = "New FTP Account";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Ftp/Index">FTP Accounts</a></li>
             <li class="breadcrumb-item active" aria-current="page">New</li>
@@ -16,7 +16,7 @@
 
 <h4 class="text-light mb-4">Create FTP Account</h4>
 
-<div class="card srx-card" style="max-width: 640px;">
+<div class="card dx-card" style="max-width: 640px;">
     <div class="card-body">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 

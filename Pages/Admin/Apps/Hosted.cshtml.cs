@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.AppHosting;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.AppHosting;
 
-namespace SRXPanel.Pages.Admin.Apps;
+namespace DXPanel.Pages.Admin.Apps;
 
 public class HostedModel : PageModel
 {

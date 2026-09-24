@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Security;
+using DXPanel.Models;
+using DXPanel.Services.Security;
 
-namespace SRXPanel.Pages.Admin.Security;
+namespace DXPanel.Pages.Admin.Security;
 
 public class IpManagerModel : PageModel
 {

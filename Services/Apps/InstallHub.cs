@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace SRXPanel.Services.Apps;
+namespace DXPanel.Services.Apps;
 
 /// <summary>
 /// Real-time channel for application install/update/uninstall jobs. The progress page

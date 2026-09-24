@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Vps;
+namespace DXPanel.Services.Vps;
 
 // ---------------- DTOs ----------------
 

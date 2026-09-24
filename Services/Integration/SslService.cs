@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 /// <summary>
 /// Issues/renews certificates via certbot (Let's Encrypt) or openssl (self-signed),
@@ -72,14 +72,14 @@ public class SslService : ISslService
     public async Task<ServiceResult> IssueSelfSignedAsync(string domain)
     {
         var result = new ServiceResult { Message = $"Self-signed certificate issued for {domain}." };
-        var dir = $"/etc/ssl/srxpanel/{domain}";
+        var dir = $"/etc/ssl/dxpanel/{domain}";
         var certPath = $"{dir}/fullchain.pem";
         var keyPath = $"{dir}/privkey.pem";
 
         result.Commands.Add(await _runner.RunAsync($"mkdir -p {dir}", ServiceName));
         var cmd = await _runner.RunAsync(
             $"openssl req -x509 -nodes -days 365 -newkey rsa:2048 " +
-            $"-keyout {keyPath} -out {certPath} -subj \"/CN={domain}/O=SRXPanel\"",
+            $"-keyout {keyPath} -out {certPath} -subj \"/CN={domain}/O=DXPanel\"",
             ServiceName);
         result.Commands.Add(cmd);
 

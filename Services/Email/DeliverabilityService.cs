@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Email;
+namespace DXPanel.Services.Email;
 
 public record ScoreFactor(string Label, int Points, int MaxPoints, bool Passed, string? Recommendation, string? Link);
 

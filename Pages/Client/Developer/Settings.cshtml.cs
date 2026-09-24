@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Developer;
-using SRXPanel.Services.Portal;
+using DXPanel.Models;
+using DXPanel.Services.Developer;
+using DXPanel.Services.Portal;
 
-namespace SRXPanel.Pages.Client.Developer;
+namespace DXPanel.Pages.Client.Developer;
 
 public class SettingsModel : PageModel
 {

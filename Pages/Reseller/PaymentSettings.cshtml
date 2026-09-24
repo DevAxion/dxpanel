@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Reseller.PaymentSettingsModel
+@model DXPanel.Pages.Reseller.PaymentSettingsModel
 @{
     ViewData["Title"] = "Payment Settings";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Reseller/Dashboard">Reseller</a></li>
             <li class="breadcrumb-item active" aria-current="page">Payment Settings</li>
         </ol>
@@ -17,14 +17,14 @@
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-stripe"></i> Stripe Connect</h6>
                 @if (Model.Settings.ConnectOnboarded)
                 {
                     <p class="text-success mb-2"><i class="bi bi-check-circle-fill"></i> Connected</p>
                     <p class="small text-secondary">Account: <code>@Model.Settings.StripeConnectAccountId</code></p>
-                    <form method="post" asp-page-handler="Disconnect" class="srx-confirm-form" data-confirm-message="Disconnect Stripe?">
+                    <form method="post" asp-page-handler="Disconnect" class="dx-confirm-form" data-confirm-message="Disconnect Stripe?">
                         <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Disconnect</button>
                     </form>
                 }
@@ -45,7 +45,7 @@
     </div>
 
     <div class="col-lg-7">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <form method="post" asp-page-handler="Save">
                     <h6 class="text-light mb-3"><i class="bi bi-key"></i> Own Stripe Keys (bypass Connect)</h6>

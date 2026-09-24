@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Net.Security;
 using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
+using DXPanel.Data;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public record PerfRecommendation(string Title, string Detail, string Severity);
 

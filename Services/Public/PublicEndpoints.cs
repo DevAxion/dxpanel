@@ -1,10 +1,10 @@
 using System.Text;
 using System.Xml;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Public;
+namespace DXPanel.Services.Public;
 
 public static class PublicEndpoints
 {
@@ -18,7 +18,7 @@ public static class PublicEndpoints
         {
             var lang = ctx.Request.Form["lang"].FirstOrDefault() ?? "en";
             if (lang is not ("en" or "az" or "tr" or "ar")) lang = "en";
-            ctx.Response.Cookies.Append("srx_lang", lang, new CookieOptions
+            ctx.Response.Cookies.Append("dx_lang", lang, new CookieOptions
             {
                 Expires = DateTimeOffset.UtcNow.AddYears(1),
                 IsEssential = true,

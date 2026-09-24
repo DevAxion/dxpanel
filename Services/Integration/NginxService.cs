@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 public class NginxService : INginxService
 {
@@ -172,7 +172,7 @@ public class NginxService : INginxService
         """;
 
         var httpServer = $$"""
-        # Managed by SRXPanel - {{domain}}
+        # Managed by DXPanel - {{domain}}
         server {
                 listen 80;
                 listen [::]:80;

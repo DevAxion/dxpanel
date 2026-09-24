@@ -1,11 +1,11 @@
 @page
-@model SRXPanel.Pages.Admin.Security.BruteForceModel
+@model DXPanel.Pages.Admin.Security.BruteForceModel
 @{
     ViewData["Title"] = "Brute Force";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Admin/Security/Index">Security</a></li>
         <li class="breadcrumb-item active" aria-current="page">Brute Force</li>
     </ol></nav>
@@ -14,15 +14,15 @@
 <h4 class="text-light mb-4">Brute Force Protection</h4>
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Report.TotalAttempts</div><div class="text-secondary small">Attempts (7d)</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.Report.FailedAttempts</div><div class="text-secondary small">Failed (7d)</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.Report.BlockedIps</div><div class="text-secondary small">Blocked (7d)</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Blocked.Count</div><div class="text-secondary small">Currently blocked</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Report.TotalAttempts</div><div class="text-secondary small">Attempts (7d)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.Report.FailedAttempts</div><div class="text-secondary small">Failed (7d)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.Report.BlockedIps</div><div class="text-secondary small">Blocked (7d)</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Blocked.Count</div><div class="text-secondary small">Currently blocked</div></div></div></div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-broadcast"></i> Live attempt feed <span class="badge text-bg-secondary" id="liveBadge">connecting…</span></h6>
             <div class="table-responsive" style="max-height:300px;overflow:auto;">
                 <table class="table table-sm align-middle mb-0">
@@ -44,7 +44,7 @@
             </div>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-slash-circle"></i> Blocked IPs</h6>
             <table class="table table-sm align-middle mb-0">
                 <thead><tr><th>IP</th><th>Reason</th><th>Expires</th><th></th></tr></thead>
@@ -68,7 +68,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-hand-index"></i> Manual block</h6>
             <form method="post" asp-page-handler="Block">
                 <div class="mb-2"><input name="ip" class="form-control form-control-sm" placeholder="IP address" required /></div>
@@ -80,7 +80,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-check-circle"></i> Whitelist (never block)</h6>
             @foreach (var w in Model.Whitelist)
             {
@@ -95,7 +95,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Thresholds</h6>
             <form method="post" asp-page-handler="Thresholds">
                 <div class="row g-2">
@@ -109,7 +109,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-geo"></i> Top attacking countries</h6>
             @if (!Model.Report.TopCountries.Any())
             {

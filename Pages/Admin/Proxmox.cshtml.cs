@@ -2,12 +2,12 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Vps;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Vps;
 
-namespace SRXPanel.Pages.Admin;
+namespace DXPanel.Pages.Admin;
 
 public class ProxmoxModel : PageModel
 {

@@ -1,13 +1,13 @@
 @page
-@model SRXPanel.Pages.Admin.SubscriptionsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.SubscriptionsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Subscriptions";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Subscriptions</li>
         </ol>
@@ -34,7 +34,7 @@
     </form>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Subscriptions.Any())
         {
@@ -49,10 +49,10 @@
                             <td>
                                 @{
                                     var badge = s.Status switch {
-                                        SubscriptionStatus.Active => "srx-badge-active",
+                                        SubscriptionStatus.Active => "dx-badge-active",
                                         SubscriptionStatus.Trialing => "text-bg-info",
                                         SubscriptionStatus.PastDue => "text-bg-warning",
-                                        _ => "srx-badge-suspended" };
+                                        _ => "dx-badge-suspended" };
                                 }
                                 <span class="badge @badge">@s.Status</span>
                             </td>
@@ -69,7 +69,7 @@
                                     }
                                     @if (s.Status != SubscriptionStatus.Cancelled)
                                     {
-                                        <form method="post" asp-page-handler="Suspend" asp-route-id="@s.Id" class="d-inline srx-confirm-form" data-confirm-message="Suspend this subscription?">
+                                        <form method="post" asp-page-handler="Suspend" asp-route-id="@s.Id" class="d-inline dx-confirm-form" data-confirm-message="Suspend this subscription?">
                                             <button class="btn btn-outline-warning" title="Suspend"><i class="bi bi-pause-circle"></i></button>
                                         </form>
                                     }

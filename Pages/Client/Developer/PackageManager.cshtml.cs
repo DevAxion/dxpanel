@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Developer;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Developer;
 
-namespace SRXPanel.Pages.Client.Developer;
+namespace DXPanel.Pages.Client.Developer;
 
 public class PackageManagerModel : PageModel
 {

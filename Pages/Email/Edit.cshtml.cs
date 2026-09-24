@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.Email;
+namespace DXPanel.Pages.Email;
 
 public class EditModel : PageModel
 {

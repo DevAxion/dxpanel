@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Security;
+namespace DXPanel.Services.Security;
 
 public record DnsCheck(bool Valid, string Message);
 
@@ -62,7 +62,7 @@ public class EmailSecurityService : IEmailSecurityService
 
         sec.DkimPublicKey = publicKey;
         sec.DkimPrivateKey = privateKey;
-        sec.DkimSelector = "srx" + DateTime.UtcNow.ToString("yyMM");
+        sec.DkimSelector = "dx" + DateTime.UtcNow.ToString("yyMM");
         await _db.SaveChangesAsync();
 
         await _runner.LogExternalAsync($"opendkim.genkey(domain={domainId}, selector={sec.DkimSelector})", "2048-bit RSA keypair generated", true, ServiceName);

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Billing;
+namespace DXPanel.Services.Billing;
 
 public interface IResellerBillingService
 {

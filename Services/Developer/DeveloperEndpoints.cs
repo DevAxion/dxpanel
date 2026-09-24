@@ -1,11 +1,11 @@
 using System.Net.WebSockets;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public static class DeveloperEndpoints
 {

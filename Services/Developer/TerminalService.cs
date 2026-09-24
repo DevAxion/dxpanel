@@ -2,11 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Api;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Api;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public record TerminalTicket(string Token, DateTime ExpiresAt);
 
@@ -74,7 +74,7 @@ public class TerminalService : ITerminalService
     }
 
     /// <summary>A dedicated audience keeps terminal tickets from being replayed against the REST API.</summary>
-    public const string TerminalAudience = "SRXPanel.Terminal";
+    public const string TerminalAudience = "DXPanel.Terminal";
 
     public (bool ok, string? userId, string? tokenId, string? error) ValidateTicket(string token)
     {

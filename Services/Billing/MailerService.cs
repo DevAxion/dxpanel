@@ -1,10 +1,10 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Billing;
+namespace DXPanel.Services.Billing;
 
 /// <summary>
 /// Renders HTML email templates (EmailTemplates/*.html) with {{TOKEN}} substitution
@@ -79,7 +79,7 @@ public class MailerService : IMailerService
         {
             using var message = new MailMessage
             {
-                From = new MailAddress(_panel.Smtp.From, "SRXPanel"),
+                From = new MailAddress(_panel.Smtp.From, "DXPanel"),
                 Subject = subject,
                 Body = html,
                 IsBodyHtml = true

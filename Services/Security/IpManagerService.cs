@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Security;
+namespace DXPanel.Services.Security;
 
 public interface IIpManagerService
 {
@@ -47,7 +47,7 @@ public class IpManagerService : IIpManagerService
         {
             IpRuleKind.WhitelistIp => $"ufw insert 1 allow from {value}",
             IpRuleKind.BlacklistIp => $"ufw insert 1 deny from {value}",
-            IpRuleKind.BlockCountry => $"srx-geoblock add {value}",
+            IpRuleKind.BlockCountry => $"dx-geoblock add {value}",
             _ => ""
         };
         if (!string.IsNullOrEmpty(cmd)) await _runner.RunAsync(cmd, ServiceName);
@@ -63,7 +63,7 @@ public class IpManagerService : IIpManagerService
         {
             IpRuleKind.WhitelistIp => $"ufw delete allow from {rule.Value}",
             IpRuleKind.BlacklistIp => $"ufw delete deny from {rule.Value}",
-            IpRuleKind.BlockCountry => $"srx-geoblock remove {rule.Value}",
+            IpRuleKind.BlockCountry => $"dx-geoblock remove {rule.Value}",
             _ => ""
         };
         if (!string.IsNullOrEmpty(cmd)) await _runner.RunAsync(cmd, ServiceName);

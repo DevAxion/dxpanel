@@ -3,11 +3,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 /// <summary>A newly generated key pair. The private key is returned once and never stored.</summary>
 public record GeneratedKeyPair(string PublicKey, string PrivateKeyPem, string Fingerprint);
@@ -106,7 +106,7 @@ public class SshKeyService : ISshKeyService
 
         var keys = await _db.SshKeys.Where(k => k.UserId == user.Id).OrderBy(k => k.CreatedAt).ToListAsync();
         var sb = new StringBuilder();
-        sb.AppendLine($"# Managed by SRXPanel — do not edit by hand ({DateTime.UtcNow:u})");
+        sb.AppendLine($"# Managed by DXPanel — do not edit by hand ({DateTime.UtcNow:u})");
         foreach (var key in keys)
             sb.AppendLine($"{key.PublicKey} {key.Label.Replace('\n', ' ')}");
         return sb.ToString();

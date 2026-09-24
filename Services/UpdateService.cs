@@ -1,10 +1,10 @@
 using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 public record ReleaseInfo(string Version, string Channel, DateTime ReleasedAt, string[] Changelog);
 
@@ -32,7 +32,7 @@ public interface IUpdateService
 /// to <c>update.sh</c> (git pull + dotnet publish + migrate + restart); in
 /// simulation mode (dev/Windows) it records the transition without touching the OS.
 /// The "latest release" catalogue is bundled so the panel can advertise updates
-/// without a network round-trip to get.srxpanel.com.
+/// without a network round-trip to get.dxpanel.com.
 /// </summary>
 public class UpdateService : IUpdateService
 {

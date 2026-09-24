@@ -1,6 +1,6 @@
-using SRXPanel.Services.Integration;
+using DXPanel.Services.Integration;
 
-namespace SRXPanel.Services.Store;
+namespace DXPanel.Services.Store;
 
 /// <summary>
 /// Sends SMS to customers. Delegates to <see cref="ITwilioService"/>, which sends

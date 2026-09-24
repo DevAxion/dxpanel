@@ -1,6 +1,6 @@
 @page "/Client/Apps/Hosted"
-@model SRXPanel.Pages.Client.Apps.Hosted.IndexModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Apps.Hosted.IndexModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Hosted Apps";
     (string cls, string text) Badge(HostedAppStatus s) => s switch
@@ -15,7 +15,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Applications</li>
         <li class="breadcrumb-item active" aria-current="page">Hosted Apps</li>
     </ol></nav>
@@ -33,7 +33,7 @@
 
 @if (!Model.Apps.Any())
 {
-    <div class="card srx-card"><div class="card-body text-center py-5">
+    <div class="card dx-card"><div class="card-body text-center py-5">
         <i class="bi bi-rocket text-secondary" style="font-size:2.5rem;"></i>
         <p class="text-secondary mt-3 mb-0">No hosted apps yet. Deploy a Node.js, Python, Ruby or Go app in minutes.</p>
     </div></div>
@@ -45,7 +45,7 @@ else
         {
             var b = Badge(a.Status);
             <div class="col-lg-6">
-                <div class="card srx-card h-100"><div class="card-body">
+                <div class="card dx-card h-100"><div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
                             <h5 class="text-light mb-1"><i class="bi @a.TypeIcon accent"></i> @a.Name</h5>

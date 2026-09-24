@@ -1,15 +1,15 @@
 @page
-@model SRXPanel.Pages.Client.SupportModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.SupportModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Support";
     string PriBadge(TicketPriority p) => p switch { TicketPriority.Urgent => "text-bg-danger", TicketPriority.High => "text-bg-warning", TicketPriority.Low => "text-bg-secondary", _ => "text-bg-info" };
-    string StatBadge(TicketStatus s) => s switch { TicketStatus.Open => "srx-badge-active", TicketStatus.InProgress => "text-bg-warning", _ => "text-bg-secondary" };
+    string StatBadge(TicketStatus s) => s switch { TicketStatus.Open => "dx-badge-active", TicketStatus.InProgress => "text-bg-warning", _ => "text-bg-secondary" };
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">Support</li>
         </ol>
@@ -41,7 +41,7 @@
     <div class="col-lg-8">
         @if (Model.Selected is { } ticket)
         {
-            <div class="card srx-card">
+            <div class="card dx-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
@@ -95,7 +95,7 @@
         }
         else
         {
-            <div class="card srx-card"><div class="card-body text-center py-5 text-secondary">
+            <div class="card dx-card"><div class="card-body text-center py-5 text-secondary">
                 <i class="bi bi-chat-dots fs-1"></i>
                 <p class="mt-2 mb-0">Select a ticket or open a new one.</p>
             </div></div>

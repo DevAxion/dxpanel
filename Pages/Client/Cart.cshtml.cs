@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
-using SRXPanel.Services.Store;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
+using DXPanel.Services.Store;
 
-namespace SRXPanel.Pages.Client;
+namespace DXPanel.Pages.Client;
 
 public class CartModel : PageModel
 {

@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.DatabasesModel
+@model DXPanel.Pages.Client.DatabasesModel
 @{
     ViewData["Title"] = "Databases";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">Databases</li>
         </ol>
@@ -22,7 +22,7 @@
     </div>
 }
 
-<div class="card srx-card mb-4">
+<div class="card dx-card mb-4">
     <div class="card-body">
         <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
             <div class="col-md-6"><label class="form-label">New database</label><input name="suffix" class="form-control" placeholder="wordpress" @(Model.AtLimit ? "disabled" : "") /></div>
@@ -31,7 +31,7 @@
     </div>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Databases.Any())
         {
@@ -49,7 +49,7 @@
                                     <a href="/phpmyadmin?db=@d.DbName" target="_blank" class="btn btn-outline-secondary" title="phpMyAdmin"><i class="bi bi-box-arrow-up-right"></i> phpMyAdmin</a>
                                     <form method="post" asp-page-handler="Backup" asp-route-id="@d.Id"><button class="btn btn-outline-secondary" title="Download SQL dump"><i class="bi bi-download"></i></button></form>
                                     <form method="post" asp-page-handler="Password" asp-route-id="@d.Id"><button class="btn btn-outline-secondary" title="Reset password"><i class="bi bi-key"></i></button></form>
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="srx-confirm-form" data-confirm-message="Delete database '@d.DbName'? All data is lost."><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="dx-confirm-form" data-confirm-message="Delete database '@d.DbName'? All data is lost."><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
                                 </div>
                             </td>
                         </tr>

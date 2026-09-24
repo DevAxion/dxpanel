@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Databases.UsersModel
+@model DXPanel.Pages.Databases.UsersModel
 @{
     ViewData["Title"] = "Database Users";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Databases/Index">Databases</a></li>
             <li class="breadcrumb-item active" aria-current="page">DB Users</li>
@@ -16,7 +16,7 @@
 
 <h4 class="text-light mb-4">Database Users &amp; Permissions</h4>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Databases.Any())
         {
@@ -56,7 +56,7 @@
                                     <input type="hidden" name="Reset.DatabaseId" value="@d.Id" />
                                     <div class="col-md-6">
                                         <label class="form-label small">New password for @d.DbUser</label>
-                                        <input name="Reset.NewPassword" type="text" class="form-control form-control-sm" value="@SRXPanel.Services.HostingHelpers.GeneratePassword()" />
+                                        <input name="Reset.NewPassword" type="text" class="form-control form-control-sm" value="@DXPanel.Services.HostingHelpers.GeneratePassword()" />
                                     </div>
                                     <div class="col-md-3">
                                         <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i> Save</button>

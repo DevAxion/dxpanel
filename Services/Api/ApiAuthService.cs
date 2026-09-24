@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Api;
+namespace DXPanel.Services.Api;
 
 /// <summary>
 /// Authenticates external API callers by their X-API-Key, enforces a per-key

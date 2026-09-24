@@ -1,11 +1,11 @@
 @page
-@model SRXPanel.Pages.Client.Developer.SettingsModel
+@model DXPanel.Pages.Client.Developer.SettingsModel
 @{
     ViewData["Title"] = "Developer Settings";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">Settings</li>
     </ol></nav>
@@ -15,7 +15,7 @@
 
 @if (Model.NewApiKey != null)
 {
-    <div class="card srx-card border-warning mb-4"><div class="card-body">
+    <div class="card dx-card border-warning mb-4"><div class="card-body">
         <h6 class="text-warning mb-2"><i class="bi bi-key-fill"></i> Your new API key — shown once</h6>
         <div class="input-group">
             <input class="form-control font-monospace" readonly value="@Model.NewApiKey" id="newKey" />
@@ -29,7 +29,7 @@
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-bug"></i> Debugging</h6>
             <form method="post" asp-page-handler="Save">
                 <div class="form-check form-switch mb-3">
@@ -56,7 +56,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-light mb-0"><i class="bi bi-key"></i> API keys</h6>
                 <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#newKeyForm">
@@ -109,7 +109,7 @@
     </div>
 
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-light mb-0"><i class="bi bi-broadcast"></i> Webhook endpoints</h6>
                 <button class="btn btn-sm btn-primary" data-bs-toggle="collapse" data-bs-target="#addHook">
@@ -122,9 +122,9 @@
                     <div class="mb-2">
                         <label class="form-label small">Endpoint URL</label>
                         <input name="url" type="url" class="form-control form-control-sm font-monospace"
-                               placeholder="https://example.com/hooks/srxpanel" required />
+                               placeholder="https://example.com/hooks/dxpanel" required />
                         <div class="form-text">
-                            We POST JSON and sign the body with HMAC-SHA256 in the <code>X-SRX-Signature</code> header.
+                            We POST JSON and sign the body with HMAC-SHA256 in the <code>X-DX-Signature</code> header.
                         </div>
                     </div>
                     <label class="form-label small">Events</label>
@@ -229,7 +229,7 @@
             }
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-list-check"></i> Delivery log</h6>
             @if (!Model.Deliveries.Any())
             {

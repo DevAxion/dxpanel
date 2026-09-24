@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
 
-namespace SRXPanel.Services.Store;
+namespace DXPanel.Services.Store;
 
 /// <summary>
 /// Periodically sends reminders for unpaid invoices: 3 days before the due date,

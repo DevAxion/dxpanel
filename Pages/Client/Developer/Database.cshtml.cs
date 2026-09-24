@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Developer;
-using Db = SRXPanel.Models.Database;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Developer;
+using Db = DXPanel.Models.Database;
 
-namespace SRXPanel.Pages.Client.Developer;
+namespace DXPanel.Pages.Client.Developer;
 
 public class DatabaseModel : PageModel
 {

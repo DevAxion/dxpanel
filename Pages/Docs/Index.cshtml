@@ -1,6 +1,6 @@
 @page
-@using SRXPanel.Services
-@model SRXPanel.Pages.Docs.IndexModel
+@using DXPanel.Services
+@model DXPanel.Pages.Docs.IndexModel
 @inject IFrontendService Frontend
 @{
     Layout = null;
@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Documentation — SRXPanel</title>
+    <title>Documentation — DXPanel</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -89,16 +89,16 @@
             <section id="install">
                 <h2>One-liner Install</h2>
                 <p>Run this on a fresh Ubuntu 22.04 server as root. The installer is interactive — it asks for your panel domain, admin credentials and which optional services (email, DNS, FTP, phpMyAdmin) to enable.</p>
-                <pre><code>curl -fsSL https://get.srxpanel.com/install.sh | bash</code></pre>
+                <pre><code>curl -fsSL https://get.dxpanel.com/install.sh | bash</code></pre>
                 <p>The script installs Nginx, MySQL, PHP (7.4–8.3), the .NET 9 runtime, Certbot and your selected services, provisions the database, deploys the panel as a <code>systemd</code> service, configures the Nginx reverse proxy with a Let's Encrypt certificate, and hardens the box with UFW and Fail2ban.</p>
-                <div class="callout"><i class="bi bi-info-circle"></i> When it finishes, the installer prints your panel URL, admin password and the location of the saved MySQL root credentials (<code>/etc/srxpanel/db.conf</code>).</div>
+                <div class="callout"><i class="bi bi-info-circle"></i> When it finishes, the installer prints your panel URL, admin password and the location of the saved MySQL root credentials (<code>/etc/dxpanel/db.conf</code>).</div>
             </section>
 
             <section id="docker">
                 <h2>Docker</h2>
                 <p>Prefer containers? Use the bundled Compose stack (panel + MySQL + Nginx + Certbot):</p>
-                <pre><code>git clone https://github.com/srxpanel/srxpanel
-cd srxpanel/docker
+                <pre><code>git clone https://github.com/dxpanel/dxpanel
+cd dxpanel/docker
 cp .env.example .env
 nano .env          # set domain, passwords, Stripe keys
 docker compose up -d</code></pre>
@@ -108,7 +108,7 @@ docker compose up -d</code></pre>
             <section id="update">
                 <h2>Updating</h2>
                 <p>Update in place from the server shell:</p>
-                <pre><code>curl -fsSL https://get.srxpanel.com/update.sh | bash</code></pre>
+                <pre><code>curl -fsSL https://get.dxpanel.com/update.sh | bash</code></pre>
                 <p>Or from the panel itself under <strong>Admin → Updates</strong>, where you can view the changelog, apply updates with one click, review update history and enable automatic updates. The panel version is exposed at <code>/api/health</code>.</p>
             </section>
 
@@ -178,8 +178,8 @@ POST /api/v1/whmcs/ChangePackage</code></pre>
             <section id="troubleshooting">
                 <h2>Troubleshooting</h2>
                 <h3>The panel won't start</h3>
-                <pre><code>systemctl status srxpanel
-journalctl -u srxpanel -n 100 --no-pager</code></pre>
+                <pre><code>systemctl status dxpanel
+journalctl -u dxpanel -n 100 --no-pager</code></pre>
                 <h3>Check overall health</h3>
                 <pre><code>curl -s https://panel.example.com/api/health | jq</code></pre>
                 <h3>SSL certificate failed to issue</h3>

@@ -1,11 +1,11 @@
 @page
-@model SRXPanel.Pages.Admin.Reports.SecurityModel
+@model DXPanel.Pages.Admin.Reports.SecurityModel
 @{
     ViewData["Title"] = "Security Report";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Reports</li>
         <li class="breadcrumb-item active" aria-current="page">Security</li>
     </ol></nav>
@@ -20,16 +20,16 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.WafAlerts</div><div class="text-secondary small">WAF alerts</div></div></div></div>
-    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.MalwareThreats</div><div class="text-secondary small">Malware threats</div></div></div></div>
-    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.InfectedFiles</div><div class="text-secondary small">Infected files</div></div></div></div>
-    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.BlockedIps</div><div class="text-secondary small">Blocked IPs</div></div></div></div>
-    <div class="col-6 col-lg"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.FailedLogins</div><div class="text-secondary small">Failed logins</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.WafAlerts</div><div class="text-secondary small">WAF alerts</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.MalwareThreats</div><div class="text-secondary small">Malware threats</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#d29922;">@Model.InfectedFiles</div><div class="text-secondary small">Infected files</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.BlockedIps</div><div class="text-secondary small">Blocked IPs</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.FailedLogins</div><div class="text-secondary small">Failed logins</div></div></div></div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-check2-square"></i> Compliance checklist</h6>
             @{
                 var checks = new (string Item, bool Ok, string Note)[]
@@ -55,7 +55,7 @@
     </div>
 
     <div class="col-lg-6">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-shield-check"></i> PCI-DSS (basic)</h6>
             <ul class="text-secondary small mb-0">
                 <li>Firewall configuration maintained (UFW + WAF)</li>
@@ -66,7 +66,7 @@
                 <li>Track and monitor access (audit log + security events)</li>
             </ul>
         </div></div>
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-file-earmark-text"></i> GDPR notes</h6>
             <ul class="text-secondary small mb-0">
                 <li>Personal data stored encrypted at rest where applicable</li>
@@ -78,7 +78,7 @@
     </div>
 </div>
 
-<div class="card srx-card mt-4"><div class="card-body">
+<div class="card dx-card mt-4"><div class="card-body">
     <h6 class="text-light mb-2"><i class="bi bi-envelope"></i> Weekly security digest</h6>
     <p class="text-secondary small mb-0">A weekly digest email summarising alerts, blocked IPs and threats is sent automatically to the admin address. Configure recipients under Platform Settings.</p>
 </div></div>

@@ -1,12 +1,12 @@
 @page "{id:int}"
-@model SRXPanel.Pages.Packages.EditModel
+@model DXPanel.Pages.Packages.EditModel
 @{
     ViewData["Title"] = "Edit Package";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Packages/Index">Packages</a></li>
             <li class="breadcrumb-item active" aria-current="page">Edit</li>
@@ -16,7 +16,7 @@
 
 <h4 class="text-light mb-4">Edit Package</h4>
 
-<div class="card srx-card" style="max-width: 640px;">
+<div class="card dx-card" style="max-width: 640px;">
     <div class="card-body">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
         <form method="post">

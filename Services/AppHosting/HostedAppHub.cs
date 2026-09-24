@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace SRXPanel.Services.AppHosting;
+namespace DXPanel.Services.AppHosting;
 
 /// <summary>
 /// Real-time channel for hosted apps: live metric pushes and log tailing for the detail page,

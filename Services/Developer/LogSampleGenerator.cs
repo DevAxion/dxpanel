@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 /// <summary>
 /// Seeds a plausible log file the first time a log is opened on a host where nginx,

@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.EmailModel
+@model DXPanel.Pages.Client.EmailModel
 @{
     ViewData["Title"] = "Email";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">Email</li>
         </ol>
@@ -23,7 +23,7 @@
     <div class="alert alert-success"><strong>@Model.NewEmail</strong> password (shown once): <code class="ms-2">@Model.NewPassword</code></div>
 }
 
-<div class="card srx-card mb-4">
+<div class="card dx-card mb-4">
     <div class="card-body">
         @if (Model.DomainOptions.Any())
         {
@@ -49,14 +49,14 @@
     <div class="tab-pane fade show active" id="accts">
         @foreach (var e in Model.Accounts)
         {
-            <div class="card srx-card mb-2">
+            <div class="card dx-card mb-2">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-light"><i class="bi bi-envelope"></i> @e.EmailAddress <span class="text-secondary small ms-2">@(e.QuotaMB == 0 ? "Unlimited" : $"{e.QuotaMB} MB") @(e.AutoresponderEnabled ? "· auto-reply on" : "")</span></span>
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#e-@e.Id"><i class="bi bi-gear"></i></button>
                             <form method="post" asp-page-handler="Password" asp-route-id="@e.Id"><button class="btn btn-outline-secondary"><i class="bi bi-key"></i></button></form>
-                            <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" class="srx-confirm-form" data-confirm-message="Delete '@e.EmailAddress'?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" class="dx-confirm-form" data-confirm-message="Delete '@e.EmailAddress'?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
                         </div>
                     </div>
                     <div class="collapse mt-3" id="e-@e.Id">
@@ -75,7 +75,7 @@
     </div>
 
     <div class="tab-pane fade" id="fwd">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <form method="post" asp-page-handler="AddForwarder" class="row g-2 mb-3">
                     <div class="col-md-5"><input name="source" class="form-control form-control-sm" placeholder="info@yourdomain.com" /></div>

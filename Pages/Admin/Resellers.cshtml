@@ -1,5 +1,5 @@
 @page
-@model SRXPanel.Pages.Admin.ResellersModel
+@model DXPanel.Pages.Admin.ResellersModel
 @{
     ViewData["Title"] = "Resellers";
     string Limit(int m) => m == 0 ? "∞" : m.ToString();
@@ -8,7 +8,7 @@
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item">Admin</li>
             <li class="breadcrumb-item active" aria-current="page">Resellers</li>
         </ol>
@@ -21,7 +21,7 @@
 </div>
 
 <div class="collapse mb-4" id="newReseller">
-    <div class="card srx-card">
+    <div class="card dx-card">
         <div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-shop"></i> Create Reseller</h6>
             <form method="post" asp-page-handler="Create">
@@ -59,7 +59,7 @@
 @if (Model.Edit != null)
 {
     var e = Model.Edit.Profile;
-    <div class="card srx-card mb-4 border-primary">
+    <div class="card dx-card mb-4 border-primary">
         <div class="card-body">
             <div class="d-flex justify-content-between">
                 <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Edit @Model.Edit.UserName — @e.CompanyName</h6>
@@ -104,7 +104,7 @@
     </div>
 }
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Rows.Any())
         {
@@ -134,10 +134,10 @@
                                 <form method="post" asp-page-handler="Impersonate" asp-route-userId="@r.Profile.UserId" class="d-inline">
                                     <button class="btn btn-sm btn-outline-info" title="Login as reseller"><i class="bi bi-box-arrow-in-right"></i></button>
                                 </form>
-                                <form method="post" asp-page-handler="Suspend" asp-route-profileId="@r.Profile.Id" class="d-inline srx-confirm-form" data-confirm-message="Toggle suspension? This also affects all their clients.">
+                                <form method="post" asp-page-handler="Suspend" asp-route-profileId="@r.Profile.Id" class="d-inline dx-confirm-form" data-confirm-message="Toggle suspension? This also affects all their clients.">
                                     <button class="btn btn-sm btn-outline-warning" title="Suspend / reactivate"><i class="bi bi-pause-circle"></i></button>
                                 </form>
-                                <form method="post" asp-page-handler="Delete" asp-route-profileId="@r.Profile.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this reseller AND all @r.ClientCount client(s) with all their data? This cannot be undone.">
+                                <form method="post" asp-page-handler="Delete" asp-route-profileId="@r.Profile.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete this reseller AND all @r.ClientCount client(s) with all their data? This cannot be undone.">
                                     <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
                             </td>

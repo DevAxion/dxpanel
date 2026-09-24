@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 /// <summary>
 /// Manages MySQL/MariaDB via the root connection from settings.

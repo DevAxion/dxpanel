@@ -1,5 +1,5 @@
 @page "/docs/api"
-@model SRXPanel.Pages.Docs.ApiModel
+@model DXPanel.Pages.Docs.ApiModel
 @{
     Layout = null;
     ViewData["Title"] = "API Documentation";
@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Documentation — SRXPanel</title>
+    <title>API Documentation — DXPanel</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css" />
@@ -35,7 +35,7 @@
 </head>
 <body>
     <nav class="docs-nav py-3 px-4 d-flex justify-content-between align-items-center">
-        <a href="/" class="text-decoration-none fs-5 fw-bold text-white">SRX<span style="color:#3b82f6;">Panel</span></a>
+        <a href="/" class="text-decoration-none fs-5 fw-bold text-white">DX<span style="color:#3b82f6;">Panel</span></a>
         <div class="d-flex gap-3 align-items-center">
             <span class="badge text-bg-secondary">API @Model.Version</span>
             <a href="/openapi/v1.json" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-json"></i> OpenAPI spec</a>
@@ -72,7 +72,7 @@
 
             <h3>2. Exchange the key for a token</h3>
 <pre><code>curl -X POST @baseUrl/api/v1/auth/token \
-  -H "X-API-Key: srx_live_your_key_here"</code></pre>
+  -H "X-API-Key: dx_live_your_key_here"</code></pre>
 <pre><code>{
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "expiresIn": 86400
@@ -100,7 +100,7 @@
             <div class="tab-content border border-top-0 rounded-bottom p-3" style="border-color:#30363d !important;">
                 <div class="tab-pane fade show active" id="ex-curl">
 <pre><code>TOKEN=$(curl -s -X POST @baseUrl/api/v1/auth/token \
-  -H "X-API-Key: $SRX_API_KEY" | jq -r .token)
+  -H "X-API-Key: $DX_API_KEY" | jq -r .token)
 
 curl -s @baseUrl/api/v1/domains \
   -H "Authorization: Bearer $TOKEN" | jq
@@ -121,7 +121,7 @@ $ch = curl_init("$base/api/v1/auth/token");
 curl_setopt_array($ch, [
     CURLOPT_POST           =&gt; true,
     CURLOPT_RETURNTRANSFER =&gt; true,
-    CURLOPT_HTTPHEADER     =&gt; ['X-API-Key: ' . getenv('SRX_API_KEY')],
+    CURLOPT_HTTPHEADER     =&gt; ['X-API-Key: ' . getenv('DX_API_KEY')],
 ]);
 $token = json_decode(curl_exec($ch), true)['token'];
 curl_close($ch);
@@ -146,7 +146,7 @@ BASE = "@baseUrl"
 
 token = requests.post(
     f"{BASE}/api/v1/auth/token",
-    headers={"X-API-Key": os.environ["SRX_API_KEY"]},
+    headers={"X-API-Key": os.environ["DX_API_KEY"]},
     timeout=10,
 ).json()["token"]
 
@@ -165,7 +165,7 @@ session.post(f"{BASE}/api/v1/domains", json={"domainName": "example.com"}, timeo
 
 const { token } = await fetch(`${BASE}/api/v1/auth/token`, {
   method: 'POST',
-  headers: { 'X-API-Key': process.env.SRX_API_KEY },
+  headers: { 'X-API-Key': process.env.DX_API_KEY },
 }).then(r =&gt; r.json());
 
 const domains = await fetch(`${BASE}/api/v1/domains`, {
@@ -207,8 +207,8 @@ console.log(domains);</code></pre>
             <h3>Request</h3>
 <pre><code>POST /your/endpoint HTTP/1.1
 Content-Type: application/json
-X-SRX-Event: ssl_renewed
-X-SRX-Signature: sha256=9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+X-DX-Event: ssl_renewed
+X-DX-Signature: sha256=9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
 
 {
   "event": "ssl_renewed",
@@ -219,7 +219,7 @@ X-SRX-Signature: sha256=9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15
             <h3>Verifying the signature</h3>
 <pre><code>$expected = 'sha256=' . hash_hmac('sha256', file_get_contents('php://input'), $secret);
 
-if (!hash_equals($expected, $_SERVER['HTTP_X_SRX_SIGNATURE'])) {
+if (!hash_equals($expected, $_SERVER['HTTP_X_DX_SIGNATURE'])) {
     http_response_code(401);
     exit('bad signature');
 }</code></pre>
@@ -252,7 +252,7 @@ if (!hash_equals($expected, $_SERVER['HTTP_X_SRX_SIGNATURE'])) {
 <pre><code>POST @baseUrl/api/git/webhook/{repositoryId}/{secret}</code></pre>
 
             <h2 id="changelog">Changelog</h2>
-            @foreach (var entry in SRXPanel.Pages.Docs.ApiModel.Changelog)
+            @foreach (var entry in DXPanel.Pages.Docs.ApiModel.Changelog)
             {
                 <h3>@entry.Version <span class="text-secondary" style="font-size:14px;font-weight:400;">— @entry.Date</span></h3>
                 <ul>

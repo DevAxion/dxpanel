@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Options;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public enum DnsRecordKind
 {

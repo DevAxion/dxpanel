@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Portal;
+namespace DXPanel.Services.Portal;
 
 public interface IApiKeyService
 {
@@ -27,7 +27,7 @@ public class ApiKeyService : IApiKeyService
     public async Task<(ApiKey key, string plaintext)> GenerateAsync(string userId, string name)
     {
         var random = Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
-        var plaintext = $"srx_live_{random}";
+        var plaintext = $"dx_live_{random}";
         var prefix = plaintext[..16];
 
         var key = new ApiKey

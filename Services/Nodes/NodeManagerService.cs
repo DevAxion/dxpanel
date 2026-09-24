@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Nodes;
+namespace DXPanel.Services.Nodes;
 
 public record NodeCapacity(int NodeId, string Name, double CpuPercent, double RamPercent, double DiskPercent,
     int DomainCount, int UserCount, int Weight, bool Accepting)

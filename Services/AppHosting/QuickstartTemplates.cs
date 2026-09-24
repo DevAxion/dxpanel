@@ -1,6 +1,6 @@
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.AppHosting;
+namespace DXPanel.Services.AppHosting;
 
 public record AppTemplate(string Key, string Name, AppRuntimeType Type, string EntryPoint,
     string StartCommand, string Packages, string Description, string InstallHint);

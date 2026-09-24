@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Store;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Store;
 
-namespace SRXPanel.Pages.Users;
+namespace DXPanel.Pages.Users;
 
 public class UserRow
 {
@@ -108,14 +108,14 @@ public class IndexModel : PageModel
                 "Your hosting account has been suspended. Please contact support.", NotificationType.Error);
             // SMS alert when the customer has a phone number on file.
             await _sms.SendAsync(user.PhoneNumber,
-                $"SRXPanel: your hosting account '{user.UserName}' has been suspended. Please contact support.");
+                $"DXPanel: your hosting account '{user.UserName}' has been suspended. Please contact support.");
         }
         else
         {
             await _notifications.NotifyAsync(user.Id, "Account reactivated",
                 "Your hosting account has been reactivated.", NotificationType.Success);
             await _sms.SendAsync(user.PhoneNumber,
-                $"SRXPanel: your hosting account '{user.UserName}' has been reactivated.");
+                $"DXPanel: your hosting account '{user.UserName}' has been reactivated.");
         }
 
         await _auditLog.LogAsync(user.IsActive ? "Unsuspend" : "Suspend", "User", user.Id, user.UserName);

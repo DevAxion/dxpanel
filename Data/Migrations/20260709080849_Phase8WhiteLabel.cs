@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace SRXPanel.Data.Migrations
+namespace DXPanel.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Phase8WhiteLabel : Migration

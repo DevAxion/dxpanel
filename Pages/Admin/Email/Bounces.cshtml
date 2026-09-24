@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Admin.Email.BouncesModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Email.BouncesModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Platform Bounces";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Admin/Email/Index">Email</a></li>
         <li class="breadcrumb-item active" aria-current="page">Bounces</li>
     </ol></nav>
@@ -15,13 +15,13 @@
 <h4 class="text-light mb-4"><i class="bi bi-arrow-return-left accent"></i> Platform Bounces</h4>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@Model.TotalHard</div><div class="srx-stat-label">Hard</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@Model.TotalSoft</div><div class="srx-stat-label">Soft</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalSuppressed</div><div class="srx-stat-label">Suppressed</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@(Model.TotalHard + Model.TotalSoft)</div><div class="srx-stat-label">Total</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value text-danger">@Model.TotalHard</div><div class="dx-stat-label">Hard</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value text-warning">@Model.TotalSoft</div><div class="dx-stat-label">Soft</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.TotalSuppressed</div><div class="dx-stat-label">Suppressed</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@(Model.TotalHard + Model.TotalSoft)</div><div class="dx-stat-label">Total</div></div></div>
 </div>
 
-<div class="card srx-card mb-3"><div class="card-body">
+<div class="card dx-card mb-3"><div class="card-body">
     <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle text-warning"></i> High hard-bounce domains</h6>
     @if (!Model.HighBounceDomains.Any()) { <p class="text-secondary mb-0">No hard bounces recorded.</p> }
     else
@@ -38,7 +38,7 @@
     }
 </div></div>
 
-<div class="card srx-card"><div class="card-body">
+<div class="card dx-card"><div class="card-body">
     <h6 class="text-light mb-3">Recent bounces</h6>
     @if (!Model.Recent.Any()) { <p class="text-secondary mb-0">No bounces recorded.</p> }
     else

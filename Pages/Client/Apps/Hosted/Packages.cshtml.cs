@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.AppHosting;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.AppHosting;
 
-namespace SRXPanel.Pages.Client.Apps.Hosted;
+namespace DXPanel.Pages.Client.Apps.Hosted;
 
 public class PackagesModel : PageModel
 {

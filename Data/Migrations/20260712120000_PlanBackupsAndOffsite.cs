@@ -2,11 +2,11 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using SRXPanel.Data;
+using DXPanel.Data;
 
 #nullable disable
 
-namespace SRXPanel.Data.Migrations
+namespace DXPanel.Data.Migrations
 {
     /// <inheritdoc />
     [DbContext(typeof(ApplicationDbContext))]

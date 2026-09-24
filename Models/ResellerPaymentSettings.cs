@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>
 /// Stripe Connect / own-keys configuration plus tax settings for a reseller.

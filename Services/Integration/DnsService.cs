@@ -1,11 +1,11 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 /// <summary>
 /// Manages BIND9 zone files. Zone content is generated from the DnsRecords

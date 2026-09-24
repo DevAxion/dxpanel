@@ -1,8 +1,8 @@
 using System.Text;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.AppHosting;
+namespace DXPanel.Services.AppHosting;
 
 public enum PythonFramework
 {

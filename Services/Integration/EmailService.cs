@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 /// <summary>
 /// Manages Postfix virtual mailboxes + Dovecot maildirs and Postfix forwarders.

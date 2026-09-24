@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Nodes;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Nodes;
 
-namespace SRXPanel.Pages.Admin.Nodes;
+namespace DXPanel.Pages.Admin.Nodes;
 
 public class MigrateModel : PageModel
 {

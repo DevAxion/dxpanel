@@ -1,6 +1,6 @@
 @page "/blog/{slug}"
-@using SRXPanel.Services
-@model SRXPanel.Pages.Blog.PostModel
+@using DXPanel.Services
+@model DXPanel.Pages.Blog.PostModel
 @inject IFrontendService Frontend
 @{
     Layout = "_PublicLayout";
@@ -34,7 +34,7 @@
     </div>
     <h1 class="text-light fw-bold">@p.Title</h1>
     <div class="d-flex align-items-center gap-2 my-3">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">@((p.Author?.FullName ?? "S").Substring(0,1))</div>
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--dx-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">@((p.Author?.FullName ?? "S").Substring(0,1))</div>
         <span class="text-secondary small">By @(p.Author?.FullName ?? $"{postCompany} Team")</span>
     </div>
 

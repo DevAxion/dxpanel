@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Data;
+namespace DXPanel.Data;
 
 /// <summary>
 /// Minimal production seed: roles, the admin account, two default hosting
@@ -60,7 +60,7 @@ public static class DbSeeder
 
         // ---- Admin user ----
         // The initial SuperAdmin password ALWAYS comes from the
-        // SRXPANEL_ADMIN_PASSWORD environment variable (the installer exports the
+        // DXPANEL_ADMIN_PASSWORD environment variable (the installer exports the
         // operator's chosen password). Only when that variable is missing/empty do
         // we fall back to a *randomly generated* password, which is written to the
         // log clearly — we never silently seed a fixed, well-known default.
@@ -70,7 +70,7 @@ public static class DbSeeder
             adminUser = new ApplicationUser
             {
                 UserName = "admin",
-                Email = "admin@srxpanel.local",
+                Email = "admin@dxpanel.local",
                 FullName = "System Administrator",
                 EmailConfirmed = true,
                 IsActive = true,
@@ -79,7 +79,7 @@ public static class DbSeeder
                 CreatedAt = DateTime.UtcNow
             };
 
-            var envPassword = Environment.GetEnvironmentVariable("SRXPANEL_ADMIN_PASSWORD");
+            var envPassword = Environment.GetEnvironmentVariable("DXPANEL_ADMIN_PASSWORD");
             var usingEnvPassword = !string.IsNullOrWhiteSpace(envPassword);
             var adminPassword = usingEnvPassword ? envPassword! : GenerateRandomPassword();
 
@@ -91,12 +91,12 @@ public static class DbSeeder
                 if (usingEnvPassword)
                 {
                     logger.LogInformation(
-                        "Created initial admin account 'admin' using the password from SRXPANEL_ADMIN_PASSWORD.");
+                        "Created initial admin account 'admin' using the password from DXPANEL_ADMIN_PASSWORD.");
                 }
                 else
                 {
                     logger.LogWarning(
-                        "SRXPANEL_ADMIN_PASSWORD was not set. Generated a random admin password: {Password}",
+                        "DXPANEL_ADMIN_PASSWORD was not set. Generated a random admin password: {Password}",
                         adminPassword);
                     logger.LogWarning(
                         "Log in as 'admin' with the password above, then change it immediately.");
@@ -107,7 +107,7 @@ public static class DbSeeder
                 var errors = string.Join("; ", result.Errors.Select(e => e.Description));
                 logger.LogError(
                     "Failed to create the initial admin account (source: {Source}): {Errors}",
-                    usingEnvPassword ? "SRXPANEL_ADMIN_PASSWORD" : "generated", errors);
+                    usingEnvPassword ? "DXPANEL_ADMIN_PASSWORD" : "generated", errors);
             }
         }
 
@@ -117,7 +117,7 @@ public static class DbSeeder
             db.PlatformSettings.Add(new PlatformSettings
             {
                 Id = 1,
-                PlatformName = "SRXPanel",
+                PlatformName = "DXPanel",
                 DefaultCurrency = "usd",
                 PlatformFeePercent = 10m,
                 TrialPeriodDays = 14,
@@ -153,7 +153,7 @@ public static class DbSeeder
     /// <summary>
     /// Builds a random password that satisfies the Identity password policy
     /// (upper, lower, digit, and special character; comfortably long). Used only
-    /// as a fallback when SRXPANEL_ADMIN_PASSWORD is not provided. Ambiguous
+    /// as a fallback when DXPANEL_ADMIN_PASSWORD is not provided. Ambiguous
     /// characters (0/O, 1/l/I) are omitted so it's safe to copy from a log.
     /// </summary>
     private static string GenerateRandomPassword()

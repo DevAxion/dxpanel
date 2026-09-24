@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Reseller;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Reseller;
 
-namespace SRXPanel.Pages.Account;
+namespace DXPanel.Pages.Account;
 
 [AllowAnonymous]
 public class RegisterModel : PageModel
@@ -87,7 +87,7 @@ public class RegisterModel : PageModel
         await _audit.LogAsync("Register", "User", user.Id, user.UserName);
 
         // Attribute the signup to an affiliate if a referral cookie is present.
-        var refCode = Request.Cookies["srx_ref"];
+        var refCode = Request.Cookies["dx_ref"];
         if (!string.IsNullOrEmpty(refCode))
         {
             var affiliate = await _affiliates.GetByCodeAsync(refCode);
@@ -98,7 +98,7 @@ public class RegisterModel : PageModel
                 user.ReferredByAffiliateId = affiliate.Id;
                 await _userManager.UpdateAsync(user);
             }
-            Response.Cookies.Delete("srx_ref");
+            Response.Cookies.Delete("dx_ref");
         }
 
         await _signInManager.SignInAsync(user, isPersistent: false);

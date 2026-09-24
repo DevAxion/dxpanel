@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Admin.Email.LogsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Email.LogsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Platform Email Logs";
     var r = Model.Report;
@@ -16,7 +16,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Admin/Email/Index">Email</a></li>
         <li class="breadcrumb-item active" aria-current="page">Logs</li>
     </ol></nav>
@@ -28,14 +28,14 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value">@r.Total</div><div class="srx-stat-label">Total</div></div></div>
-    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@r.Delivered</div><div class="srx-stat-label">Delivered</div></div></div>
-    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-danger">@r.Bounced</div><div class="srx-stat-label">Bounced</div></div></div>
-    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-warning">@r.Spam</div><div class="srx-stat-label">Spam</div></div></div>
-    <div class="col"><div class="srx-stat-card"><div class="srx-stat-value text-success">@r.DeliveryRate<span class="fs-6">%</span></div><div class="srx-stat-label">Rate</div></div></div>
+    <div class="col"><div class="dx-stat-card"><div class="dx-stat-value">@r.Total</div><div class="dx-stat-label">Total</div></div></div>
+    <div class="col"><div class="dx-stat-card"><div class="dx-stat-value text-success">@r.Delivered</div><div class="dx-stat-label">Delivered</div></div></div>
+    <div class="col"><div class="dx-stat-card"><div class="dx-stat-value text-danger">@r.Bounced</div><div class="dx-stat-label">Bounced</div></div></div>
+    <div class="col"><div class="dx-stat-card"><div class="dx-stat-value text-warning">@r.Spam</div><div class="dx-stat-label">Spam</div></div></div>
+    <div class="col"><div class="dx-stat-card"><div class="dx-stat-value text-success">@r.DeliveryRate<span class="fs-6">%</span></div><div class="dx-stat-label">Rate</div></div></div>
 </div>
 
-<div class="card srx-card"><div class="card-body">
+<div class="card dx-card"><div class="card-body">
     <form method="get" class="row g-2 align-items-end mb-3">
         <div class="col-auto"><label class="form-label text-secondary small">From</label><input type="date" name="from" value="@Model.From?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
         <div class="col-auto"><label class="form-label text-secondary small">To</label><input type="date" name="to" value="@Model.To?.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>

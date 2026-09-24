@@ -1,7 +1,7 @@
 using System.Text;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 /// <summary>
 /// The shell that backs the browser terminal.
@@ -32,10 +32,10 @@ public class SandboxedShell
         _files.EnsureUserRoot(userId);
     }
 
-    public string Prompt => $"\u001b[32m{_userName}@srxpanel\u001b[0m:\u001b[34m~/{_cwd}\u001b[0m$ ";
+    public string Prompt => $"\u001b[32m{_userName}@dxpanel\u001b[0m:\u001b[34m~/{_cwd}\u001b[0m$ ";
 
     public string Banner =>
-        "\u001b[36mSRXPanel Web Terminal\u001b[0m\r\n" +
+        "\u001b[36mDXPanel Web Terminal\u001b[0m\r\n" +
         $"Connected as \u001b[32m{_userName}\u001b[0m. Your session is confined to your home directory.\r\n" +
         (_runner.SimulationMode
             ? "\u001b[33mSimulation mode:\u001b[0m a built-in shell is answering. File commands read your real sandboxed files.\r\n"
@@ -98,7 +98,7 @@ public class SandboxedShell
 
             case "uname":
                 return Normalize(args.Contains("-a")
-                    ? "Linux srxpanel 6.1.0-18-amd64 #1 SMP Debian 6.1.76-1 x86_64 GNU/Linux"
+                    ? "Linux dxpanel 6.1.0-18-amd64 #1 SMP Debian 6.1.76-1 x86_64 GNU/Linux"
                     : "Linux");
 
             case "echo":

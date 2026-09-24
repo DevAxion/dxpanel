@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Admin.Apps.IndexModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Apps.IndexModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Applications";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Applications</li>
         <li class="breadcrumb-item active" aria-current="page">Definitions</li>
     </ol></nav>
@@ -18,15 +18,15 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Apps.Count</div><div class="text-secondary small">Apps in catalog</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#3fb950;">@Model.TotalInstallations</div><div class="text-secondary small">Total installations</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.FailedCount</div><div class="text-secondary small">Failed installs</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="card srx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Apps.Count(a => a.IsActive)</div><div class="text-secondary small">Enabled</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Apps.Count</div><div class="text-secondary small">Apps in catalog</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#3fb950;">@Model.TotalInstallations</div><div class="text-secondary small">Total installations</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#f85149;">@Model.FailedCount</div><div class="text-secondary small">Failed installs</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card dx-card"><div class="card-body text-center"><div style="font-size:26px;font-weight:800;color:#fff;">@Model.Apps.Count(a => a.IsActive)</div><div class="text-secondary small">Enabled</div></div></div></div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3">Definitions</h6>
             <div class="table-responsive" style="max-height:480px;overflow:auto;">
                 <table class="table table-sm align-middle mb-0">
@@ -55,7 +55,7 @@
             </div>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-exclamation-triangle"></i> Failed installation queue</h6>
             @if (!Model.FailedJobs.Any())
             {
@@ -86,7 +86,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3">@(Model.Editing ? "Edit application" : "Add application")</h6>
             <form method="post" asp-page-handler="Save">
                 <input type="hidden" asp-for="Input.Id" />
@@ -113,7 +113,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-trophy"></i> Most popular</h6>
             @if (!Model.Popular.Any())
             {

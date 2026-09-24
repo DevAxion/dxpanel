@@ -1,7 +1,7 @@
 @page
-@model SRXPanel.Pages.Client.Cron.IndexModel
-@using SRXPanel.Models
-@using SRXPanel.Services.Developer
+@model DXPanel.Pages.Client.Cron.IndexModel
+@using DXPanel.Models
+@using DXPanel.Services.Developer
 @{
     ViewData["Title"] = "Cron Jobs";
     var editing = Model.EditJob != null;
@@ -10,7 +10,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">Cron Jobs</li>
     </ol></nav>
@@ -48,7 +48,7 @@
 }
 
 <div class="collapse @(formOpen ? "show" : "")" id="jobForm">
-    <div class="card srx-card mb-4"><div class="card-body">
+    <div class="card dx-card mb-4"><div class="card-body">
         <h6 class="text-light mb-3">@(editing ? "Edit cron job" : "Create a cron job")</h6>
 
         <form method="post" asp-page-handler="@(editing ? "Update" : "Create")" id="cronForm">
@@ -190,7 +190,7 @@
 
 @if (!Model.Jobs.Any())
 {
-    <div class="card srx-card"><div class="card-body text-center py-5">
+    <div class="card dx-card"><div class="card-body text-center py-5">
         <i class="bi bi-clock text-secondary" style="font-size:48px;"></i>
         <h5 class="text-light mt-3">No cron jobs yet</h5>
         <p class="text-secondary mb-0">Schedule a command to run automatically — a backup script, a queue worker, a nightly report.</p>
@@ -198,7 +198,7 @@
 }
 else
 {
-    <div class="card srx-card"><div class="table-responsive">
+    <div class="card dx-card"><div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>

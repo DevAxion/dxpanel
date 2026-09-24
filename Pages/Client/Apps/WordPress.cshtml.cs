@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Apps;
+using DXPanel.Models;
+using DXPanel.Services.Apps;
 
-namespace SRXPanel.Pages.Client.Apps;
+namespace DXPanel.Pages.Client.Apps;
 
 public class WordPressModel : PageModel
 {

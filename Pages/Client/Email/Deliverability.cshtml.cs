@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Email;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Email;
 
-namespace SRXPanel.Pages.Client.Email;
+namespace DXPanel.Pages.Client.Email;
 
 public class DeliverabilityModel : PageModel
 {

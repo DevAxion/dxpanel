@@ -3,11 +3,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 /// <summary>Every event a webhook endpoint can subscribe to.</summary>
 public record WebhookEvent(string Key, string Name, string Description);
@@ -145,7 +145,7 @@ public class DeveloperSettingsService : IDeveloperSettingsService
         var payload = JsonSerializer.Serialize(new
         {
             @event = "webhook_test",
-            data = new { message = "This is a test delivery from SRXPanel.", endpointId = endpoint.Id },
+            data = new { message = "This is a test delivery from DXPanel.", endpointId = endpoint.Id },
             at = DateTime.UtcNow
         });
 
@@ -166,8 +166,8 @@ public class DeveloperSettingsService : IDeveloperSettingsService
             {
                 Content = new StringContent(payload, Encoding.UTF8, "application/json")
             };
-            request.Headers.Add("X-SRX-Event", "webhook_test");
-            request.Headers.Add("X-SRX-Signature", Sign(payload, endpoint.Secret));
+            request.Headers.Add("X-DX-Event", "webhook_test");
+            request.Headers.Add("X-DX-Signature", Sign(payload, endpoint.Secret));
 
             using var response = await client.SendAsync(request);
             var body = await response.Content.ReadAsStringAsync();

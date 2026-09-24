@@ -3,12 +3,12 @@ using System.Runtime.InteropServices;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Reseller;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Reseller;
 
-namespace SRXPanel.Services.Api;
+namespace DXPanel.Services.Api;
 
 public record CreateAccountReq(string Username, string Password, string Email, string Plan, string? Domain);
 public record UsernameReq(string Username);
@@ -30,7 +30,7 @@ public static class ApiEndpoints
             var utm = ctx.Request.Query["utm_source"].FirstOrDefault();
             await affiliates.RecordClickAsync(code, ip, utm);
 
-            ctx.Response.Cookies.Append("srx_ref", code, new CookieOptions
+            ctx.Response.Cookies.Append("dx_ref", code, new CookieOptions
             {
                 Expires = DateTimeOffset.UtcNow.AddDays(30),
                 HttpOnly = false,

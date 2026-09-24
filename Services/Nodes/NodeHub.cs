@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace SRXPanel.Services.Nodes;
+namespace DXPanel.Services.Nodes;
 
 /// <summary>
 /// Real-time channel for the node fleet: live metric pushes for the node detail page and

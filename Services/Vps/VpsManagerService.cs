@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Services.Vps;
+namespace DXPanel.Services.Vps;
 
 public record VpsOrderConfig(string Hostname, string? RootPassword, int? SshKeyId, int TemplateId, int? NodeId);
 

@@ -1,12 +1,12 @@
 @page "/Client/Apps/Hosted/Virtualenv/{id:int}"
-@model SRXPanel.Pages.Client.Apps.Hosted.VirtualenvModel
+@model DXPanel.Pages.Client.Apps.Hosted.VirtualenvModel
 @{
     ViewData["Title"] = "Virtualenv";
     var a = Model.App;
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Index">Hosted Apps</a></li>
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Hosted/Detail" asp-route-id="@a.Id">@a.Name</a></li>
         <li class="breadcrumb-item active" aria-current="page">Virtualenv</li>
@@ -17,7 +17,7 @@
 
 @if (!a.VirtualenvCreated)
 {
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <p class="text-secondary">No virtualenv exists for this app yet.</p>
         <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
             <div class="col-auto"><label class="form-label text-secondary small">Python version</label>
@@ -32,12 +32,12 @@
 else
 {
     <div class="row g-3 mb-3">
-        <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@a.PythonVersion</div><div class="srx-stat-label">Python</div></div></div>
-        <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Packages.Count</div><div class="srx-stat-label">Packages</div></div></div>
-        <div class="col-md-4"><div class="srx-stat-card"><div class="srx-stat-value">@Model.VenvSizeMB<span class="fs-6"> MB</span></div><div class="srx-stat-label">Venv size</div></div></div>
+        <div class="col-md-4"><div class="dx-stat-card"><div class="dx-stat-value">@a.PythonVersion</div><div class="dx-stat-label">Python</div></div></div>
+        <div class="col-md-4"><div class="dx-stat-card"><div class="dx-stat-value">@Model.Packages.Count</div><div class="dx-stat-label">Packages</div></div></div>
+        <div class="col-md-4"><div class="dx-stat-card"><div class="dx-stat-value">@Model.VenvSizeMB<span class="fs-6"> MB</span></div><div class="dx-stat-label">Venv size</div></div></div>
     </div>
 
-    <div class="card srx-card mb-3"><div class="card-body">
+    <div class="card dx-card mb-3"><div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="text-light mb-0">Installed packages</h6>
             <div class="d-flex gap-2">

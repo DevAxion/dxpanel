@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Admin.VpsPlansModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.VpsPlansModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Manage VPS Plans";
     var formOpen = Model.EditMode || !ViewData.ModelState.IsValid;
@@ -8,7 +8,7 @@
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">VPS Plans</li>
         </ol>
@@ -21,7 +21,7 @@
 </div>
 
 <div class="collapse mb-4 @(formOpen ? "show" : "")" id="planForm">
-    <div class="card srx-card">
+    <div class="card dx-card">
         <div class="card-body">
             <h6 class="text-light mb-3">@(Model.EditMode ? "Edit VPS Plan" : "New VPS Plan")</h6>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -119,7 +119,7 @@
     </div>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         <table class="table align-middle mb-0">
             <thead>
@@ -146,7 +146,7 @@
                         <td>$@p.Price.ToString("0.00")</td>
                         <td>@p.BillingCycle</td>
                         <td class="small">@p.Location</td>
-                        <td>@(p.IsActive ? Html.Raw("<span class='badge srx-badge-active'>Active</span>") : Html.Raw("<span class='badge srx-badge-suspended'>Inactive</span>"))</td>
+                        <td>@(p.IsActive ? Html.Raw("<span class='badge dx-badge-active'>Active</span>") : Html.Raw("<span class='badge dx-badge-suspended'>Inactive</span>"))</td>
                         <td>@(p.IsPopular ? Html.Raw("<i class='bi bi-star-fill text-warning'></i>") : Html.Raw("<span class='text-secondary'>—</span>"))</td>
                         <td>@p.SortOrder</td>
                         <td class="text-end">
@@ -157,7 +157,7 @@
                                 </form>
                                 @if (refCount == 0)
                                 {
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@p.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete VPS plan '@p.Name'?">
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@p.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete VPS plan '@p.Name'?">
                                         <button class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                     </form>
                                 }

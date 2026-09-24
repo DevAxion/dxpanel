@@ -1,6 +1,6 @@
 using System.IO.Compression;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 public class FileEntry
 {

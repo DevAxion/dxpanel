@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SRXPanel.Data;
+using DXPanel.Data;
 
 #nullable disable
 
-namespace SRXPanel.Data.Migrations
+namespace DXPanel.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20260705153618_Phase2HostingFeatures")]
@@ -148,7 +148,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.ApplicationUser", b =>
+            modelBuilder.Entity("DXPanel.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -238,7 +238,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.AuditLog", b =>
+            modelBuilder.Entity("DXPanel.Models.AuditLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -277,7 +277,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("AuditLogs");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Database", b =>
+            modelBuilder.Entity("DXPanel.Models.Database", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -325,7 +325,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("Databases");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.DnsRecord", b =>
+            modelBuilder.Entity("DXPanel.Models.DnsRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -363,7 +363,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("DnsRecords");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.DnsZone", b =>
+            modelBuilder.Entity("DXPanel.Models.DnsZone", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -392,7 +392,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("DnsZones");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Domain", b =>
+            modelBuilder.Entity("DXPanel.Models.Domain", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -436,7 +436,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("Domains");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.EmailAccount", b =>
+            modelBuilder.Entity("DXPanel.Models.EmailAccount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -479,7 +479,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("EmailAccounts");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.EmailForwarder", b =>
+            modelBuilder.Entity("DXPanel.Models.EmailForwarder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -514,7 +514,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("EmailForwarders");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.FtpAccount", b =>
+            modelBuilder.Entity("DXPanel.Models.FtpAccount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -562,7 +562,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("FtpAccounts");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Notification", b =>
+            modelBuilder.Entity("DXPanel.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -602,7 +602,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Package", b =>
+            modelBuilder.Entity("DXPanel.Models.Package", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -639,7 +639,7 @@ namespace SRXPanel.Data.Migrations
                     b.ToTable("Packages");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.SslCertificate", b =>
+            modelBuilder.Entity("DXPanel.Models.SslCertificate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -692,7 +692,7 @@ namespace SRXPanel.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("SRXPanel.Models.ApplicationUser", null)
+                    b.HasOne("DXPanel.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -701,7 +701,7 @@ namespace SRXPanel.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("SRXPanel.Models.ApplicationUser", null)
+                    b.HasOne("DXPanel.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -716,7 +716,7 @@ namespace SRXPanel.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", null)
+                    b.HasOne("DXPanel.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -725,21 +725,21 @@ namespace SRXPanel.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("SRXPanel.Models.ApplicationUser", null)
+                    b.HasOne("DXPanel.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.ApplicationUser", b =>
+            modelBuilder.Entity("DXPanel.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Package", "Package")
+                    b.HasOne("DXPanel.Models.Package", "Package")
                         .WithMany("Users")
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "Reseller")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "Reseller")
                         .WithMany()
                         .HasForeignKey("ResellerId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -749,14 +749,14 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("Reseller");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Database", b =>
+            modelBuilder.Entity("DXPanel.Models.Database", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Domain", "Domain")
+                    b.HasOne("DXPanel.Models.Domain", "Domain")
                         .WithMany()
                         .HasForeignKey("DomainId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany("Databases")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -767,9 +767,9 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.DnsRecord", b =>
+            modelBuilder.Entity("DXPanel.Models.DnsRecord", b =>
                 {
-                    b.HasOne("SRXPanel.Models.DnsZone", "Zone")
+                    b.HasOne("DXPanel.Models.DnsZone", "Zone")
                         .WithMany("Records")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -778,15 +778,15 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("Zone");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.DnsZone", b =>
+            modelBuilder.Entity("DXPanel.Models.DnsZone", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Domain", "Domain")
+                    b.HasOne("DXPanel.Models.Domain", "Domain")
                         .WithMany()
                         .HasForeignKey("DomainId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -797,9 +797,9 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Domain", b =>
+            modelBuilder.Entity("DXPanel.Models.Domain", b =>
                 {
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany("Domains")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -808,14 +808,14 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.EmailAccount", b =>
+            modelBuilder.Entity("DXPanel.Models.EmailAccount", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Domain", "Domain")
+                    b.HasOne("DXPanel.Models.Domain", "Domain")
                         .WithMany()
                         .HasForeignKey("DomainId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany("EmailAccounts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -826,14 +826,14 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.EmailForwarder", b =>
+            modelBuilder.Entity("DXPanel.Models.EmailForwarder", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Domain", "Domain")
+                    b.HasOne("DXPanel.Models.Domain", "Domain")
                         .WithMany()
                         .HasForeignKey("DomainId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -844,14 +844,14 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.FtpAccount", b =>
+            modelBuilder.Entity("DXPanel.Models.FtpAccount", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Domain", "Domain")
+                    b.HasOne("DXPanel.Models.Domain", "Domain")
                         .WithMany()
                         .HasForeignKey("DomainId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany("FtpAccounts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -862,9 +862,9 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Notification", b =>
+            modelBuilder.Entity("DXPanel.Models.Notification", b =>
                 {
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -873,15 +873,15 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.SslCertificate", b =>
+            modelBuilder.Entity("DXPanel.Models.SslCertificate", b =>
                 {
-                    b.HasOne("SRXPanel.Models.Domain", "Domain")
+                    b.HasOne("DXPanel.Models.Domain", "Domain")
                         .WithMany()
                         .HasForeignKey("DomainId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SRXPanel.Models.ApplicationUser", "User")
+                    b.HasOne("DXPanel.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -892,7 +892,7 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.ApplicationUser", b =>
+            modelBuilder.Entity("DXPanel.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Databases");
 
@@ -905,12 +905,12 @@ namespace SRXPanel.Data.Migrations
                     b.Navigation("Notifications");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.DnsZone", b =>
+            modelBuilder.Entity("DXPanel.Models.DnsZone", b =>
                 {
                     b.Navigation("Records");
                 });
 
-            modelBuilder.Entity("SRXPanel.Models.Package", b =>
+            modelBuilder.Entity("DXPanel.Models.Package", b =>
                 {
                     b.Navigation("Users");
                 });

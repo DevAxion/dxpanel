@@ -1,6 +1,6 @@
 @page
-@using SRXPanel.Services
-@model SRXPanel.Pages.Account.LoginModel
+@using DXPanel.Services
+@model DXPanel.Pages.Account.LoginModel
 @inject IFrontendService Frontend
 @{
     ViewData["Title"] = "Login";
@@ -9,8 +9,8 @@
     var loginBrand = string.IsNullOrWhiteSpace(loginFs.SiteName) ? "Professional Web Hosting" : loginFs.SiteName;
 }
 
-<div class="srx-login-wrapper">
-    <div class="srx-login-card">
+<div class="dx-login-wrapper">
+    <div class="dx-login-card">
         <div class="text-center mb-4">
             @if (!string.IsNullOrEmpty(loginFs.LogoPath))
             {
@@ -18,7 +18,7 @@
             }
             else
             {
-                <div class="srx-login-brand">@loginBrand</div>
+                <div class="dx-login-brand">@loginBrand</div>
             }
             <div class="text-secondary small mt-1">Sign in to manage your hosting</div>
         </div>

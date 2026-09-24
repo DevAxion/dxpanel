@@ -1,5 +1,5 @@
 @page "/Client/Services/Upgrade/{id:int}"
-@model SRXPanel.Pages.Client.ServiceUpgradeModel
+@model DXPanel.Pages.Client.ServiceUpgradeModel
 @{
     ViewData["Title"] = "Change Plan";
     string Money(decimal d) => $"${d:0.00}";
@@ -8,7 +8,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Store</li>
         <li class="breadcrumb-item"><a asp-page="/Client/Services">Services</a></li>
         <li class="breadcrumb-item active" aria-current="page">Change Plan</li>
@@ -17,7 +17,7 @@
 
 <h4 class="text-light mb-3">Change Plan</h4>
 
-<div class="card srx-card mb-4"><div class="card-body">
+<div class="card dx-card mb-4"><div class="card-body">
     <div class="text-secondary small">Current plan</div>
     <div class="d-flex justify-content-between align-items-center">
         <h5 class="text-light mb-0">@Model.CurrentPlan.Name</h5>
@@ -35,7 +35,7 @@
     {
         var t = o.Target;
         <div class="col-lg-4 col-md-6">
-            <div class="card srx-card h-100"><div class="card-body d-flex flex-column">
+            <div class="card dx-card h-100"><div class="card-body d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="text-light mb-0">@t.Name</h5>
                     @if (o.IsUpgrade)

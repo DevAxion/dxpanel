@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Reseller;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Reseller;
 
-namespace SRXPanel.Pages.Reseller;
+namespace DXPanel.Pages.Reseller;
 
 public class DashboardModel : PageModel
 {

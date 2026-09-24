@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 public static class DnsValidator
 {

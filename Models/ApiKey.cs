@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 public class ApiKey
 {
@@ -14,7 +14,7 @@ public class ApiKey
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
-    // Visible prefix (e.g. "srx_live_ab12") for identification; full key shown once.
+    // Visible prefix (e.g. "dx_live_ab12") for identification; full key shown once.
     [StringLength(32)]
     public string Prefix { get; set; } = string.Empty;
 

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Data;
-using SRXPanel.Services;
+using DXPanel.Data;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.Packages;
+namespace DXPanel.Pages.Packages;
 
 public class EditModel : PageModel
 {

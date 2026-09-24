@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Billing;
+namespace DXPanel.Services.Billing;
 
 /// <summary>
 /// Orchestrates account provisioning after a successful payment, and
@@ -87,7 +87,7 @@ public class ProvisioningService : IProvisioningService
         await _ftp.SetQuotaAsync(username, plan.DiskQuotaMB);
 
         // 6. Welcome email
-        await _mailer.SendTemplateAsync(user.Email ?? "", "Welcome to SRXPanel — your account is ready", "welcome",
+        await _mailer.SendTemplateAsync(user.Email ?? "", "Welcome to DXPanel — your account is ready", "welcome",
             new Dictionary<string, string>
             {
                 ["NAME"] = user.FullName ?? user.UserName ?? "there",
@@ -153,7 +153,7 @@ public class ProvisioningService : IProvisioningService
         }
         await _runner.RunAsync("systemctl reload nginx", "provisioning");
 
-        await _mailer.SendTemplateAsync(user.Email ?? "", "Your SRXPanel account has been suspended", "suspension",
+        await _mailer.SendTemplateAsync(user.Email ?? "", "Your DXPanel account has been suspended", "suspension",
             new Dictionary<string, string>
             {
                 ["NAME"] = user.FullName ?? user.UserName ?? "there",

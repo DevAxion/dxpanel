@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Admin.FrontendModel
+@model DXPanel.Pages.Admin.FrontendModel
 @{
     ViewData["Title"] = "Frontend";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item">Website</li>
             <li class="breadcrumb-item active" aria-current="page">Frontend</li>
         </ol>
@@ -22,7 +22,7 @@
     <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card srx-card mb-4"><div class="card-body">
+            <div class="card dx-card mb-4"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-window"></i> Identity &amp; Hero</h6>
                 <div class="mb-2"><label class="form-label">Company name</label><input asp-for="Settings.SiteName" class="form-control" placeholder="Professional Web Hosting" /></div>
                 <div class="mb-2"><label class="form-label">Logo URL <span class="text-secondary small">(shown instead of the name if set)</span></label><input asp-for="Settings.LogoPath" class="form-control" placeholder="/img/logo.png" /></div>
@@ -35,7 +35,7 @@
                 </div>
             </div></div>
 
-            <div class="card srx-card mb-4"><div class="card-body">
+            <div class="card dx-card mb-4"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-palette"></i> Appearance</h6>
                 <div class="row g-2">
                     <div class="col-6"><label class="form-label">Primary color</label><input asp-for="Settings.PrimaryColor" type="color" class="form-control form-control-color" /></div>
@@ -45,7 +45,7 @@
                 <div class="mb-2"><label class="form-label">Custom JavaScript</label><textarea asp-for="Settings.CustomJs" class="form-control font-monospace" rows="3"></textarea></div>
             </div></div>
 
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-info-circle"></i> About</h6>
                 <div class="mb-2"><label class="form-label">About content</label><textarea asp-for="Settings.AboutContent" class="form-control" rows="3"></textarea></div>
                 <div class="mb-2"><label class="form-label">Mission statement</label><textarea asp-for="Settings.MissionStatement" class="form-control" rows="2"></textarea></div>
@@ -53,7 +53,7 @@
         </div>
 
         <div class="col-lg-6">
-            <div class="card srx-card mb-4"><div class="card-body">
+            <div class="card dx-card mb-4"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-telephone"></i> Contact &amp; Social</h6>
                 <div class="mb-2"><label class="form-label">Contact email</label><input asp-for="Settings.ContactEmail" class="form-control" /></div>
                 <div class="row g-2">
@@ -70,7 +70,7 @@
                 </div>
             </div></div>
 
-            <div class="card srx-card mb-4"><div class="card-body">
+            <div class="card dx-card mb-4"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-graph-up"></i> Marketing &amp; SEO</h6>
                 <div class="row g-2">
                     <div class="col-6"><label class="form-label">Google Analytics ID</label><input asp-for="Settings.GoogleAnalyticsId" class="form-control" placeholder="G-XXXXXXX" /></div>
@@ -87,7 +87,7 @@
                 </div>
             </div></div>
 
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-cone-striped"></i> Maintenance</h6>
                 <div class="form-check form-switch mb-2">
                     <input class="form-check-input" asp-for="Settings.MaintenanceMode" />

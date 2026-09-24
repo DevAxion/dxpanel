@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>
 /// Resource allocation and feature grants a SuperAdmin assigns to a reseller.

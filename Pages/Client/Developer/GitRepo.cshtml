@@ -1,6 +1,6 @@
 @page "/Client/Developer/GitRepo/{id:int}"
-@model SRXPanel.Pages.Client.Developer.GitRepoModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Developer.GitRepoModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = Model.Repo.ShortName;
     var live = Model.Live;
@@ -8,7 +8,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Developer/Git">Git Deployment</a></li>
         <li class="breadcrumb-item active" aria-current="page">@Model.Repo.ShortName</li>
     </ol></nav>
@@ -28,7 +28,7 @@
 
 @if (live != null)
 {
-    <div class="card srx-card mb-4"><div class="card-body">
+    <div class="card dx-card mb-4"><div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="text-light mb-0">
                 <i class="bi bi-terminal"></i> Deployment #@live.Id
@@ -46,7 +46,7 @@
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-link-45deg"></i> Webhook</h6>
 
             <p class="text-secondary small">
@@ -106,7 +106,7 @@
     </div>
 
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Settings</h6>
             <form method="post" asp-page-handler="Update">
                 <div class="mb-3">
@@ -127,7 +127,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Deployment history</h6>
 
             @if (!Model.Deployments.Any())

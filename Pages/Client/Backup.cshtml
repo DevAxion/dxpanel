@@ -1,13 +1,13 @@
 @page
-@model SRXPanel.Pages.Client.BackupModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.BackupModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Backup & Restore";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">Backup</li>
         </ol>
@@ -18,7 +18,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card mb-4">
+        <div class="card dx-card mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="text-light mb-0">Create Backup</h6>
@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3">Backup History</h6>
                 @if (!Model.OffsiteEnabled)
@@ -72,12 +72,12 @@
                             {
                                 <tr>
                                     <td><span class="badge text-bg-secondary">@b.Type</span></td>
-                                    <td>@SRXPanel.Pages.Client.BackupModel.Size(b.SizeBytes)</td>
-                                    <td>@(b.Status == BackupStatus.Completed ? Html.Raw("<span class='badge srx-badge-active'>Completed</span>") : Html.Raw($"<span class='badge text-bg-warning'>{b.Status}</span>"))</td>
+                                    <td>@DXPanel.Pages.Client.BackupModel.Size(b.SizeBytes)</td>
+                                    <td>@(b.Status == BackupStatus.Completed ? Html.Raw("<span class='badge dx-badge-active'>Completed</span>") : Html.Raw($"<span class='badge text-bg-warning'>{b.Status}</span>"))</td>
                                     <td>
                                         @if (b.OffsiteStored)
                                         {
-                                            <span class="badge srx-badge-active" title="Stored on @Model.OffsiteProvider since @(b.OffsiteUploadedAt?.ToString("yyyy-MM-dd HH:mm"))"><i class="bi bi-cloud-check"></i> @Model.OffsiteProvider</span>
+                                            <span class="badge dx-badge-active" title="Stored on @Model.OffsiteProvider since @(b.OffsiteUploadedAt?.ToString("yyyy-MM-dd HH:mm"))"><i class="bi bi-cloud-check"></i> @Model.OffsiteProvider</span>
                                         }
                                         else
                                         {
@@ -90,14 +90,14 @@
                                             <form method="post" asp-page-handler="Download" asp-route-id="@b.Id"><button class="btn btn-outline-secondary" title="Download"><i class="bi bi-download"></i></button></form>
                                             @if (b.OffsiteStored)
                                             {
-                                                <form method="post" asp-page-handler="OffsiteRemove" asp-route-id="@b.Id" class="srx-confirm-form" data-confirm-message="Remove this backup from off-site storage?"><button class="btn btn-outline-info" title="Remove from off-site storage"><i class="bi bi-cloud-minus"></i></button></form>
+                                                <form method="post" asp-page-handler="OffsiteRemove" asp-route-id="@b.Id" class="dx-confirm-form" data-confirm-message="Remove this backup from off-site storage?"><button class="btn btn-outline-info" title="Remove from off-site storage"><i class="bi bi-cloud-minus"></i></button></form>
                                             }
                                             else
                                             {
                                                 <form method="post" asp-page-handler="OffsiteUpload" asp-route-id="@b.Id"><button class="btn btn-outline-info" title="Upload to off-site storage (@Model.OffsiteProvider)"><i class="bi bi-cloud-upload"></i></button></form>
                                             }
-                                            <form method="post" asp-page-handler="Restore" asp-route-id="@b.Id" class="srx-confirm-form" data-confirm-message="Restore from this backup? Current data will be overwritten."><button class="btn btn-outline-warning" title="Restore"><i class="bi bi-arrow-counterclockwise"></i></button></form>
-                                            <form method="post" asp-page-handler="Delete" asp-route-id="@b.Id" class="srx-confirm-form" data-confirm-message="Delete this backup?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                            <form method="post" asp-page-handler="Restore" asp-route-id="@b.Id" class="dx-confirm-form" data-confirm-message="Restore from this backup? Current data will be overwritten."><button class="btn btn-outline-warning" title="Restore"><i class="bi bi-arrow-counterclockwise"></i></button></form>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@b.Id" class="dx-confirm-form" data-confirm-message="Delete this backup?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
                                         </div>
                                     </td>
                                 </tr>
@@ -114,7 +114,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3">Automatic Backups</h6>
                 <form method="post" asp-page-handler="Schedule">

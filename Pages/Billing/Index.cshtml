@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Billing.IndexModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Billing.IndexModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Billing";
     string Pct(int used, int max) => max <= 0 ? "0" : Math.Min(100, (int)(100.0 * used / max)).ToString();
@@ -9,7 +9,7 @@
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Billing</li>
         </ol>
@@ -23,11 +23,11 @@
 
 @if (Model.Subscription == null)
 {
-    <div class="card srx-card">
+    <div class="card dx-card">
         <div class="card-body text-center py-5">
             <i class="bi bi-box-seam fs-1 text-secondary"></i>
             <h5 class="text-light mt-3">No active subscription</h5>
-            <p class="text-secondary">Choose a plan to get started with SRXPanel hosting.</p>
+            <p class="text-secondary">Choose a plan to get started with DXPanel hosting.</p>
             <a asp-page="/Pricing" class="btn btn-primary"><i class="bi bi-arrow-right"></i> View Plans</a>
         </div>
     </div>
@@ -38,21 +38,21 @@ else
     var plan = Model.Plan;
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="card srx-card mb-4">
+            <div class="card dx-card mb-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h5 class="text-light mb-1">@plan?.Name plan</h5>
-                            <span class="text-secondary">@(plan != null ? SRXPanel.Pages.Billing.IndexModel.Money(plan.Price, plan.Currency) : "")/month</span>
+                            <span class="text-secondary">@(plan != null ? DXPanel.Pages.Billing.IndexModel.Money(plan.Price, plan.Currency) : "")/month</span>
                         </div>
                         <div class="text-end">
                             @{
                                 var badge = sub.Status switch
                                 {
-                                    SubscriptionStatus.Active => "srx-badge-active",
+                                    SubscriptionStatus.Active => "dx-badge-active",
                                     SubscriptionStatus.Trialing => "text-bg-info",
                                     SubscriptionStatus.PastDue => "text-bg-warning",
-                                    _ => "srx-badge-suspended"
+                                    _ => "dx-badge-suspended"
                                 };
                             }
                             <span class="badge @badge">@sub.Status</span>
@@ -72,7 +72,7 @@ else
                         <button class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#changePlan"><i class="bi bi-arrow-left-right"></i> Change Plan</button>
                         @if (sub.Status != SubscriptionStatus.Cancelled)
                         {
-                            <form method="post" asp-page-handler="Cancel" class="srx-confirm-form" data-confirm-message="Cancel your subscription? Service continues until the end of the current period.">
+                            <form method="post" asp-page-handler="Cancel" class="dx-confirm-form" data-confirm-message="Cancel your subscription? Service continues until the end of the current period.">
                                 <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Cancel Subscription</button>
                             </form>
                         }
@@ -86,7 +86,7 @@ else
                                     <form method="post" asp-page-handler="ChangePlan">
                                         <input type="hidden" name="newPlanId" value="@p.Id" />
                                         <button type="submit" class="btn btn-outline-secondary w-100 text-start">
-                                            <strong>@p.Name</strong> — @SRXPanel.Pages.Billing.IndexModel.Money(p.Price, p.Currency)/mo
+                                            <strong>@p.Name</strong> — @DXPanel.Pages.Billing.IndexModel.Money(p.Price, p.Currency)/mo
                                         </button>
                                     </form>
                                 </div>
@@ -96,7 +96,7 @@ else
                 </div>
             </div>
 
-            <div class="card srx-card">
+            <div class="card dx-card">
                 <div class="card-body">
                     <h6 class="text-light mb-3"><i class="bi bi-receipt"></i> Invoice History</h6>
                     @if (Model.Invoices.Any())
@@ -109,11 +109,11 @@ else
                                     <tr>
                                         <td><code>@inv.Number</code></td>
                                         <td>@inv.CreatedAt.ToString("yyyy-MM-dd")</td>
-                                        <td>@SRXPanel.Pages.Billing.IndexModel.Money(inv.Amount, inv.Currency)</td>
+                                        <td>@DXPanel.Pages.Billing.IndexModel.Money(inv.Amount, inv.Currency)</td>
                                         <td>
                                             @if (inv.Status == InvoiceStatus.Paid)
                                             {
-                                                <span class="badge srx-badge-active">Paid</span>
+                                                <span class="badge dx-badge-active">Paid</span>
                                             }
                                             else if (inv.Status == InvoiceStatus.Unpaid)
                                             {
@@ -121,7 +121,7 @@ else
                                             }
                                             else
                                             {
-                                                <span class="badge srx-badge-suspended">Void</span>
+                                                <span class="badge dx-badge-suspended">Void</span>
                                             }
                                         </td>
                                         <td class="text-end"><a href="@(inv.InvoicePdf ?? "#")" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i></a></td>
@@ -139,7 +139,7 @@ else
         </div>
 
         <div class="col-lg-4">
-            <div class="card srx-card mb-4">
+            <div class="card dx-card mb-4">
                 <div class="card-body">
                     <h6 class="text-light mb-3">Usage vs Limits</h6>
                     @{
@@ -164,7 +164,7 @@ else
                 </div>
             </div>
 
-            <div class="card srx-card">
+            <div class="card dx-card">
                 <div class="card-body">
                     <h6 class="text-light mb-3">Payment Methods</h6>
                     @if (Model.PaymentMethods.Any())

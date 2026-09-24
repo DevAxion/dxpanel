@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace SRXPanel.Services.Vps;
+namespace DXPanel.Services.Vps;
 
 /// <summary>
 /// Real-time channel for VPS instances: live stat pushes for the detail page and step-by-step

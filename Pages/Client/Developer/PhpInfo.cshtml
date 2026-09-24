@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.Developer.PhpInfoModel
-@using SRXPanel.Services.Developer
+@model DXPanel.Pages.Client.Developer.PhpInfoModel
+@using DXPanel.Services.Developer
 @{
     ViewData["Title"] = "PHP Configuration";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">PHP Configuration</li>
     </ol></nav>
@@ -39,7 +39,7 @@ else
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Editable settings</h6>
             <p class="text-secondary small">
                 Written to <code>~/.php.ini</code> and picked up by your PHP-FPM pool. Values are capped
@@ -113,7 +113,7 @@ else
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-puzzle"></i> Loaded extensions (@Model.Extensions.Count(e => e.Enabled))</h6>
             <div class="d-flex flex-wrap gap-1" style="max-height:220px;overflow:auto;">
                 @foreach (var extension in Model.Extensions.OrderByDescending(e => e.Enabled).ThenBy(e => e.Name))
@@ -129,7 +129,7 @@ else
     </div>
 
     <div class="col-lg-6">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-list-columns"></i> Effective configuration</h6>
             <div class="table-responsive" style="max-height:280px;overflow:auto;">
                 <table class="table table-sm align-middle mb-0">
@@ -156,7 +156,7 @@ else
             </div>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-1"><i class="bi bi-info-circle"></i> phpinfo()</h6>
             <p class="text-secondary small">
                 A filtered view. Environment variables, loaded .ini paths and server variables are omitted —

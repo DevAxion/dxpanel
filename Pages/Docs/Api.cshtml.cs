@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace SRXPanel.Pages.Docs;
+namespace DXPanel.Pages.Docs;
 
 public class ApiModel : PageModel
 {
     /// <summary>Absolute base URL of this panel, used in the copy-pasteable examples.</summary>
     public string BaseUrl => $"{Request.Scheme}://{Request.Host}";
 
-    public string Version => SRXPanel.AppInfo.Version;
+    public string Version => DXPanel.AppInfo.Version;
 
     public record ChangelogEntry(string Version, string Date, string[] Changes);
 

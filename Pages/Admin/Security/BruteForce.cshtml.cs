@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Security;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Security;
 
-namespace SRXPanel.Pages.Admin.Security;
+namespace DXPanel.Pages.Admin.Security;
 
 public class BruteForceModel : PageModel
 {

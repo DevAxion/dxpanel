@@ -1,4 +1,4 @@
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Deployment-level switches for the public site, bound from the "PanelSettings"
@@ -18,8 +18,8 @@ public class PublicSiteOptions
     public bool DeveloperDocsPublic { get; set; }
 
     /// <summary>The project name used only when a "Powered by" credit is enabled.</summary>
-    public string ProjectName { get; set; } = "SRXPanel";
+    public string ProjectName { get; set; } = "DXPanel";
 
     /// <summary>The project URL used only when the GitHub link / powered-by credit is enabled.</summary>
-    public string ProjectUrl { get; set; } = "https://github.com/srxpanel/srxpanel";
+    public string ProjectUrl { get; set; } = "https://github.com/dxpanel/dxpanel";
 }

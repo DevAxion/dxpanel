@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Nodes;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Nodes;
 
-namespace SRXPanel.Pages.Admin.Nodes;
+namespace DXPanel.Pages.Admin.Nodes;
 
 public class DetailModel : PageModel
 {
@@ -41,7 +41,7 @@ public class DetailModel : PageModel
     public List<ServerNode> OtherNodes { get; private set; } = new();
 
     public string AgentInstallCommand =>
-        $"curl -fsSL https://{Request.Host}/scripts/agent/srxpanel-agent.sh | sudo bash -s -- --panel {Request.Host} --node {Node.Id}";
+        $"curl -fsSL https://{Request.Host}/scripts/agent/dxpanel-agent.sh | sudo bash -s -- --panel {Request.Host} --node {Node.Id}";
 
     private async Task<bool> LoadAsync()
     {

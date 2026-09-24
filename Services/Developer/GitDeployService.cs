@@ -2,11 +2,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public record RepoValidation(bool Reachable, string Message, string? DefaultBranch);
 
@@ -236,7 +236,7 @@ public class GitDeployService : IGitDeployService
 
             var target = $"{repo.Domain?.DocumentRoot?.TrimEnd('/')}{(repo.DeployPath == "/" ? "" : repo.DeployPath)}";
             var keyArg = repo.SshKeyId is int
-                ? $"GIT_SSH_COMMAND='ssh -i ~/.ssh/srx_deploy_{repo.SshKeyId} -o StrictHostKeyChecking=accept-new' "
+                ? $"GIT_SSH_COMMAND='ssh -i ~/.ssh/dx_deploy_{repo.SshKeyId} -o StrictHostKeyChecking=accept-new' "
                 : "";
 
             await EmitAsync($"\u001b[36m▸ Deploying {repo.ShortName} ({repo.Branch}) to {target}\u001b[0m");

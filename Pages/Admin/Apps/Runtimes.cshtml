@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Admin.Apps.RuntimesModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Apps.RuntimesModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "App Runtimes";
     string Label(AppRuntimeType t) => t == AppRuntimeType.NodeJs ? "Node.js" : t.ToString();
@@ -8,7 +8,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Admin/Apps/Hosted">Applications</a></li>
         <li class="breadcrumb-item active" aria-current="page">Runtimes</li>
     </ol></nav>
@@ -21,7 +21,7 @@
     {
         var installed = Model.Installed[type];
         <div class="col-lg-6">
-            <div class="card srx-card h-100"><div class="card-body">
+            <div class="card dx-card h-100"><div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="text-light mb-0"><i class="bi @(type == AppRuntimeType.NodeJs ? "bi-node-plus" : type == AppRuntimeType.Python ? "bi-filetype-py" : type == AppRuntimeType.Ruby ? "bi-gem" : "bi-google") accent"></i> @Label(type)</h6>
                     <span class="badge text-bg-secondary">@Tool(type)</span>
@@ -41,7 +41,7 @@
                                     {
                                         <form method="post" asp-page-handler="Default" class="d-inline"><input type="hidden" name="runtimeId" value="@r.Id" /><button class="btn btn-sm btn-outline-secondary">Set default</button></form>
                                     }
-                                    <form method="post" asp-page-handler="Remove" class="d-inline srx-confirm-form" data-confirm-message="Remove @Label(type) @r.Version?"><input type="hidden" name="runtimeId" value="@r.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                    <form method="post" asp-page-handler="Remove" class="d-inline dx-confirm-form" data-confirm-message="Remove @Label(type) @r.Version?"><input type="hidden" name="runtimeId" value="@r.Id" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
                                 </td>
                             </tr>
                         }

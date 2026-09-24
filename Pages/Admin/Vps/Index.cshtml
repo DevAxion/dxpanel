@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Admin.Vps.IndexModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Vps.IndexModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "VPS Instances";
     (string cls, string text) Badge(VpsStatus s) => s switch
@@ -15,7 +15,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item active" aria-current="page">VPS</li>
     </ol></nav>
 }
@@ -26,13 +26,13 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalRunning</div><div class="srx-stat-label"><i class="bi bi-play-circle"></i> Running</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalBuilding</div><div class="srx-stat-label"><i class="bi bi-gear"></i> Building</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.TotalSuspended</div><div class="srx-stat-label"><i class="bi bi-pause-circle"></i> Suspended</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Instances.Count</div><div class="srx-stat-label"><i class="bi bi-list"></i> Shown</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.TotalRunning</div><div class="dx-stat-label"><i class="bi bi-play-circle"></i> Running</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.TotalBuilding</div><div class="dx-stat-label"><i class="bi bi-gear"></i> Building</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.TotalSuspended</div><div class="dx-stat-label"><i class="bi bi-pause-circle"></i> Suspended</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.Instances.Count</div><div class="dx-stat-label"><i class="bi bi-list"></i> Shown</div></div></div>
 </div>
 
-<div class="card srx-card mb-3"><div class="card-body">
+<div class="card dx-card mb-3"><div class="card-body">
     <form method="get" class="row g-2 align-items-end">
         <div class="col-auto"><label class="form-label text-secondary small">Status</label>
             <select name="status" class="form-select form-select-sm">
@@ -57,11 +57,11 @@
 </div></div>
 
 <form method="post" asp-page-handler="Bulk">
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <div class="d-flex gap-2 mb-3">
-            <button name="action" value="suspend" class="btn btn-sm btn-outline-warning srx-confirm-form" data-confirm-message="Suspend selected VPS?"><i class="bi bi-pause-circle"></i> Suspend</button>
-            <button name="action" value="resume" class="btn btn-sm btn-outline-success srx-confirm-form" data-confirm-message="Resume selected VPS?"><i class="bi bi-play-circle"></i> Resume</button>
-            <button name="action" value="delete" class="btn btn-sm btn-outline-danger srx-confirm-form" data-confirm-message="Delete selected VPS? This destroys them."><i class="bi bi-trash"></i> Delete</button>
+            <button name="action" value="suspend" class="btn btn-sm btn-outline-warning dx-confirm-form" data-confirm-message="Suspend selected VPS?"><i class="bi bi-pause-circle"></i> Suspend</button>
+            <button name="action" value="resume" class="btn btn-sm btn-outline-success dx-confirm-form" data-confirm-message="Resume selected VPS?"><i class="bi bi-play-circle"></i> Resume</button>
+            <button name="action" value="delete" class="btn btn-sm btn-outline-danger dx-confirm-form" data-confirm-message="Delete selected VPS? This destroys them."><i class="bi bi-trash"></i> Delete</button>
         </div>
         @if (!Model.Instances.Any()) { <p class="text-secondary mb-0">No instances.</p> }
         else

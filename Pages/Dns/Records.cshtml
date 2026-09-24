@@ -1,13 +1,13 @@
 @page "{domainId:int}"
-@model SRXPanel.Pages.Dns.RecordsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Dns.RecordsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = $"DNS Records — {Model.Domain.DomainName}";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Dns/Index">DNS</a></li>
             <li class="breadcrumb-item active" aria-current="page">@Model.Domain.DomainName</li>
@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class="card srx-card mb-3">
+<div class="card dx-card mb-3">
     <div class="card-body">
         <h6 class="text-light mb-3">Add Record</h6>
         <form method="post" asp-page-handler="Save" asp-route-domainId="@Model.DomainId" class="row g-2 align-items-end">
@@ -67,7 +67,7 @@
     </div>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Records.Any())
         {
@@ -94,7 +94,7 @@
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#edit-@r.Id" title="Edit"><i class="bi bi-pencil"></i></button>
-                                    <form method="post" asp-page-handler="Delete" asp-route-domainId="@Model.DomainId" asp-route-recordId="@r.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this @r.Type record?">
+                                    <form method="post" asp-page-handler="Delete" asp-route-domainId="@Model.DomainId" asp-route-recordId="@r.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete this @r.Type record?">
                                         <button type="submit" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                     </form>
                                 </div>

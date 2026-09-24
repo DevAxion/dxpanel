@@ -1,11 +1,11 @@
 @page
-@model SRXPanel.Pages.Client.Developer.TerminalModel
+@model DXPanel.Pages.Client.Developer.TerminalModel
 @{
     ViewData["Title"] = "Terminal";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">Terminal</li>
     </ol></nav>
@@ -53,7 +53,7 @@
     </div>
 }
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-header d-flex justify-content-between align-items-center py-2">
         <span class="small text-secondary">
             <span class="badge text-bg-secondary" id="status">Disconnected</span>
@@ -83,8 +83,8 @@
                 solarized: { background: '#002b36', foreground: '#839496', cursor: '#93a1a1', selectionBackground: '#073642' }
             };
 
-            var fontSize = parseInt(localStorage.getItem('srx.term.font') || '14', 10);
-            var themeName = localStorage.getItem('srx.term.theme') || 'dark';
+            var fontSize = parseInt(localStorage.getItem('dx.term.font') || '14', 10);
+            var themeName = localStorage.getItem('dx.term.theme') || 'dark';
 
             var term = new Terminal({
                 fontSize: fontSize,
@@ -212,13 +212,13 @@
             document.getElementById('theme').addEventListener('change', function () {
                 themeName = this.value;
                 term.options.theme = THEMES[themeName];
-                localStorage.setItem('srx.term.theme', themeName);
+                localStorage.setItem('dx.term.theme', themeName);
             });
 
             function setFont(size) {
                 fontSize = Math.min(24, Math.max(10, size));
                 term.options.fontSize = fontSize;
-                localStorage.setItem('srx.term.font', fontSize);
+                localStorage.setItem('dx.term.font', fontSize);
                 fit.fit();
             }
             document.getElementById('fontUp').addEventListener('click', function () { setFont(fontSize + 1); });

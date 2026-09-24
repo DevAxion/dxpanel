@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Billing;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Billing;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Pages.Account;
+namespace DXPanel.Pages.Account;
 
 [AllowAnonymous]
 public class ForgotPasswordModel : PageModel
@@ -63,7 +63,7 @@ public class ForgotPasswordModel : PageModel
         var resetUrl = Url.Page("/Account/ResetPassword", pageHandler: null,
             values: new { code, email = user.Email }, protocol: Request.Scheme)!;
 
-        await _mailer.SendTemplateAsync(user.Email!, "Reset your SRXPanel password", "reset_password",
+        await _mailer.SendTemplateAsync(user.Email!, "Reset your DXPanel password", "reset_password",
             new Dictionary<string, string>
             {
                 ["NAME"] = string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? "there" : user.FullName,

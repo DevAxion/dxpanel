@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Security;
+namespace DXPanel.Services.Security;
 
 public record ScoreItem(string Label, bool Achieved, int Points, string Recommendation);
 public record SecurityScore(int Total, List<ScoreItem> Items)

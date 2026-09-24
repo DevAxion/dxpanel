@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.FtpModel
+@model DXPanel.Pages.Client.FtpModel
 @{
     ViewData["Title"] = "FTP Accounts";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">FTP</li>
         </ol>
@@ -23,7 +23,7 @@
     </div>
 }
 
-<div class="card srx-card mb-4">
+<div class="card dx-card mb-4">
     <div class="card-body">
         <form method="post" asp-page-handler="Create" class="row g-2 align-items-end">
             <div class="col-md-6">
@@ -39,13 +39,13 @@
 
 @foreach (var f in Model.Accounts)
 {
-    <div class="card srx-card mb-3">
+    <div class="card dx-card mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="text-light fw-semibold"><i class="bi bi-folder2-open"></i> @f.Username</span>
                 <div class="btn-group btn-group-sm">
                     <form method="post" asp-page-handler="Password" asp-route-id="@f.Id"><button class="btn btn-outline-secondary"><i class="bi bi-key"></i> Reset Password</button></form>
-                    <form method="post" asp-page-handler="Delete" asp-route-id="@f.Id" class="srx-confirm-form" data-confirm-message="Delete FTP account '@f.Username'?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@f.Id" class="dx-confirm-form" data-confirm-message="Delete FTP account '@f.Username'?"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
                 </div>
             </div>
             <div class="row g-2 small">

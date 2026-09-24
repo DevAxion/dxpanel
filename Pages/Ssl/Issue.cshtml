@@ -1,13 +1,13 @@
 @page
-@model SRXPanel.Pages.Ssl.IssueModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Ssl.IssueModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Issue SSL Certificate";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Ssl/Index">SSL Certificates</a></li>
             <li class="breadcrumb-item active" aria-current="page">Issue</li>
@@ -17,7 +17,7 @@
 
 <h4 class="text-light mb-4">Issue SSL Certificate</h4>
 
-<div class="card srx-card" style="max-width: 560px;">
+<div class="card dx-card" style="max-width: 560px;">
     <div class="card-body">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 

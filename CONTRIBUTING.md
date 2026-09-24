@@ -41,7 +41,7 @@ docker/       Dockerfile, docker-compose.yml, .env.example
    dotnet ef migrations add MyChange
    ```
    Migrations are applied automatically on startup; don't edit existing migrations.
-4. **Match the existing style** — Razor Pages with the `srx-card` UI conventions,
+4. **Match the existing style** — Razor Pages with the `dx-card` UI conventions,
    nullable reference types enabled, services behind interfaces registered in
    `Program.cs`.
 5. **Respect simulation mode** — anything that touches the OS must go through

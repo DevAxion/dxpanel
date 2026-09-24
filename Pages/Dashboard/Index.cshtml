@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Dashboard.IndexModel
-@using SRXPanel.Pages.Dashboard
+@model DXPanel.Pages.Dashboard.IndexModel
+@using DXPanel.Pages.Dashboard
 @{
     ViewData["Title"] = "Dashboard";
 
@@ -10,7 +10,7 @@
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
         </ol>
     </nav>
@@ -50,7 +50,7 @@
     var domainPct = ResourceUsage.Percent(u.DomainsCount, u.MaxDomains);
 }
 
-<div class="card srx-card mb-4">
+<div class="card dx-card mb-4">
     <div class="card-body">
         <h6 class="card-title text-light mb-3"><i class="bi bi-speedometer"></i> Resource Usage</h6>
         <div class="row g-4">
@@ -117,32 +117,32 @@
 {
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="srx-stat-card">
-                <div class="srx-stat-value">@Model.TotalUsers</div>
-                <div class="srx-stat-label"><i class="bi bi-people"></i> Total Users</div>
+            <div class="dx-stat-card">
+                <div class="dx-stat-value">@Model.TotalUsers</div>
+                <div class="dx-stat-label"><i class="bi bi-people"></i> Total Users</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="srx-stat-card">
-                <div class="srx-stat-value">@Model.TotalResellers</div>
-                <div class="srx-stat-label"><i class="bi bi-person-badge"></i> Resellers</div>
+            <div class="dx-stat-card">
+                <div class="dx-stat-value">@Model.TotalResellers</div>
+                <div class="dx-stat-label"><i class="bi bi-person-badge"></i> Resellers</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="srx-stat-card">
-                <div class="srx-stat-value">@Model.TotalClients</div>
-                <div class="srx-stat-label"><i class="bi bi-person"></i> Clients</div>
+            <div class="dx-stat-card">
+                <div class="dx-stat-value">@Model.TotalClients</div>
+                <div class="dx-stat-label"><i class="bi bi-person"></i> Clients</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="srx-stat-card">
-                <div class="srx-stat-value">@Model.TotalDomains</div>
-                <div class="srx-stat-label"><i class="bi bi-globe2"></i> Domains</div>
+            <div class="dx-stat-card">
+                <div class="dx-stat-value">@Model.TotalDomains</div>
+                <div class="dx-stat-label"><i class="bi bi-globe2"></i> Domains</div>
             </div>
         </div>
     </div>
 
-    <div class="card srx-card">
+    <div class="card dx-card">
         <div class="card-body">
             <h6 class="card-title text-light mb-3"><i class="bi bi-cpu"></i> System Resources</h6>
             @if (Model.SystemStats != null)
@@ -176,7 +176,7 @@
         </div>
     </div>
 
-    <div class="card srx-card mt-4">
+    <div class="card dx-card mt-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="card-title text-light mb-0"><i class="bi bi-hdd-stack"></i> Server Fleet</h6>
@@ -193,27 +193,27 @@
 
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <div class="srx-stat-card">
-                        <div class="srx-stat-value">@Model.FleetOnline / @Model.FleetTotal</div>
-                        <div class="srx-stat-label"><i class="bi bi-check-circle"></i> Nodes Online (@Model.FleetOnlinePercent%)</div>
+                    <div class="dx-stat-card">
+                        <div class="dx-stat-value">@Model.FleetOnline / @Model.FleetTotal</div>
+                        <div class="dx-stat-label"><i class="bi bi-check-circle"></i> Nodes Online (@Model.FleetOnlinePercent%)</div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="srx-stat-card">
-                        <div class="srx-stat-value">@Model.FleetAvgCpu.ToString("0")%</div>
-                        <div class="srx-stat-label"><i class="bi bi-cpu"></i> Avg CPU</div>
+                    <div class="dx-stat-card">
+                        <div class="dx-stat-value">@Model.FleetAvgCpu.ToString("0")%</div>
+                        <div class="dx-stat-label"><i class="bi bi-cpu"></i> Avg CPU</div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="srx-stat-card">
-                        <div class="srx-stat-value">@Model.FleetAvgRam.ToString("0")%</div>
-                        <div class="srx-stat-label"><i class="bi bi-memory"></i> Avg RAM</div>
+                    <div class="dx-stat-card">
+                        <div class="dx-stat-value">@Model.FleetAvgRam.ToString("0")%</div>
+                        <div class="dx-stat-label"><i class="bi bi-memory"></i> Avg RAM</div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="srx-stat-card">
-                        <div class="srx-stat-value">@Model.FleetAvgDisk.ToString("0")%</div>
-                        <div class="srx-stat-label"><i class="bi bi-hdd"></i> Avg Disk</div>
+                    <div class="dx-stat-card">
+                        <div class="dx-stat-value">@Model.FleetAvgDisk.ToString("0")%</div>
+                        <div class="dx-stat-label"><i class="bi bi-hdd"></i> Avg Disk</div>
                     </div>
                 </div>
             </div>
@@ -277,15 +277,15 @@ else if (Model.CurrentRole == Roles.Reseller)
 {
     <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="srx-stat-card">
-                <div class="srx-stat-value">@Model.MyClientsCount</div>
-                <div class="srx-stat-label"><i class="bi bi-people"></i> My Clients</div>
+            <div class="dx-stat-card">
+                <div class="dx-stat-value">@Model.MyClientsCount</div>
+                <div class="dx-stat-label"><i class="bi bi-people"></i> My Clients</div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="srx-stat-card">
-                <div class="srx-stat-value">@Model.MyClientsDomainsCount</div>
-                <div class="srx-stat-label"><i class="bi bi-globe2"></i> Client Domains</div>
+            <div class="dx-stat-card">
+                <div class="dx-stat-value">@Model.MyClientsDomainsCount</div>
+                <div class="dx-stat-label"><i class="bi bi-globe2"></i> Client Domains</div>
             </div>
         </div>
     </div>
@@ -300,7 +300,7 @@ else
         <a asp-page="/FileManager/Index" class="btn btn-outline-secondary"><i class="bi bi-files"></i> Files</a>
     </div>
 
-    <div class="card srx-card">
+    <div class="card dx-card">
         <div class="card-body">
             <h6 class="card-title text-light mb-3">Recent Domains</h6>
             @if (Model.MyDomains.Any())
@@ -317,11 +317,11 @@ else
                                 <td>
                                     @if (d.IsActive)
                                     {
-                                        <span class="badge srx-badge-active">Active</span>
+                                        <span class="badge dx-badge-active">Active</span>
                                     }
                                     else
                                     {
-                                        <span class="badge srx-badge-suspended">Suspended</span>
+                                        <span class="badge dx-badge-suspended">Suspended</span>
                                     }
                                 </td>
                                 <td>@(d.SslEnabled ? "Yes" : "No")</td>

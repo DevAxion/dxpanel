@@ -1,7 +1,7 @@
-namespace SRXPanel;
+namespace DXPanel;
 
 public static class AppInfo
 {
     public const string Version = "1.0.0";
-    public const string ProductName = "SRXPanel";
+    public const string ProductName = "DXPanel";
 }

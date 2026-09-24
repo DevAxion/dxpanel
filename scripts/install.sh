@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# SRXPanel installer for Ubuntu 22.04 LTS
-#   curl -fsSL https://get.srxpanel.com/install.sh | bash
+# DXPanel installer for Ubuntu 22.04 LTS
+#   curl -fsSL https://get.dxpanel.com/install.sh | bash
 #
 set -euo pipefail
 
@@ -11,14 +11,14 @@ export DEBIAN_FRONTEND=noninteractive
 # ---------------------------------------------------------------------------
 # Constants & helpers
 # ---------------------------------------------------------------------------
-SRX_VERSION="1.0.0"
-APP_DIR="/var/www/srxpanel"
+DX_VERSION="1.0.0"
+APP_DIR="/var/www/dxpanel"
 PUBLISH_DIR="$APP_DIR/publish"
-CONFIG_DIR="/etc/srxpanel"
-LOG_DIR="/var/log/srxpanel"
-BACKUP_DIR="/var/backups/srxpanel"
+CONFIG_DIR="/etc/dxpanel"
+LOG_DIR="/var/log/dxpanel"
+BACKUP_DIR="/var/backups/dxpanel"
 VHOST_DIR="/var/www/vhosts"
-REPO_URL="${SRX_REPO_URL:-https://github.com/SeniorSRX/srxpanel.git}"
+REPO_URL="${DX_REPO_URL:-https://github.com/SeniorSRX/dxpanel.git}"
 
 C_RESET='\033[0m'; C_GREEN='\033[0;32m'; C_YELLOW='\033[1;33m'; C_RED='\033[0;31m'; C_BLUE='\033[0;34m'
 info()  { echo -e "${C_BLUE}==>${C_RESET} $*"; }
@@ -32,14 +32,14 @@ gen_pw() { tr -dc 'A-Za-z0-9!@#%^_+=' </dev/urandom | head -c 24; }
 # ---------------------------------------------------------------------------
 # System checks
 # ---------------------------------------------------------------------------
-info "SRXPanel installer v${SRX_VERSION}"
+info "DXPanel installer v${DX_VERSION}"
 
 [ "$(id -u)" -eq 0 ] || die "This installer must be run as root (use sudo)."
 
 if [ -r /etc/os-release ]; then
   . /etc/os-release
   if [ "${ID:-}" != "ubuntu" ] || [ "${VERSION_ID:-}" != "22.04" ]; then
-    die "Unsupported OS: ${PRETTY_NAME:-unknown}. SRXPanel requires Ubuntu 22.04 LTS."
+    die "Unsupported OS: ${PRETTY_NAME:-unknown}. DXPanel requires Ubuntu 22.04 LTS."
   fi
 else
   die "Cannot detect the operating system (/etc/os-release missing)."
@@ -68,8 +68,8 @@ fi
 
 # Detect existing install
 REINSTALL="no"
-if [ -d "$PUBLISH_DIR" ] || systemctl list-unit-files 2>/dev/null | grep -q '^srxpanel.service'; then
-  warn "An existing SRXPanel installation was detected."
+if [ -d "$PUBLISH_DIR" ] || systemctl list-unit-files 2>/dev/null | grep -q '^dxpanel.service'; then
+  warn "An existing DXPanel installation was detected."
   read -rp "Reinstall / upgrade in place? [y/N] " ans
   [[ "${ans,,}" == "y" ]] || die "Aborted."
   REINSTALL="yes"
@@ -182,8 +182,8 @@ chmod 700 "$CONFIG_DIR"
 # MySQL for CLIENT hosting only
 # ---------------------------------------------------------------------------
 # MySQL is installed so the panel can provision databases for CLIENTS' websites.
-# SRXPanel's OWN database is SQLite (configured in the deploy step below), so we
-# deliberately do NOT create a "srxpanel" database or user here.
+# DXPanel's OWN database is SQLite (configured in the deploy step below), so we
+# deliberately do NOT create a "dxpanel" database or user here.
 info "Enabling MySQL for client databases…"
 systemctl enable --now mysql 2>/dev/null || true
 
@@ -209,8 +209,8 @@ else
   git clone --depth 1 "$REPO_URL" "$APP_DIR/src"
 fi
 
-# SRXPanel's own database is SQLite, stored under the publish dir's data folder.
-DB_PATH="$PUBLISH_DIR/data/srxpanel.db"
+# DXPanel's own database is SQLite, stored under the publish dir's data folder.
+DB_PATH="$PUBLISH_DIR/data/dxpanel.db"
 
 # Write the production appsettings. Used both by `dotnet ef` at design time (from
 # the source project) and by the running app (from the publish dir), so we emit
@@ -237,7 +237,7 @@ EOF
 write_appsettings "$APP_DIR/src/appsettings.Production.json"
 
 info "Publishing (dotnet publish -c Release)…"
-dotnet publish "$APP_DIR/src/SRXPanel.csproj" -c Release -o "$PUBLISH_DIR"
+dotnet publish "$APP_DIR/src/DXPanel.csproj" -c Release -o "$PUBLISH_DIR"
 
 # SQLite data directory for the panel's own database.
 mkdir -p "$PUBLISH_DIR/data"
@@ -256,8 +256,8 @@ export PATH="$PATH:/root/.dotnet/tools"
 (
   cd "$APP_DIR/src"
   ASPNETCORE_ENVIRONMENT=Production \
-  SRXPANEL_ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
-  dotnet ef database update --project "$APP_DIR/src/SRXPanel.csproj"
+  DXPANEL_ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+  dotnet ef database update --project "$APP_DIR/src/DXPanel.csproj"
 ) || warn "Migration via 'dotnet ef' failed; the app will migrate on first start instead."
 
 # Ensure the SQLite db and its directory are writable by the service account.
@@ -270,21 +270,21 @@ ok "Application published"
 info "Creating systemd service…"
 
 # Store the operator-chosen admin password in a root-only env file and pass it to
-# the app via EnvironmentFile. The seeder reads SRXPANEL_ADMIN_PASSWORD when it
+# the app via EnvironmentFile. The seeder reads DXPANEL_ADMIN_PASSWORD when it
 # creates the initial admin account.
 cat > "$CONFIG_DIR/admin.env" <<EOF
-SRXPANEL_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+DXPANEL_ADMIN_PASSWORD=${ADMIN_PASSWORD}
 EOF
 chmod 600 "$CONFIG_DIR/admin.env"
 
-cat > /etc/systemd/system/srxpanel.service <<EOF
+cat > /etc/systemd/system/dxpanel.service <<EOF
 [Unit]
-Description=SRXPanel Hosting Control Panel
+Description=DXPanel Hosting Control Panel
 After=network.target mysql.service
 
 [Service]
 WorkingDirectory=${PUBLISH_DIR}
-ExecStart=/usr/bin/dotnet ${PUBLISH_DIR}/SRXPanel.dll
+ExecStart=/usr/bin/dotnet ${PUBLISH_DIR}/DXPanel.dll
 Restart=always
 RestartSec=10
 User=www-data
@@ -293,23 +293,23 @@ Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5000
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=srxpanel
+SyslogIdentifier=dxpanel
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable srxpanel
-systemctl restart srxpanel
-ok "srxpanel.service started"
+systemctl enable dxpanel
+systemctl restart dxpanel
+ok "dxpanel.service started"
 
 # ---------------------------------------------------------------------------
 # Nginx reverse proxy
 # ---------------------------------------------------------------------------
 info "Configuring Nginx reverse proxy…"
-cat > /etc/nginx/sites-available/srxpanel.conf <<EOF
-limit_req_zone \$binary_remote_addr zone=srx_login:10m rate=10r/m;
+cat > /etc/nginx/sites-available/dxpanel.conf <<EOF
+limit_req_zone \$binary_remote_addr zone=dx_login:10m rate=10r/m;
 
 server {
     listen 80;
@@ -327,7 +327,7 @@ server {
     location ~* (\.env|\.git|wp-login\.php|xmlrpc\.php)$ { return 403; }
 
     location /Account/Login {
-        limit_req zone=srx_login burst=5 nodelay;
+        limit_req zone=dx_login burst=5 nodelay;
         proxy_pass http://localhost:5000;
         include proxy_params;
     }
@@ -346,7 +346,7 @@ server {
 }
 EOF
 
-ln -sf /etc/nginx/sites-available/srxpanel.conf /etc/nginx/sites-enabled/srxpanel.conf
+ln -sf /etc/nginx/sites-available/dxpanel.conf /etc/nginx/sites-enabled/dxpanel.conf
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 ok "Nginx configured"
@@ -375,7 +375,7 @@ ok "Firewall enabled"
 # Fail2ban
 # ---------------------------------------------------------------------------
 info "Configuring Fail2ban…"
-cat > /etc/fail2ban/jail.d/srxpanel.conf <<'EOF'
+cat > /etc/fail2ban/jail.d/dxpanel.conf <<'EOF'
 [sshd]
 enabled = true
 maxretry = 5
@@ -391,7 +391,7 @@ logpath  = /var/log/nginx/access.log
 maxretry = 2
 EOF
 if [ "$ENABLE_EMAIL" = "yes" ]; then
-  cat >> /etc/fail2ban/jail.d/srxpanel.conf <<'EOF'
+  cat >> /etc/fail2ban/jail.d/dxpanel.conf <<'EOF'
 
 [postfix]
 enabled = true
@@ -413,7 +413,7 @@ curl -fsk "https://${PANEL_DOMAIN}/api/health" >/dev/null 2>&1 || PROTO="http"
 cat <<EOF
 
 ╔═══════════════════════════════════════════════════╗
-║        SRXPanel installed successfully!           ║
+║        DXPanel installed successfully!           ║
 ╠═══════════════════════════════════════════════════╣
 ║ Panel URL:  ${PROTO}://${PANEL_DOMAIN}
 ║ Username:   admin
@@ -428,8 +428,8 @@ cat <<EOF
 ║  3. Add nameserver DNS records
 ╚═══════════════════════════════════════════════════╝
 
-Service:  systemctl status srxpanel
-Logs:     journalctl -u srxpanel -f
+Service:  systemctl status dxpanel
+Logs:     journalctl -u dxpanel -f
 Health:   curl ${PROTO}://${PANEL_DOMAIN}/api/health
 
 EOF

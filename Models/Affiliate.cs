@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 public enum AffiliateReferralStatus { Pending, Approved, Paid, Rejected }
 public enum AffiliatePayoutStatus { Pending, Approved, Paid, Rejected }

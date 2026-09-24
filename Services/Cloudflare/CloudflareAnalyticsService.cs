@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Services.Cloudflare;
+namespace DXPanel.Services.Cloudflare;
 
 /// <summary>
 /// Persists a daily analytics snapshot per linked zone and raises threat alerts.

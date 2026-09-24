@@ -1,6 +1,6 @@
 @page
-@using SRXPanel.Services
-@model SRXPanel.Pages.AboutModel
+@using DXPanel.Services
+@model DXPanel.Pages.AboutModel
 @inject IFrontendService Frontend
 @{
     Layout = "_PublicLayout";
@@ -46,7 +46,7 @@
         @foreach (var m in team)
         {
             <div class="col-6 col-md-4 text-center">
-                <div style="width:88px;height:88px;border-radius:50%;background:var(--srx-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:30px;font-weight:800;">@m.Name.Substring(0,1)</div>
+                <div style="width:88px;height:88px;border-radius:50%;background:var(--dx-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:30px;font-weight:800;">@m.Name.Substring(0,1)</div>
                 <div class="text-light fw-semibold">@m.Name</div>
                 <div class="text-secondary small">@m.Role</div>
             </div>

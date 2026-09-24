@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Portal;
+namespace DXPanel.Services.Portal;
 
 /// <summary>
 /// Creates account backups. In simulation mode the tar/mysqldump commands are
@@ -50,7 +50,7 @@ public class BackupService : IBackupService
             UserId = userId,
             Type = type,
             Status = BackupStatus.Running,
-            FilePath = $"/var/backups/srxpanel/{fileName}",
+            FilePath = $"/var/backups/dxpanel/{fileName}",
             CreatedAt = DateTime.UtcNow
         };
         _db.Backups.Add(backup);
@@ -58,11 +58,11 @@ public class BackupService : IBackupService
 
         // Log the would-be backup commands.
         if (type is BackupType.Full or BackupType.Files)
-            await _runner.RunAsync($"tar czf /var/backups/srxpanel/{fileName} /home/{prefix}", ServiceName);
+            await _runner.RunAsync($"tar czf /var/backups/dxpanel/{fileName} /home/{prefix}", ServiceName);
         if (type is BackupType.Full or BackupType.Databases)
-            await _runner.RunAsync($"mysqldump --all-databases | gzip > /var/backups/srxpanel/{prefix}-db-{stamp}.sql.gz", ServiceName);
+            await _runner.RunAsync($"mysqldump --all-databases | gzip > /var/backups/dxpanel/{prefix}-db-{stamp}.sql.gz", ServiceName);
         if (type is BackupType.Full or BackupType.Emails)
-            await _runner.RunAsync($"tar czf /var/backups/srxpanel/{prefix}-mail-{stamp}.tar.gz /var/mail/vhosts", ServiceName);
+            await _runner.RunAsync($"tar czf /var/backups/dxpanel/{prefix}-mail-{stamp}.tar.gz /var/mail/vhosts", ServiceName);
 
         // In simulation create a small placeholder archive locally so it can be downloaded.
         if (_runner.SimulationMode)

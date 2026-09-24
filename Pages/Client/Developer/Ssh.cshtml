@@ -1,11 +1,11 @@
 @page
-@model SRXPanel.Pages.Client.Developer.SshModel
+@model DXPanel.Pages.Client.Developer.SshModel
 @{
     ViewData["Title"] = "SSH Access";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">SSH</li>
     </ol></nav>
@@ -15,10 +15,10 @@
 
 @if (Model.GeneratedPrivateKey != null)
 {
-    <div class="card srx-card border-warning mb-4"><div class="card-body">
+    <div class="card dx-card border-warning mb-4"><div class="card-body">
         <h6 class="text-warning mb-2"><i class="bi bi-key-fill"></i> Your private key — shown once</h6>
         <p class="text-secondary small mb-2">
-            SRXPanel does not store this key. Download it now and keep it safe; anyone holding it can sign in as you.
+            DXPanel does not store this key. Download it now and keep it safe; anyone holding it can sign in as you.
             The matching public key (<code>@Model.GeneratedFingerprint</code>) has already been added below.
         </p>
         <pre class="bg-black p-3 rounded small mb-3" style="max-height:220px;overflow:auto;"><code id="privateKey">@Model.GeneratedPrivateKey</code></pre>
@@ -33,7 +33,7 @@
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-hdd-network"></i> Connection details</h6>
 
             <table class="table table-sm align-middle mb-3">
@@ -101,7 +101,7 @@
             }
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Recent connections</h6>
             @if (!Model.AccessLog.Any())
             {
@@ -128,7 +128,7 @@
     </div>
 
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-light mb-0"><i class="bi bi-key"></i> SSH keys (@Model.Keys.Count)</h6>
                 <div>
@@ -160,7 +160,7 @@
             <div class="collapse mb-3" id="genKeyForm">
                 <form method="post" asp-page-handler="Generate" class="border border-secondary rounded p-3">
                     <p class="text-secondary small">
-                        SRXPanel generates the pair on the server, adds the public half to your account and hands you the
+                        DXPanel generates the pair on the server, adds the public half to your account and hands you the
                         private key once. For ED25519, generate locally instead:
                         <code>ssh-keygen -t ed25519 -C "you@@example.com"</code> and paste the <code>.pub</code> above.
                     </p>

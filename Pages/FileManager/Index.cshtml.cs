@@ -2,10 +2,10 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.FileManager;
+namespace DXPanel.Pages.FileManager;
 
 public class IndexModel : PageModel
 {

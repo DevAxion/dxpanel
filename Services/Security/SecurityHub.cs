@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace SRXPanel.Services.Security;
+namespace DXPanel.Services.Security;
 
 /// <summary>
 /// Real-time channel for security events: brute-force attempt feed, antivirus/malware

@@ -1,12 +1,12 @@
 @page "/Client/Domains/Register"
-@model SRXPanel.Pages.Client.DomainRegisterModel
+@model DXPanel.Pages.Client.DomainRegisterModel
 @{
     ViewData["Title"] = "Register a Domain";
     string Money(decimal d) => $"${d:0.00}";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Store</li>
         <li class="breadcrumb-item active" aria-current="page">Register Domain</li>
     </ol></nav>
@@ -22,7 +22,7 @@
 
 @if (!string.IsNullOrWhiteSpace(Model.Q) && Model.Results.Any())
 {
-    <div class="card srx-card" style="max-width:720px;"><div class="card-body">
+    <div class="card dx-card" style="max-width:720px;"><div class="card-body">
         @foreach (var r in Model.Results)
         {
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">

@@ -1,6 +1,6 @@
 @page "/Client/Vps/Detail/{id:int}"
-@model SRXPanel.Pages.Client.Vps.DetailModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Vps.DetailModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = $"VPS — {Model.Vps.Hostname}";
     var v = Model.Vps;
@@ -33,7 +33,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Vps/Index">VPS</a></li>
         <li class="breadcrumb-item active" aria-current="page">@v.Hostname</li>
     </ol></nav>
@@ -65,7 +65,7 @@
 {
     @if (v.Status == VpsStatus.Building)
     {
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light"><i class="bi bi-gear-wide-connected"></i> Provisioning</h6>
             <div class="progress my-2" style="height:10px;"><div id="provBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:5%"></div></div>
             <div id="provStep" class="text-secondary small">Starting…</div>
@@ -74,19 +74,19 @@
     }
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card"><div class="card-body text-center">
             <div class="text-secondary small">CPU</div><div id="cpuVal" class="fs-3 fw-bold text-light">0<span class="fs-6">%</span></div>
             <div class="progress mt-1" style="height:5px;"><div id="cpuBar" class="progress-bar bg-info" style="width:0"></div></div>
         </div></div></div>
-        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card"><div class="card-body text-center">
             <div class="text-secondary small">RAM</div><div id="ramVal" class="fs-3 fw-bold text-light">0<span class="fs-6">%</span></div>
             <div class="progress mt-1" style="height:5px;"><div id="ramBar" class="progress-bar bg-primary" style="width:0"></div></div>
         </div></div></div>
-        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card"><div class="card-body text-center">
             <div class="text-secondary small">Disk</div><div id="diskVal" class="fs-3 fw-bold text-light">0<span class="fs-6">%</span></div>
             <div class="progress mt-1" style="height:5px;"><div id="diskBar" class="progress-bar bg-warning" style="width:0"></div></div>
         </div></div></div>
-        <div class="col-md-3"><div class="card srx-card"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card"><div class="card-body text-center">
             <div class="text-secondary small">Bandwidth (cycle)</div>
             <div id="bwVal" class="fs-3 fw-bold text-light">@v.BandwidthUsed.ToString("0.0")<span class="fs-6"> / @v.BandwidthGB GB</span></div>
             <div class="progress mt-1" style="height:5px;"><div id="bwBar" class="progress-bar bg-success" style="width:@v.BandwidthPercent%"></div></div>
@@ -94,11 +94,11 @@
     </div>
 
     <div class="row g-3">
-        <div class="col-lg-8"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-8"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Network (last samples)</h6>
             <canvas id="netChart" height="90"></canvas>
         </div></div></div>
-        <div class="col-lg-4"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-4"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Server info</h6>
             <table class="table table-sm text-secondary mb-0">
                 <tr><td>IPv4</td><td class="text-end font-monospace text-light">@(v.IpAddress ?? "—")</td></tr>
@@ -117,20 +117,20 @@
 }
 else if (tab == "power")
 {
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <h6 class="text-light mb-3">Power controls</h6>
         <p class="text-secondary">Current state: <span class="badge @badge.cls">@badge.text</span></p>
         <form method="post" asp-page-handler="Power" class="d-flex flex-wrap gap-2">
-            <button name="action" value="start" class="btn btn-outline-success srx-confirm-form" data-confirm-message="Start this VPS?" @(v.Status == VpsStatus.Running ? "disabled" : "")><i class="bi bi-play-circle"></i> Start</button>
-            <button name="action" value="shutdown" class="btn btn-outline-warning srx-confirm-form" data-confirm-message="Gracefully shut down this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-power"></i> Shutdown</button>
-            <button name="action" value="stop" class="btn btn-outline-danger srx-confirm-form" data-confirm-message="Force stop this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-stop-circle"></i> Force stop</button>
-            <button name="action" value="restart" class="btn btn-outline-secondary srx-confirm-form" data-confirm-message="Restart this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-arrow-clockwise"></i> Restart</button>
+            <button name="action" value="start" class="btn btn-outline-success dx-confirm-form" data-confirm-message="Start this VPS?" @(v.Status == VpsStatus.Running ? "disabled" : "")><i class="bi bi-play-circle"></i> Start</button>
+            <button name="action" value="shutdown" class="btn btn-outline-warning dx-confirm-form" data-confirm-message="Gracefully shut down this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-power"></i> Shutdown</button>
+            <button name="action" value="stop" class="btn btn-outline-danger dx-confirm-form" data-confirm-message="Force stop this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-stop-circle"></i> Force stop</button>
+            <button name="action" value="restart" class="btn btn-outline-secondary dx-confirm-form" data-confirm-message="Restart this VPS?" @(v.Status != VpsStatus.Running ? "disabled" : "")><i class="bi bi-arrow-clockwise"></i> Restart</button>
         </form>
     </div></div>
 }
 else if (tab == "console")
 {
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <h6 class="text-light mb-3">Web console (noVNC)</h6>
         <p class="text-secondary">Open an out-of-band VNC console to your server — useful if SSH is unavailable.</p>
         <button id="openConsole" class="btn btn-primary"><i class="bi bi-terminal"></i> Open Console</button>
@@ -141,14 +141,14 @@ else if (tab == "console")
 }
 else if (tab == "snapshots")
 {
-    <div class="card srx-card mb-3"><div class="card-body">
+    <div class="card dx-card mb-3"><div class="card-body">
         <form method="post" asp-page-handler="SnapshotCreate" class="row g-2 align-items-end">
             <div class="col-auto"><label class="form-label text-secondary small">Snapshot name</label>
                 <input name="name" class="form-control" placeholder="before-upgrade" required /></div>
             <div class="col-auto"><button class="btn btn-primary"><i class="bi bi-camera"></i> Create snapshot</button></div>
         </form>
     </div></div>
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <h6 class="text-light mb-3">Snapshots</h6>
         @if (!Model.Snapshots.Any()) { <p class="text-secondary mb-0">No snapshots.</p> }
         else
@@ -163,11 +163,11 @@ else if (tab == "snapshots")
                         <td><span class="badge text-bg-secondary">@s.Status</span></td>
                         <td class="text-secondary small">@s.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="text-end">
-                            <form method="post" asp-page-handler="SnapshotRestore" class="d-inline srx-confirm-form" data-confirm-message="Roll back to @s.Name? Current state will be lost.">
+                            <form method="post" asp-page-handler="SnapshotRestore" class="d-inline dx-confirm-form" data-confirm-message="Roll back to @s.Name? Current state will be lost.">
                                 <input type="hidden" name="snapshotId" value="@s.Id" />
                                 <button class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
                             </form>
-                            <form method="post" asp-page-handler="SnapshotDelete" class="d-inline srx-confirm-form" data-confirm-message="Delete snapshot @s.Name?">
+                            <form method="post" asp-page-handler="SnapshotDelete" class="d-inline dx-confirm-form" data-confirm-message="Delete snapshot @s.Name?">
                                 <input type="hidden" name="snapshotId" value="@s.Id" />
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -181,11 +181,11 @@ else if (tab == "snapshots")
 }
 else if (tab == "backups")
 {
-    <div class="card srx-card mb-3"><div class="card-body d-flex justify-content-between align-items-center">
+    <div class="card dx-card mb-3"><div class="card-body d-flex justify-content-between align-items-center">
         <div><h6 class="text-light mb-0">Backups</h6><small class="text-secondary">Full VM backups stored on the node.</small></div>
         <form method="post" asp-page-handler="BackupCreate"><button class="btn btn-primary"><i class="bi bi-archive"></i> Create backup</button></form>
     </div></div>
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         @if (!Model.Backups.Any()) { <p class="text-secondary mb-0">No backups.</p> }
         else
         {
@@ -200,11 +200,11 @@ else if (tab == "backups")
                         <td><span class="badge text-bg-secondary">@bk.Status</span></td>
                         <td class="text-secondary small">@bk.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="text-end">
-                            <form method="post" asp-page-handler="BackupRestore" class="d-inline srx-confirm-form" data-confirm-message="Restore this backup? Current data will be overwritten.">
+                            <form method="post" asp-page-handler="BackupRestore" class="d-inline dx-confirm-form" data-confirm-message="Restore this backup? Current data will be overwritten.">
                                 <input type="hidden" name="backupId" value="@bk.Id" />
                                 <button class="btn btn-sm btn-outline-warning" @(bk.Status == VpsBackupStatus.Ready ? "" : "disabled")><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
                             </form>
-                            <form method="post" asp-page-handler="BackupDelete" class="d-inline srx-confirm-form" data-confirm-message="Delete this backup?">
+                            <form method="post" asp-page-handler="BackupDelete" class="d-inline dx-confirm-form" data-confirm-message="Delete this backup?">
                                 <input type="hidden" name="backupId" value="@bk.Id" />
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -218,7 +218,7 @@ else if (tab == "backups")
 }
 else if (tab == "rebuild")
 {
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <h6 class="text-light mb-3">Rebuild server</h6>
         <div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Rebuilding <strong>erases all data</strong> and reinstalls the OS from scratch.</div>
         <form method="post" asp-page-handler="Rebuild">
@@ -245,7 +245,7 @@ else if (tab == "rebuild")
 }
 else if (tab == "resize")
 {
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <h6 class="text-light mb-3">Resize / upgrade</h6>
         <p class="text-secondary">Current: <span class="text-light">@Model.CurrentPlan?.Name</span> — @v.CpuCores vCPU / @(v.RamMB / 1024) GB / @v.DiskGB GB. A restart may be required to apply changes.</p>
         @if (!Model.UpgradePlans.Any()) { <p class="text-secondary mb-0">No larger plans available.</p> }
@@ -256,7 +256,7 @@ else if (tab == "resize")
                 {
                     var diff = p.Price - (Model.CurrentPlan?.Price ?? 0);
                     <div class="col-md-4">
-                        <div class="card srx-card h-100"><div class="card-body">
+                        <div class="card dx-card h-100"><div class="card-body">
                             <h6 class="text-light">@p.Name</h6>
                             <ul class="list-unstyled text-secondary small mb-3">
                                 <li><i class="bi bi-cpu accent"></i> @p.CpuCores vCPU</li>
@@ -264,7 +264,7 @@ else if (tab == "resize")
                                 <li><i class="bi bi-hdd accent"></i> @p.DiskGB GB</li>
                             </ul>
                             <div class="mb-2 text-light">@Money(p.Price)/mo <span class="text-success small">(+@Money(diff))</span></div>
-                            <form method="post" asp-page-handler="Resize" class="srx-confirm-form" data-confirm-message="Resize to @p.Name?">
+                            <form method="post" asp-page-handler="Resize" class="dx-confirm-form" data-confirm-message="Resize to @p.Name?">
                                 <input type="hidden" name="targetPlanId" value="@p.Id" />
                                 <button class="btn btn-sm btn-primary w-100">Upgrade</button>
                             </form>
@@ -278,7 +278,7 @@ else if (tab == "resize")
 else if (tab == "network")
 {
     <div class="row g-3">
-        <div class="col-lg-5"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-5"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Addresses</h6>
             <table class="table table-sm text-secondary mb-3">
                 <tr><td>Primary IPv4</td><td class="text-end font-monospace text-light">@(v.IpAddress ?? "—")</td></tr>
@@ -293,7 +293,7 @@ else if (tab == "network")
                 </div>
             </form>
         </div></div></div>
-        <div class="col-lg-7"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-7"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Firewall</h6>
             <form method="post" asp-page-handler="FirewallAdd" class="row g-2 align-items-end mb-3">
                 <div class="col-auto"><label class="form-label text-secondary small">Action</label>
@@ -332,7 +332,7 @@ else if (tab == "network")
 }
 else if (tab == "settings")
 {
-    <div class="card srx-card mb-3"><div class="card-body">
+    <div class="card dx-card mb-3"><div class="card-body">
         <h6 class="text-light mb-3">Settings</h6>
         <form method="post" asp-page-handler="Settings">
             <div class="mb-3"><label class="form-label text-secondary">Hostname</label>
@@ -344,10 +344,10 @@ else if (tab == "settings")
             <button class="btn btn-primary">Save settings</button>
         </form>
     </div></div>
-    <div class="card srx-card border-danger"><div class="card-body">
+    <div class="card dx-card border-danger"><div class="card-body">
         <h6 class="text-danger mb-2"><i class="bi bi-exclamation-octagon"></i> Cancel VPS</h6>
         <p class="text-secondary small">This destroys the server and all its data permanently.</p>
-        <form method="post" asp-page-handler="Cancel" class="row g-2 align-items-end srx-confirm-form" data-confirm-message="Permanently destroy this VPS? This cannot be undone.">
+        <form method="post" asp-page-handler="Cancel" class="row g-2 align-items-end dx-confirm-form" data-confirm-message="Permanently destroy this VPS? This cannot be undone.">
             <div class="col-auto"><label class="form-label text-secondary small">Type the hostname <span class="font-monospace">@v.Hostname</span> to confirm</label>
                 <input name="confirm" class="form-control" required /></div>
             <div class="col-auto"><button class="btn btn-danger">Cancel VPS</button></div>

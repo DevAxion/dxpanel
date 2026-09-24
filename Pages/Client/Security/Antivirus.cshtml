@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.Security.AntivirusModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Security.AntivirusModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Antivirus";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Security/Index">Security</a></li>
         <li class="breadcrumb-item active" aria-current="page">Antivirus</li>
     </ol></nav>
@@ -17,7 +17,7 @@
     <span class="text-secondary small"><i class="bi bi-shield-check"></i> Definitions updated @Model.DefinitionsDate.ToString("MMM d, yyyy")</span>
 </div>
 
-<div class="card srx-card mb-4"><div class="card-body">
+<div class="card dx-card mb-4"><div class="card-body">
     <form method="post" asp-page-handler="Scan" class="row g-2 align-items-end" id="scanForm">
         <div class="col-md-8">
             <label class="form-label text-secondary small">Path to scan (blank = your home directory)</label>
@@ -35,7 +35,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-list-check"></i> Recent scan results</h6>
             <div class="table-responsive" style="max-height:360px;overflow:auto;">
                 <table class="table table-sm align-middle mb-0">
@@ -71,7 +71,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-shield-lock"></i> Quarantine manager</h6>
             @if (!Model.Quarantine.Any())
             {

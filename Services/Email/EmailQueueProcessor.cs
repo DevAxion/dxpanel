@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Email;
+namespace DXPanel.Services.Email;
 
 /// <summary>
 /// Drains the mail queue every 30 seconds: hands queued messages to Postfix, updates their
@@ -186,5 +186,5 @@ public class EmailQueueProcessor : BackgroundService
     }
 
     private static string NewMessageId() =>
-        $"<{Guid.NewGuid():N}@srxpanel>";
+        $"<{Guid.NewGuid():N}@dxpanel>";
 }

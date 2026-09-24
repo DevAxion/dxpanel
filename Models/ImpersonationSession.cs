@@ -1,4 +1,4 @@
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>
 /// Records a "login as" session so impersonated activity is auditable and

@@ -1,13 +1,13 @@
 @page "/Client/Invoices/Pdf/{id:int}"
-@using SRXPanel.Services
-@model SRXPanel.Pages.Client.InvoicePdfModel
+@using DXPanel.Services
+@model DXPanel.Pages.Client.InvoicePdfModel
 @inject IFrontendService Frontend
 @{
     Layout = null;
     var fs = await Frontend.GetSettingsAsync();
     var company = string.IsNullOrWhiteSpace(fs.SiteName) ? "Web Hosting" : fs.SiteName;
     var inv = Model.Invoice;
-    string Money(decimal d) => SRXPanel.Services.Billing.BillingService.FormatMoney(d, inv.Currency);
+    string Money(decimal d) => DXPanel.Services.Billing.BillingService.FormatMoney(d, inv.Currency);
     ViewData["Title"] = $"Invoice {inv.Number}";
 }
 <!DOCTYPE html>
@@ -43,7 +43,7 @@
             <div class="muted">Date: @inv.CreatedAt.ToString("MMM d, yyyy")</div>
             <div class="muted">Due: @inv.DueDate.ToString("MMM d, yyyy")</div>
             <div style="margin-top:6px;">
-                <span class="status @(inv.Status == SRXPanel.Models.InvoiceStatus.Paid ? "paid" : "unpaid")">@inv.Status</span>
+                <span class="status @(inv.Status == DXPanel.Models.InvoiceStatus.Paid ? "paid" : "unpaid")">@inv.Status</span>
             </div>
         </div>
     </div>

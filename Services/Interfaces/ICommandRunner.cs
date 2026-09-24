@@ -1,4 +1,4 @@
-namespace SRXPanel.Services.Interfaces;
+namespace DXPanel.Services.Interfaces;
 
 /// <summary>Result of a single shell command (or simulated command).</summary>
 public class CommandResult

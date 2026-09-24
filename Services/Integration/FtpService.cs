@@ -1,6 +1,6 @@
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Integration;
+namespace DXPanel.Services.Integration;
 
 /// <summary>
 /// Manages vsftpd users. Uses system users with a nologin shell confined to

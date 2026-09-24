@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Persists the editable "Panel" section (and SimulationMode) back into

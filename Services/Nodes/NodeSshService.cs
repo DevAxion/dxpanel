@@ -2,11 +2,11 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Renci.SshNet;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Nodes;
+namespace DXPanel.Services.Nodes;
 
 public record SshResult(bool Success, string Output, int ExitCode, long ElapsedMs, bool Simulated);
 
@@ -246,7 +246,7 @@ public class NodeSshService : INodeSshService
         ServerServiceType.FTP => "vsftpd",
         ServerServiceType.Email => "postfix",
         ServerServiceType.DNS => "named",
-        _ => "srx-backup"
+        _ => "dx-backup"
     };
 
     private static string Quote(string s) => "'" + s.Replace("'", "'\\''") + "'";

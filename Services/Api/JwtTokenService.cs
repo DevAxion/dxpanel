@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Api;
+namespace DXPanel.Services.Api;
 
 public interface IJwtTokenService
 {
@@ -14,8 +14,8 @@ public interface IJwtTokenService
 
 public class JwtTokenService : IJwtTokenService
 {
-    public const string Issuer = "SRXPanel";
-    public const string Audience = "SRXPanel.Api";
+    public const string Issuer = "DXPanel";
+    public const string Audience = "DXPanel.Api";
     private readonly SymmetricSecurityKey _key;
 
     public JwtTokenService(IConfiguration config)
@@ -30,7 +30,7 @@ public class JwtTokenService : IJwtTokenService
         if (string.IsNullOrWhiteSpace(secret) || secret.Length < 32)
         {
             // Deterministic dev fallback so tokens survive restarts in simulation.
-            secret = "srxpanel-dev-signing-key-please-override-in-production-1234567890";
+            secret = "dxpanel-dev-signing-key-please-override-in-production-1234567890";
         }
         return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
     }

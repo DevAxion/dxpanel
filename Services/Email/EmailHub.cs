@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace SRXPanel.Services.Email;
+namespace DXPanel.Services.Email;
 
 /// <summary>
 /// Real-time channel for the mail queue: live status-count pushes for the client queue page.

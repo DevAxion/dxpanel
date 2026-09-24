@@ -1,8 +1,8 @@
 @using Microsoft.AspNetCore.Identity
-@using SRXPanel.Services.Reseller
+@using DXPanel.Services.Reseller
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
-@inject SRXPanel.Data.ApplicationDbContext Db
+@inject DXPanel.Data.ApplicationDbContext Db
 @{
     var branding = Context.Branding();
 }
@@ -23,18 +23,18 @@
     {
         <style>
             :root {
-                --srx-sidebar-active: @branding.PrimaryColor;
-                --srx-accent: @branding.AccentColor;
+                --dx-sidebar-active: @branding.PrimaryColor;
+                --dx-accent: @branding.AccentColor;
             }
             .btn-primary { background-color: @branding.PrimaryColor; border-color: @branding.PrimaryColor; }
-            .srx-sidebar-nav .nav-link.active { background-color: @branding.PrimaryColor; }
+            .dx-sidebar-nav .nav-link.active { background-color: @branding.PrimaryColor; }
         </style>
     }
 </head>
 <body>
-    <div class="srx-shell">
-        <aside class="srx-sidebar">
-            <div class="srx-sidebar-brand">
+    <div class="dx-shell">
+        <aside class="dx-sidebar">
+            <div class="dx-sidebar-brand">
                 @if (branding.IsWhiteLabel)
                 {
                     @if (branding.LogoPath != null)
@@ -48,7 +48,7 @@
                 }
                 else
                 {
-                    @:SRX<span class="srx-accent">Panel</span>
+                    @:DX<span class="dx-accent">Panel</span>
                 }
             </div>
             @{
@@ -86,7 +86,7 @@
                     }
                 }
             }
-            <nav class="srx-sidebar-nav">
+            <nav class="dx-sidebar-nav">
                 @if (User.IsInRole(Roles.Client))
                 {
                     <a class="nav-link @Active("/Client/Dashboard")" asp-page="/Client/Dashboard">
@@ -341,14 +341,14 @@
                 }
                 }
             </nav>
-            <div class="srx-sidebar-footer">
+            <div class="dx-sidebar-footer">
                 Signed in as<br />
                 <strong class="text-light">@User.Identity?.Name</strong>
             </div>
         </aside>
 
-        <div class="srx-main">
-            <header class="srx-topbar">
+        <div class="dx-main">
+            <header class="dx-topbar">
                 @RenderSection("Breadcrumb", required: false)
                 <div class="ms-auto d-flex align-items-center gap-2">
                     <partial name="_NotificationBell" />
@@ -363,7 +363,7 @@
                 </div>
             </header>
 
-            <main class="srx-content">
+            <main class="dx-content">
                 @if (User.FindFirst("OriginalAdminName") is System.Security.Claims.Claim adminClaim)
                 {
                     <div class="alert alert-warning d-flex justify-content-between align-items-center">
@@ -379,14 +379,14 @@
         </div>
     </div>
 
-    <span class="srx-version-badge">
+    <span class="dx-version-badge">
         @if (branding.IsWhiteLabel)
         {
             @(branding.FooterText ?? branding.PanelTitle)
         }
         else
         {
-            @:SRXPanel v@(SRXPanel.AppInfo.Version)
+            @:DXPanel v@(DXPanel.AppInfo.Version)
         }
     </span>
 

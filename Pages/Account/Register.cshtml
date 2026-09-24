@@ -1,6 +1,6 @@
 @page
-@using SRXPanel.Services
-@model SRXPanel.Pages.Account.RegisterModel
+@using DXPanel.Services
+@model DXPanel.Pages.Account.RegisterModel
 @inject IFrontendService Frontend
 @{
     Layout = null;
@@ -20,7 +20,7 @@
 </head>
 <body style="background:#0d1117;">
     <div class="d-flex align-items-center justify-content-center" style="min-height:100vh;">
-        <div class="card srx-card" style="width:440px;">
+        <div class="card dx-card" style="width:440px;">
             <div class="card-body p-4">
                 @if (!string.IsNullOrEmpty(regFs.LogoPath))
                 {

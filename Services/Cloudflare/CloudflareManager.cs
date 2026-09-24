@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Cloudflare;
+namespace DXPanel.Services.Cloudflare;
 
 /// <summary>One side of a DNS comparison between the panel zone and the Cloudflare zone.</summary>
 public record DnsDiffRow(string Type, string Name, string? PanelValue, string? CloudflareValue, string State);

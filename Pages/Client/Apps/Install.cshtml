@@ -1,12 +1,12 @@
 @page "/Client/Apps/Install/{appId:int}"
-@model SRXPanel.Pages.Client.Apps.InstallModel
+@model DXPanel.Pages.Client.Apps.InstallModel
 @{
     var a = Model.App;
     ViewData["Title"] = $"Install {a.Name}";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Catalog">Catalog</a></li>
         <li class="breadcrumb-item active" aria-current="page">Install @a.Name</li>
@@ -49,7 +49,7 @@ else
 
         <!-- Step 1 -->
         <div class="wiz-step" data-step="1">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-globe2"></i> Choose domain and path</h6>
                 <div class="mb-3">
                     <label class="form-label">Domain</label>
@@ -91,13 +91,13 @@ else
 
         <!-- Step 2 -->
         <div class="wiz-step d-none" data-step="2">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> Configure your site</h6>
                 <div class="row g-3">
                     <div class="col-md-6"><label class="form-label">Site title</label><input asp-for="Input.SiteTitle" class="form-control" /></div>
                     <div class="col-md-6"><label class="form-label">Language</label>
                         <select asp-for="Input.Language" class="form-select">
-                            @foreach (var l in SRXPanel.Pages.Client.Apps.InstallModel.Languages)
+                            @foreach (var l in DXPanel.Pages.Client.Apps.InstallModel.Languages)
                             {
                                 <option value="@l.Code">@l.Name</option>
                             }
@@ -127,7 +127,7 @@ else
                             <div class="col-md-4"><label class="form-label">Table prefix</label><input asp-for="Input.TablePrefix" class="form-control font-monospace" /></div>
                             <div class="col-md-4"><label class="form-label">PHP version</label>
                                 <select asp-for="Input.PhpVersion" class="form-select">
-                                    @foreach (var v in SRXPanel.Pages.Client.Apps.InstallModel.PhpVersions)
+                                    @foreach (var v in DXPanel.Pages.Client.Apps.InstallModel.PhpVersions)
                                     {
                                         <option value="@v">PHP @v</option>
                                     }
@@ -148,7 +148,7 @@ else
 
         <!-- Step 3 -->
         <div class="wiz-step d-none" data-step="3">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-check2-circle"></i> Review and install</h6>
                 <table class="table table-sm align-middle mb-0">
                     <tbody>
@@ -183,7 +183,7 @@ else
                 document.querySelectorAll('.wiz-step').forEach(function (s) { s.classList.toggle('d-none', +s.dataset.step !== n); });
                 document.querySelectorAll('.step-ind').forEach(function (ind) {
                     var i = +ind.dataset.step, dot = ind.querySelector('.step-dot'), lbl = ind.querySelector('.step-lbl');
-                    if (i <= n) { dot.style.background = 'var(--srx-sidebar-active, #3b82f6)'; dot.style.color = '#fff'; lbl.classList.replace('text-secondary','text-light'); }
+                    if (i <= n) { dot.style.background = 'var(--dx-sidebar-active, #3b82f6)'; dot.style.color = '#fff'; lbl.classList.replace('text-secondary','text-light'); }
                     else { dot.style.background = '#161b22'; dot.style.color = '#8b949e'; lbl.classList.replace('text-light','text-secondary'); }
                 });
                 if (n === 3) review();

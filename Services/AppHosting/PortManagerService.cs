@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.AppHosting;
+namespace DXPanel.Services.AppHosting;
 
 /// <summary>
 /// Hands out and tracks TCP ports for hosted apps within a configurable range (default 3000-9999).

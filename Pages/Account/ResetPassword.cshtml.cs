@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.Account;
+namespace DXPanel.Pages.Account;
 
 [AllowAnonymous]
 public class ResetPasswordModel : PageModel

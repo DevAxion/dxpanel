@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Client.DashboardModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.DashboardModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "My Account";
     string BarColor(int p) => p >= 90 ? "bg-danger" : p >= 75 ? "bg-warning" : "bg-success";
@@ -9,7 +9,7 @@
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item active" aria-current="page">My Account</li>
         </ol>
     </nav>
@@ -73,7 +73,7 @@
     </div>
 }
 
-<div class="card srx-card mb-4"><div class="card-body">
+<div class="card dx-card mb-4"><div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="text-light mb-0"><i class="bi bi-box-seam"></i> My Services</h6>
         <a asp-page="/Client/Services" class="btn btn-sm btn-outline-secondary">Manage all</a>
@@ -123,9 +123,9 @@
     {
         <div class="col-md-3 col-6">
             <a href="@link" class="text-decoration-none">
-                <div class="srx-stat-card">
-                    <div class="srx-stat-value">@used<span class="text-secondary fs-6"> / @Limit(max)</span></div>
-                    <div class="srx-stat-label"><i class="bi @icon"></i> @label</div>
+                <div class="dx-stat-card">
+                    <div class="dx-stat-value">@used<span class="text-secondary fs-6"> / @Limit(max)</span></div>
+                    <div class="dx-stat-label"><i class="bi @icon"></i> @label</div>
                 </div>
             </a>
         </div>
@@ -134,7 +134,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card mb-4">
+        <div class="card dx-card mb-4">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-speedometer"></i> Resource Usage</h6>
                 @{
@@ -158,7 +158,7 @@
             </div>
         </div>
 
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Recent Activity</h6>
                 @if (Model.RecentActivity.Any())
@@ -182,7 +182,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card mb-4">
+        <div class="card dx-card mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="text-light mb-0"><i class="bi bi-bell"></i> Notifications</h6>
@@ -208,7 +208,7 @@
             </div>
         </div>
 
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-light mb-1"><i class="bi bi-life-preserver"></i> Support</h6>

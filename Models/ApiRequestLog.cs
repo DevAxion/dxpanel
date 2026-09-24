@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>An audit record of an external API call (WHMCS/Blesta/REST).</summary>
 public class ApiRequestLog

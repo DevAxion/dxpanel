@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 public enum RegistrationMode { Open, InviteOnly, Disabled }
 
@@ -12,7 +12,7 @@ public class PlatformSettings
 {
     public int Id { get; set; } = 1;
 
-    [StringLength(100)] public string PlatformName { get; set; } = "SRXPanel";
+    [StringLength(100)] public string PlatformName { get; set; } = "DXPanel";
     [StringLength(300)] public string? LogoPath { get; set; }
 
     [StringLength(3)] public string DefaultCurrency { get; set; } = "usd";

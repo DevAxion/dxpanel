@@ -1,6 +1,6 @@
 @page "/Admin/Vps/Detail/{id:int}"
-@model SRXPanel.Pages.Admin.Vps.DetailModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Vps.DetailModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = $"VPS — {Model.Vps.Hostname}";
     var v = Model.Vps;
@@ -17,7 +17,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Admin/Vps/Index">VPS</a></li>
         <li class="breadcrumb-item active" aria-current="page">@v.Hostname</li>
     </ol></nav>
@@ -34,7 +34,7 @@
 
 <div class="row g-3">
     <div class="col-lg-7">
-        <div class="card srx-card mb-3"><div class="card-body">
+        <div class="card dx-card mb-3"><div class="card-body">
             <h6 class="text-light mb-3">Overview</h6>
             <div class="row g-3 mb-2">
                 <div class="col-3 text-center"><div class="text-secondary small">CPU</div><div class="fs-4 text-light">@(Model.LiveStats?.CpuPercent.ToString("0") ?? "—")%</div></div>
@@ -51,7 +51,7 @@
             </table>
         </div></div>
 
-        <div class="card srx-card mb-3"><div class="card-body">
+        <div class="card dx-card mb-3"><div class="card-body">
             <h6 class="text-light mb-3">Power</h6>
             <form method="post" asp-page-handler="Power" class="d-flex flex-wrap gap-2">
                 <button name="action" value="start" class="btn btn-sm btn-outline-success">Start</button>
@@ -61,7 +61,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Recent actions</h6>
             @if (!Model.Actions.Any()) { <p class="text-secondary mb-0">No actions yet.</p> }
             else
@@ -81,7 +81,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card border-warning mb-3"><div class="card-body">
+        <div class="card dx-card border-warning mb-3"><div class="card-body">
             <h6 class="text-warning mb-3"><i class="bi bi-shield-lock"></i> Admin overrides</h6>
 
             <div class="d-flex gap-2 mb-3">
@@ -91,9 +91,9 @@
                 }
                 else
                 {
-                    <form method="post" asp-page-handler="Suspend" class="srx-confirm-form" data-confirm-message="Suspend this VPS?"><button class="btn btn-sm btn-outline-warning"><i class="bi bi-pause-circle"></i> Suspend</button></form>
+                    <form method="post" asp-page-handler="Suspend" class="dx-confirm-form" data-confirm-message="Suspend this VPS?"><button class="btn btn-sm btn-outline-warning"><i class="bi bi-pause-circle"></i> Suspend</button></form>
                 }
-                <form method="post" asp-page-handler="ForceDelete" class="srx-confirm-form" data-confirm-message="Force-delete and destroy this VPS?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Force delete</button></form>
+                <form method="post" asp-page-handler="ForceDelete" class="dx-confirm-form" data-confirm-message="Force-delete and destroy this VPS?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Force delete</button></form>
             </div>
 
             <form method="post" asp-page-handler="Migrate" class="row g-2 align-items-end mb-3">
@@ -125,7 +125,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Internal notes</h6>
             <form method="post" asp-page-handler="Notes">
                 <textarea name="internalNotes" class="form-control mb-2" rows="4">@v.Notes</textarea>

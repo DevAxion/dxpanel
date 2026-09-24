@@ -1,6 +1,6 @@
 @page "/Client/Vps/Order/{planId:int}"
-@model SRXPanel.Pages.Client.Vps.OrderModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Vps.OrderModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Deploy VPS";
     var p = Model.Plan;
@@ -8,7 +8,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Vps/Index">VPS</a></li>
         <li class="breadcrumb-item active" aria-current="page">Deploy</li>
     </ol></nav>
@@ -19,7 +19,7 @@
 <form method="post">
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="card srx-card mb-3"><div class="card-body">
+            <div class="card dx-card mb-3"><div class="card-body">
                 <h6 class="text-light mb-3">1. Configure</h6>
 
                 <div class="mb-3">
@@ -88,7 +88,7 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3">2. Review &amp; deploy</h6>
                 <table class="table table-sm text-secondary mb-3">
                     <tr><td>Plan</td><td class="text-end text-light">@p.Name</td></tr>

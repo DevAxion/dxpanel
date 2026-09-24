@@ -5,12 +5,12 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
-using Database = SRXPanel.Models.Database;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
+using Database = DXPanel.Models.Database;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public record TableInfo(string Name, long Rows, long DataBytes, long IndexBytes, string Engine, string Collation)
 {
@@ -306,7 +306,7 @@ public class DatabaseToolsService : IDatabaseToolsService
     private async Task<string> BuildSqlDumpAsync(Database database, List<TableInfo> tables, string userId, int dbId)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"-- SRXPanel dump of `{database.DbName}`");
+        sb.AppendLine($"-- DXPanel dump of `{database.DbName}`");
         sb.AppendLine($"-- Generated: {DateTime.UtcNow:u}");
         sb.AppendLine("SET NAMES utf8mb4;");
         sb.AppendLine("SET FOREIGN_KEY_CHECKS = 0;");

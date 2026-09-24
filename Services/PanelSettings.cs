@@ -1,4 +1,4 @@
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Panel-wide configuration bound from the "Panel" section of appsettings.json.

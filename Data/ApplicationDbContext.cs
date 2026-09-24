@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Data;
+namespace DXPanel.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {

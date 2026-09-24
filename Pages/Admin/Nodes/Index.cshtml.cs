@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Nodes;
+using DXPanel.Models;
+using DXPanel.Services.Nodes;
 
-namespace SRXPanel.Pages.Admin.Nodes;
+namespace DXPanel.Pages.Admin.Nodes;
 
 public class IndexModel : PageModel
 {

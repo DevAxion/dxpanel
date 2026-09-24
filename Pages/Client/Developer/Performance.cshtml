@@ -1,5 +1,5 @@
 @page
-@model SRXPanel.Pages.Client.Developer.PerformanceModel
+@model DXPanel.Pages.Client.Developer.PerformanceModel
 @{
     ViewData["Title"] = "Performance";
 
@@ -8,7 +8,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">Performance</li>
     </ol></nav>
@@ -26,7 +26,7 @@
 }
 else
 {
-    <div class="card srx-card mb-4"><div class="card-body">
+    <div class="card dx-card mb-4"><div class="card-body">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-8">
                 <label class="form-label small">Domain</label>
@@ -63,19 +63,19 @@ else
     }
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">TTFB</div>
             <div class="fs-3 @Grade(r.TtfbMs, 200, 600)">@r.TtfbMs<span class="fs-6">ms</span></div>
             <div class="text-secondary" style="font-size:11px;">Time to first byte</div>
         </div></div></div>
 
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">Total load</div>
             <div class="fs-3 @Grade(r.TotalMs, 800, 2000)">@r.TotalMs<span class="fs-6">ms</span></div>
             <div class="text-secondary" style="font-size:11px;">Document downloaded</div>
         </div></div></div>
 
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">TLS handshake</div>
             @if (r.SslHandshakeMs is long handshake)
             {
@@ -88,7 +88,7 @@ else
             <div class="text-secondary" style="font-size:11px;">@(r.SslHandshakeMs is null ? "No HTTPS" : "SSL negotiation")</div>
         </div></div></div>
 
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">Document size</div>
             <div class="fs-3 text-light">@(r.ContentBytes / 1024)<span class="fs-6">KB</span></div>
             <div class="text-secondary" style="font-size:11px;">HTTP @r.StatusCode · @r.HttpVersion</div>
@@ -97,7 +97,7 @@ else
 
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card srx-card mb-4"><div class="card-body">
+            <div class="card dx-card mb-4"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-clipboard-check"></i> Checks</h6>
                 <table class="table table-sm align-middle mb-0">
                     <tbody>
@@ -142,7 +142,7 @@ else
                 </table>
             </div></div>
 
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-list-ul"></i> Response headers</h6>
                 <div class="table-responsive" style="max-height:260px;overflow:auto;">
                     <table class="table table-sm mb-0">
@@ -161,7 +161,7 @@ else
         </div>
 
         <div class="col-lg-6">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-lightbulb"></i> Recommendations</h6>
                 @foreach (var recommendation in r.Recommendations)
                 {

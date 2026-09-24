@@ -1,11 +1,11 @@
 @page
-@model SRXPanel.Pages.Admin.LoadBalancerModel
+@model DXPanel.Pages.Admin.LoadBalancerModel
 @{
     ViewData["Title"] = "Load Balancer";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Infrastructure</li>
         <li class="breadcrumb-item active" aria-current="page">Load Balancer</li>
     </ol></nav>
@@ -16,7 +16,7 @@
 
 <div class="row g-4 mb-4">
     <div class="col-lg-8">
-        <div class="card srx-card h-100"><div class="card-body">
+        <div class="card dx-card h-100"><div class="card-body">
             <h6 class="text-light mb-3">Load distribution</h6>
             @foreach (var cap in Model.Capacities)
             {
@@ -55,7 +55,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card srx-card h-100"><div class="card-body">
+        <div class="card dx-card h-100"><div class="card-body">
             <h6 class="text-light mb-3">Auto-balancing</h6>
             <form method="post" asp-page-handler="Settings">
                 <div class="form-check form-switch mb-3">
@@ -88,7 +88,7 @@
     </div>
 </div>
 
-<div class="card srx-card"><div class="card-body">
+<div class="card dx-card"><div class="card-body">
     <h6 class="text-light mb-3">Suggested rebalancing</h6>
     @if (!Model.Suggestions.Any())
     {

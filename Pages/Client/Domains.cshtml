@@ -1,13 +1,13 @@
 @page
-@model SRXPanel.Pages.Client.DomainsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.DomainsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "My Domains";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">Domains</li>
         </ol>
@@ -18,7 +18,7 @@
     <h4 class="text-light mb-0">My Domains <span class="text-secondary fs-6">(@Model.Domains.Count / @(Model.MaxDomains == 0 ? "∞" : Model.MaxDomains.ToString()))</span></h4>
 </div>
 
-<div class="card srx-card mb-4">
+<div class="card dx-card mb-4">
     <div class="card-body">
         <form method="post" asp-page-handler="Add" class="row g-2 align-items-end">
             <div class="col-md-8">
@@ -40,14 +40,14 @@
 {
     var subs = Model.Subdomains.GetValueOrDefault(d.Id) ?? new();
     var reds = Model.Redirects.GetValueOrDefault(d.Id) ?? new();
-    <div class="card srx-card mb-3">
+    <div class="card dx-card mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <i class="bi bi-globe2"></i> <span class="text-light fw-semibold">@d.DomainName</span>
                     @if (d.SslEnabled)
                     {
-                        <span class="badge srx-badge-active ms-1"><i class="bi bi-shield-lock"></i> SSL</span>
+                        <span class="badge dx-badge-active ms-1"><i class="bi bi-shield-lock"></i> SSL</span>
                     }
                     <span class="badge text-bg-secondary ms-1">PHP @d.PhpVersion</span>
                     @if (d.ForceHttps)
@@ -57,7 +57,7 @@
                 </div>
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#s-@d.Id"><i class="bi bi-gear"></i> Settings</button>
-                    <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete '@d.DomainName'? Files remain but the site goes offline.">
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete '@d.DomainName'? Files remain but the site goes offline.">
                         <button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
                     </form>
                 </div>
@@ -75,7 +75,7 @@
                             <div class="col-md-3">
                                 <label class="form-label small">PHP Version</label>
                                 <select name="phpVersion" class="form-select form-select-sm">
-                                    @foreach (var v in SRXPanel.Pages.Client.DomainsModel.PhpVersions)
+                                    @foreach (var v in DXPanel.Pages.Client.DomainsModel.PhpVersions)
                                     {
                                         if (v == d.PhpVersion)
                                         {
@@ -148,5 +148,5 @@
 
 @if (!Model.Domains.Any())
 {
-    <div class="card srx-card"><div class="card-body text-secondary">No domains yet. Add your first domain above.</div></div>
+    <div class="card dx-card"><div class="card-body text-secondary">No domains yet. Add your first domain above.</div></div>
 }

@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Settings.IndexModel
+@model DXPanel.Pages.Settings.IndexModel
 @{
     ViewData["Title"] = "Settings";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Settings</li>
         </ol>
@@ -38,7 +38,7 @@
 
     <div class="row g-3">
         <div class="col-lg-6">
-            <div class="card srx-card h-100">
+            <div class="card dx-card h-100">
                 <div class="card-body">
                     <h6 class="text-light mb-3"><i class="bi bi-sliders"></i> General</h6>
                     <div class="mb-3">
@@ -71,7 +71,7 @@
         </div>
 
         <div class="col-lg-6">
-            <div class="card srx-card h-100">
+            <div class="card dx-card h-100">
                 <div class="card-body">
                     <h6 class="text-light mb-3"><i class="bi bi-toggle-on"></i> Execution</h6>
                     <div class="form-check form-switch mb-3">
@@ -107,7 +107,7 @@
         </div>
 
         <div class="col-lg-12">
-            <div class="card srx-card">
+            <div class="card dx-card">
                 <div class="card-body">
                     <h6 class="text-light mb-3"><i class="bi bi-envelope-at"></i> SMTP (outgoing mail)</h6>
                     <div class="row g-2">

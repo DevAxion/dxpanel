@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Client.Developer.PackageManagerModel
-@using SRXPanel.Services.Developer
+@model DXPanel.Pages.Client.Developer.PackageManagerModel
+@using DXPanel.Services.Developer
 @{
     ViewData["Title"] = "Package Manager";
 
@@ -21,7 +21,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Developer</li>
         <li class="breadcrumb-item active" aria-current="page">Package Manager</li>
     </ol></nav>
@@ -50,7 +50,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <form method="get" class="row g-2 align-items-end mb-3">
                 <input type="hidden" name="tab" value="@Model.Tab" />
                 <div class="col-md-8">
@@ -148,7 +148,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="text-light mb-0"><i class="bi bi-file-earmark-code"></i> @Model.Manifest.Name</h6>
                 <button class="btn btn-sm btn-primary" id="saveManifest"><i class="bi bi-save"></i> Save</button>

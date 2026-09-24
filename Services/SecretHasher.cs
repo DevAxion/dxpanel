@@ -1,4 +1,4 @@
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Wraps BCrypt for hashing service passwords (DB/FTP/email/etc.)

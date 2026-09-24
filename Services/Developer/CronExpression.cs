@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 /// <summary>
 /// A parsed five-field cron expression (minute hour day-of-month month day-of-week).

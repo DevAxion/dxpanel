@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>
 /// Minimal card metadata only — full card numbers are NEVER stored (PCI).

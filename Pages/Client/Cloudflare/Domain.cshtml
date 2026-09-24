@@ -1,7 +1,7 @@
 @page "/Client/Cloudflare/Domain/{domainId:int}"
-@model SRXPanel.Pages.Client.Cloudflare.DomainModel
-@using SRXPanel.Models
-@using SRXPanel.Services.Cloudflare
+@model DXPanel.Pages.Client.Cloudflare.DomainModel
+@using DXPanel.Models
+@using DXPanel.Services.Cloudflare
 @{
     ViewData["Title"] = $"Cloudflare — {Model.Cf.Domain?.DomainName}";
     var cf = Model.Cf;
@@ -30,7 +30,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Cloudflare/Index">Cloudflare</a></li>
         <li class="breadcrumb-item active" aria-current="page">@cf.Domain?.DomainName</li>
     </ol></nav>
@@ -67,19 +67,19 @@
 @if (tab == "overview")
 {
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">Requests today</div>
             <div class="fs-4 text-light">@(Model.Today?.Requests.ToString("N0") ?? "—")</div>
         </div></div></div>
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">Bandwidth today</div>
             <div class="fs-4 text-light">@(Model.Today != null ? Bytes(Model.Today.Bandwidth) : "—")</div>
         </div></div></div>
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">Threats blocked</div>
             <div class="fs-4 text-danger">@(Model.Today?.Threats.ToString("N0") ?? "—")</div>
         </div></div></div>
-        <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small">Cache hit rate</div>
             <div class="fs-4 text-success">@(Model.Today != null ? $"{Model.Today.CacheHitRate}%" : "—")</div>
         </div></div></div>
@@ -87,7 +87,7 @@
 
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3">Nameservers</h6>
                 @if (cf.NameServer1 != null)
                 {
@@ -114,7 +114,7 @@
         </div>
 
         <div class="col-lg-6">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3">Quick toggles</h6>
 
                 @{
@@ -157,7 +157,7 @@ else if (tab == "dns")
     </div>
 
     <div class="collapse mb-3" id="addRecord">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <form method="post" asp-page-handler="AddRecord" class="row g-2 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label small">Type</label>
@@ -195,7 +195,7 @@ else if (tab == "dns")
         </div></div>
     </div>
 
-    <div class="card srx-card"><div class="table-responsive">
+    <div class="card dx-card"><div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead><tr><th>Type</th><th>Name</th><th>Content</th><th>TTL</th><th>Proxy</th><th></th></tr></thead>
             <tbody>
@@ -249,7 +249,7 @@ else if (tab == "dns")
 else if (tab == "ssl")
 {
     <form method="post" asp-page-handler="Ssl" style="max-width:720px;">
-        <div class="card srx-card mb-3"><div class="card-body">
+        <div class="card dx-card mb-3"><div class="card-body">
             <h6 class="text-light mb-3">SSL/TLS encryption</h6>
             <div class="mb-3">
                 <label class="form-label">SSL mode</label>
@@ -291,7 +291,7 @@ else if (tab == "ssl")
         </div></div>
     </form>
 
-    <div class="card srx-card" style="max-width:720px;"><div class="card-body">
+    <div class="card dx-card" style="max-width:720px;"><div class="card-body">
         <h6 class="text-light mb-2">Certificates</h6>
         <p class="text-secondary small">
             <i class="bi bi-patch-check-fill text-success"></i> <strong>Universal SSL</strong> is active — a free certificate
@@ -305,7 +305,7 @@ else if (tab == "ssl")
 else if (tab == "speed")
 {
     <form method="post" asp-page-handler="Speed" style="max-width:760px;">
-        <div class="card srx-card mb-3"><div class="card-body">
+        <div class="card dx-card mb-3"><div class="card-body">
             <h6 class="text-light mb-3">Optimization</h6>
             <div class="row g-3">
                 <div class="col-md-6">
@@ -368,7 +368,7 @@ else if (tab == "caching")
     <div class="row g-4">
         <div class="col-lg-6">
             <form method="post" asp-page-handler="Caching">
-                <div class="card srx-card mb-3"><div class="card-body">
+                <div class="card dx-card mb-3"><div class="card-body">
                     <h6 class="text-light mb-3">Caching configuration</h6>
                     <div class="mb-3">
                         <label class="form-label">Cache level</label>
@@ -394,7 +394,7 @@ else if (tab == "caching")
         </div>
 
         <div class="col-lg-6">
-            <div class="card srx-card mb-3"><div class="card-body">
+            <div class="card dx-card mb-3"><div class="card-body">
                 <h6 class="text-light mb-3">Purge cache</h6>
                 <form method="post" asp-page-handler="PurgeAll" class="mb-3"
                       onsubmit="return confirm('Purge EVERYTHING from the cache for this zone?');">
@@ -410,7 +410,7 @@ else if (tab == "caching")
 
             @if (Model.RecentPurges.Any())
             {
-                <div class="card srx-card"><div class="card-body">
+                <div class="card dx-card"><div class="card-body">
                     <h6 class="text-light mb-2">Recent purges</h6>
                     <table class="table table-sm mb-0">
                         <tbody>
@@ -434,7 +434,7 @@ else if (tab == "firewall")
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
             <form method="post" asp-page-handler="SecurityLevel">
-                <div class="card srx-card h-100"><div class="card-body">
+                <div class="card dx-card h-100"><div class="card-body">
                     <h6 class="text-light mb-3">Security level</h6>
                     <select name="level" class="form-select mb-3" onchange="this.form.submit()">
                         @foreach (var level in Enum.GetValues<CfSecurityLevel>())
@@ -449,7 +449,7 @@ else if (tab == "firewall")
             </form>
         </div>
         <div class="col-lg-6">
-            <div class="card srx-card h-100"><div class="card-body">
+            <div class="card dx-card h-100"><div class="card-body">
                 <h6 class="text-light mb-3">Bot Fight Mode</h6>
                 <form method="post" asp-page-handler="Toggle" class="d-flex justify-content-between align-items-center">
                     <div class="text-secondary small">Automatically challenge requests from known bots.</div>
@@ -469,7 +469,7 @@ else if (tab == "firewall")
     </div>
 
     <div class="collapse mb-3" id="addRule">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <form method="post" asp-page-handler="AddFirewallRule">
                 <div class="row g-2">
                     <div class="col-md-4">
@@ -507,7 +507,7 @@ else if (tab == "firewall")
         </div></div>
     </div>
 
-    <div class="card srx-card"><div class="table-responsive">
+    <div class="card dx-card"><div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead><tr><th>Description</th><th>Expression</th><th>Action</th><th>Hits</th><th></th></tr></thead>
             <tbody>
@@ -544,18 +544,18 @@ else if (tab == "analytics")
     </div>
 
     <div class="row g-3 mb-3">
-        <div class="col-lg-8"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-8"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Requests (total vs cached)</h6>
             <canvas id="requestsChart" height="90"></canvas>
         </div></div></div>
-        <div class="col-lg-4"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-4"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Threats</h6>
             <canvas id="threatsChart" height="180"></canvas>
         </div></div></div>
     </div>
 
     <div class="row g-3">
-        <div class="col-lg-6"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-6"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Top paths</h6>
             <table class="table table-sm mb-0">
                 <tbody>
@@ -566,7 +566,7 @@ else if (tab == "analytics")
                 </tbody>
             </table>
         </div></div></div>
-        <div class="col-lg-6"><div class="card srx-card"><div class="card-body">
+        <div class="col-lg-6"><div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Top countries</h6>
             <table class="table table-sm mb-0">
                 <tbody>
@@ -595,7 +595,7 @@ else if (tab == "pagerules")
     </div>
 
     <div class="collapse mb-3" id="addPageRule">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <form method="post" asp-page-handler="AddPageRule">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-3">
@@ -627,7 +627,7 @@ else if (tab == "pagerules")
         </div></div>
     </div>
 
-    <div class="card srx-card"><div class="table-responsive">
+    <div class="card dx-card"><div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead><tr><th style="width:60px;">Priority</th><th>Name</th><th>URL pattern</th><th>Actions</th><th></th></tr></thead>
             <tbody>

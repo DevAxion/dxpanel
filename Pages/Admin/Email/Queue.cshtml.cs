@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Email;
+using DXPanel.Models;
+using DXPanel.Services.Email;
 
-namespace SRXPanel.Pages.Admin.Email;
+namespace DXPanel.Pages.Admin.Email;
 
 public class QueueModel : PageModel
 {

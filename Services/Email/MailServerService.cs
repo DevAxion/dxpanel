@@ -1,10 +1,10 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Email;
+namespace DXPanel.Services.Email;
 
 public record PostfixStatus(bool Running, int QueueSize, int Processes, int ActiveDelivery);
 public record DovecotStatus(bool Running, int Connections, int MemoryMB);
@@ -156,7 +156,7 @@ public class MailServerService : IMailServerService
         {
             "postfix/smtp[{pid}]: {qid}: to=<{to}>, relay=mx.example.com[93.184.216.34]:25, delay=1.2, status=sent (250 2.0.0 OK)",
             "postfix/smtpd[{pid}]: connect from mail-out.example.net[203.0.113.9]",
-            "postfix/qmgr[{pid}]: {qid}: from=<noreply@srxpanel.net>, size=4213, nrcpt=1 (queue active)",
+            "postfix/qmgr[{pid}]: {qid}: from=<noreply@dxpanel.net>, size=4213, nrcpt=1 (queue active)",
             "postfix/smtp[{pid}]: {qid}: to=<user@dead.example>, status=bounced (550 5.1.1 User unknown)",
             "dovecot: imap-login: Login: user=<mailbox@example.com>, method=PLAIN, rip=198.51.100.7, secured",
             "postfix/smtp[{pid}]: {qid}: to=<slow@example.org>, status=deferred (connection timed out)"

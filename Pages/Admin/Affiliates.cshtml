@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Admin.AffiliatesModel
+@model DXPanel.Pages.Admin.AffiliatesModel
 @{
     ViewData["Title"] = "Affiliates";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item">Admin</li>
             <li class="breadcrumb-item active" aria-current="page">Affiliates</li>
         </ol>
@@ -17,7 +17,7 @@
 
 @if (Model.PendingPayouts.Any())
 {
-    <div class="card srx-card mb-4 border-warning">
+    <div class="card dx-card mb-4 border-warning">
         <div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-hourglass-split"></i> Pending Payout Requests</h6>
             <table class="table table-sm align-middle mb-0">
@@ -50,7 +50,7 @@
     </div>
 }
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         <h6 class="text-light mb-3"><i class="bi bi-people"></i> All Affiliates</h6>
         @if (Model.Rows.Any())

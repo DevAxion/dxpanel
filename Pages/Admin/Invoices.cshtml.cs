@@ -2,11 +2,11 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
 
-namespace SRXPanel.Pages.Admin;
+namespace DXPanel.Pages.Admin;
 
 public class InvoicesModel : PageModel
 {

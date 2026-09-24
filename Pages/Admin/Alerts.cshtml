@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Admin.AlertsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.AlertsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Alerts";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Infrastructure</li>
         <li class="breadcrumb-item active" aria-current="page">Alerts</li>
     </ol></nav>
@@ -39,7 +39,7 @@
     }
 </ul>
 
-<div class="card srx-card"><div class="table-responsive">
+<div class="card dx-card"><div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
         <thead><tr><th>Severity</th><th>Node</th><th>Type</th><th>Message</th><th>Raised</th><th class="text-end"></th></tr></thead>
         <tbody>
@@ -88,7 +88,7 @@
     </table>
 </div></div>
 
-<div class="card srx-card mt-3"><div class="card-body">
+<div class="card dx-card mt-3"><div class="card-body">
     <h6 class="text-light mb-2"><i class="bi bi-info-circle"></i> Escalation rules</h6>
     <div class="text-secondary small">
         Unacknowledged <strong>critical</strong> alerts email all SuperAdmins after 15 minutes and send an SMS

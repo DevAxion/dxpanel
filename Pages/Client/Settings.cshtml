@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.SettingsModel
+@model DXPanel.Pages.Client.SettingsModel
 @{
     ViewData["Title"] = "Account Settings";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">Settings</li>
         </ol>
@@ -29,7 +29,7 @@
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card srx-card mb-4">
+        <div class="card dx-card mb-4">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-person"></i> Profile</h6>
                 <form method="post" asp-page-handler="Profile">
@@ -39,7 +39,7 @@
                     <div class="row g-2 mb-3">
                         <div class="col-6"><label class="form-label">Timezone</label>
                             <select name="timeZone" class="form-select">
-                                @foreach (var tz in SRXPanel.Pages.Client.SettingsModel.TimeZones)
+                                @foreach (var tz in DXPanel.Pages.Client.SettingsModel.TimeZones)
                                 {
                                     if (tz == Model.CurrentUser.TimeZone) { <option value="@tz" selected>@tz</option> } else { <option value="@tz">@tz</option> }
                                 }
@@ -47,7 +47,7 @@
                         </div>
                         <div class="col-6"><label class="form-label">Language</label>
                             <select name="language" class="form-select">
-                                @foreach (var (code, lname) in SRXPanel.Pages.Client.SettingsModel.Languages)
+                                @foreach (var (code, lname) in DXPanel.Pages.Client.SettingsModel.Languages)
                                 {
                                     if (code == Model.CurrentUser.Language) { <option value="@code" selected>@lname</option> } else { <option value="@code">@lname</option> }
                                 }
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <div class="card srx-card mb-4">
+        <div class="card dx-card mb-4">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-key"></i> Change Password</h6>
                 <form method="post" asp-page-handler="Password">
@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-bell"></i> Notification Preferences</h6>
                 <form method="post" asp-page-handler="Notifications">
@@ -86,13 +86,13 @@
     </div>
 
     <div class="col-lg-6">
-        <div class="card srx-card mb-4">
+        <div class="card dx-card mb-4">
             <div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-shield-lock"></i> Two-Factor Authentication</h6>
                 @if (Model.TwoFactorEnabled)
                 {
                     <p class="text-success"><i class="bi bi-check-circle"></i> 2FA is <strong>enabled</strong> on your account.</p>
-                    <form method="post" asp-page-handler="Disable2fa" class="srx-confirm-form" data-confirm-message="Disable two-factor authentication?">
+                    <form method="post" asp-page-handler="Disable2fa" class="dx-confirm-form" data-confirm-message="Disable two-factor authentication?">
                         <button class="btn btn-outline-danger btn-sm"><i class="bi bi-slash-circle"></i> Disable 2FA</button>
                     </form>
                 }
@@ -114,7 +114,7 @@
             </div>
         </div>
 
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="text-light mb-0"><i class="bi bi-code-slash"></i> API Access</h6>
@@ -132,7 +132,7 @@
                             {
                                 <tr>
                                     <td><strong class="text-light">@k.Name</strong><div class="small text-secondary"><code>@k.Prefix…</code> · @k.CreatedAt.ToString("yyyy-MM-dd")</div></td>
-                                    <td class="text-end"><form method="post" asp-page-handler="RevokeApiKey" asp-route-id="@k.Id" class="srx-confirm-form" data-confirm-message="Revoke this API key?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
+                                    <td class="text-end"><form method="post" asp-page-handler="RevokeApiKey" asp-route-id="@k.Id" class="dx-confirm-form" data-confirm-message="Revoke this API key?"><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td>
                                 </tr>
                             }
                         </tbody>

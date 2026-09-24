@@ -1,22 +1,22 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Reseller;
+namespace DXPanel.Services.Reseller;
 
 /// <summary>
 /// The resolved white-label appearance for the current request. Falls back to
-/// the default SRXPanel brand when no reseller context is detected.
+/// the default DXPanel brand when no reseller context is detected.
 /// </summary>
 public class BrandingInfo
 {
     public string? ResellerId { get; set; }
 
-    // Default brand renders as "SRX" + accent("Panel").
-    public string BrandName { get; set; } = "SRX";
+    // Default brand renders as "DX" + accent("Panel").
+    public string BrandName { get; set; } = "DX";
     public string BrandSuffix { get; set; } = "Panel";
-    public string PanelTitle { get; set; } = "SRXPanel";
+    public string PanelTitle { get; set; } = "DXPanel";
 
     public string? LogoPath { get; set; }
     public string? FaviconPath { get; set; }
@@ -105,7 +105,7 @@ public class BrandingResolver : IBrandingResolver
 
 public class BrandingMiddleware
 {
-    public const string ItemKey = "srx.branding";
+    public const string ItemKey = "dx.branding";
     private readonly RequestDelegate _next;
 
     public BrandingMiddleware(RequestDelegate next) => _next = next;

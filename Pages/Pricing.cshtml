@@ -1,5 +1,5 @@
 @page
-@model SRXPanel.Pages.PricingModel
+@model DXPanel.Pages.PricingModel
 @{
     Layout = "_PublicLayout";
     ViewData["Title"] = "Hosting Plans & Pricing";
@@ -39,7 +39,7 @@
             {
                 var featured = i == 1; i++;
                 <div class="col-lg-4 col-md-6">
-                    <div style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(featured ? "box-shadow:0 0 0 1px var(--srx-primary);" : "")">
+                    <div style="background:#161b22;border:1px solid @(featured ? "var(--dx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(featured ? "box-shadow:0 0 0 1px var(--dx-primary);" : "")">
                         @if (featured) { <span class="badge text-bg-primary mb-2">Most Popular</span> }
                         <h3 class="text-light">@plan.Name</h3>
                         <p class="text-secondary" style="min-height:44px;">@plan.Description</p>
@@ -68,7 +68,7 @@
             @foreach (var v in Model.VpsPlans)
             {
                 <div class="col-lg-4 col-md-6">
-                    <div style="background:#161b22;border:1px solid @(v.IsPopular ? "var(--srx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(v.IsPopular ? "box-shadow:0 0 0 1px var(--srx-primary);" : "")">
+                    <div style="background:#161b22;border:1px solid @(v.IsPopular ? "var(--dx-primary)" : "#30363d");border-radius:16px;padding:30px;height:100%;@(v.IsPopular ? "box-shadow:0 0 0 1px var(--dx-primary);" : "")">
                         @if (v.IsPopular) { <span class="badge text-bg-primary mb-2">Most Popular</span> }
                         <h3 class="text-light">@v.Name</h3>
                         <div class="text-secondary small mb-2"><i class="bi bi-geo-alt"></i> @v.Location</div>

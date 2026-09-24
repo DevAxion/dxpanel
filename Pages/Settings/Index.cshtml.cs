@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Pages.Settings;
+namespace DXPanel.Pages.Settings;
 
 public class IndexModel : PageModel
 {

@@ -1,6 +1,6 @@
 @page "/Client/Apps/Manage/{id:int}"
-@model SRXPanel.Pages.Client.Apps.ManageModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Apps.ManageModel
+@using DXPanel.Models
 @{
     var i = Model.Installation;
     var app = i.AppDefinition!;
@@ -9,7 +9,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
         <li class="breadcrumb-item active" aria-current="page">@i.SiteTitle</li>
     </ol></nav>
@@ -35,7 +35,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-info-circle"></i> Installation details</h6>
             <table class="table table-sm align-middle mb-0">
                 <tbody>
@@ -70,7 +70,7 @@
             </div>
         </div></div>
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-clock-history"></i> Restore points</h6>
             <p class="text-secondary small">A restore point is created automatically before every update and uninstall. The most recent @(Model.RestorePoints.Count) are kept.</p>
             @if (!Model.RestorePoints.Any())
@@ -99,7 +99,7 @@
     <div class="col-lg-5">
         @if (i.Status == AppInstallStatus.UpdateAvailable)
         {
-            <div class="card srx-card mb-4 border-warning"><div class="card-body">
+            <div class="card dx-card mb-4 border-warning"><div class="card-body">
                 <h6 class="text-light mb-2"><i class="bi bi-arrow-up-circle text-warning"></i> Update available</h6>
                 <p class="text-secondary small">Version <strong>@i.AvailableVersion</strong> is available. A full restore point is created before updating.</p>
                 <form method="post" asp-page-handler="Update" onsubmit="return confirm('Update to @i.AvailableVersion? A restore point labelled &quot;Before @app.Name @i.AvailableVersion update&quot; will be created first.');">
@@ -109,7 +109,7 @@
             </div></div>
         }
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-files"></i> Staging clone</h6>
             <p class="text-secondary small">Create a full copy of this site (files + database) to test changes safely.</p>
             <form method="post" asp-page-handler="Clone">
@@ -128,7 +128,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3"><i class="bi bi-key"></i> Change admin password</h6>
             <form method="post" asp-page-handler="ChangePassword">
                 <input type="hidden" name="id" value="@i.Id" />
@@ -140,7 +140,7 @@
             </form>
         </div></div>
 
-        <div class="card srx-card border-danger"><div class="card-body">
+        <div class="card dx-card border-danger"><div class="card-body">
             <h6 class="text-light mb-2"><i class="bi bi-trash text-danger"></i> Uninstall</h6>
             <p class="text-secondary small">Removes all files and the database. A restore point is created first.</p>
             <form method="post" asp-page-handler="Uninstall" onsubmit="return confirm('Uninstall @i.SiteTitle? All files and the database will be deleted. A restore point will be created first.');">

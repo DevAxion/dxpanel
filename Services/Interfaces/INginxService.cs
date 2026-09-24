@@ -1,4 +1,4 @@
-namespace SRXPanel.Services.Interfaces;
+namespace DXPanel.Services.Interfaces;
 
 public interface INginxService
 {

@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Billing;
-using SRXPanel.Services.Reseller;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Billing;
+using DXPanel.Services.Reseller;
 
-namespace SRXPanel.Pages;
+namespace DXPanel.Pages;
 
 [AllowAnonymous]
 public class RegisterModel : PageModel
@@ -95,7 +95,7 @@ public class RegisterModel : PageModel
         await _audit.LogAsync("Register", "User", user.Id, user.UserName);
 
         // Affiliate attribution via referral cookie.
-        var refCode = Request.Cookies["srx_ref"];
+        var refCode = Request.Cookies["dx_ref"];
         if (!string.IsNullOrEmpty(refCode))
         {
             var affiliate = await _affiliates.GetByCodeAsync(refCode);
@@ -106,7 +106,7 @@ public class RegisterModel : PageModel
                 user.ReferredByAffiliateId = affiliate.Id;
                 await _userManager.UpdateAsync(user);
             }
-            Response.Cookies.Delete("srx_ref");
+            Response.Cookies.Delete("dx_ref");
         }
 
         await _signInManager.SignInAsync(user, isPersistent: false);
@@ -128,7 +128,7 @@ public class RegisterModel : PageModel
             }
         }
 
-        TempData["Success"] = "Welcome to SRXPanel! Your account is ready.";
+        TempData["Success"] = "Welcome to DXPanel! Your account is ready.";
         return RedirectToPage("/Dashboard/Index");
     }
 }

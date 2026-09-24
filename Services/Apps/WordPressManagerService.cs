@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Apps;
+namespace DXPanel.Services.Apps;
 
 public record RepoAsset(string Slug, string Name, string Version, string Description, int Downloads);
 public record WpHealth(int Score, string WpVersion, bool CoreUpToDate, string PhpVersion, bool PhpOk,

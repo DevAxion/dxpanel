@@ -1,6 +1,6 @@
 @page
-@model SRXPanel.Pages.Admin.Apps.HostedModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.Apps.HostedModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Hosted Apps";
     (string cls, string text) Badge(HostedAppStatus s) => s switch
@@ -14,7 +14,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Applications</li>
         <li class="breadcrumb-item active" aria-current="page">Hosted Apps</li>
     </ol></nav>
@@ -29,15 +29,15 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value text-success">@Model.Running</div><div class="srx-stat-label">Running</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Total</div><div class="srx-stat-label">Total apps</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value">@Model.Apps.Count</div><div class="srx-stat-label">Shown</div></div></div>
-    <div class="col-md-3"><div class="srx-stat-card"><div class="srx-stat-value" style="font-size:1.1rem">@Model.PortRangeStart-@Model.PortRangeEnd</div><div class="srx-stat-label">Port range</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value text-success">@Model.Running</div><div class="dx-stat-label">Running</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.Total</div><div class="dx-stat-label">Total apps</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value">@Model.Apps.Count</div><div class="dx-stat-label">Shown</div></div></div>
+    <div class="col-md-3"><div class="dx-stat-card"><div class="dx-stat-value" style="font-size:1.1rem">@Model.PortRangeStart-@Model.PortRangeEnd</div><div class="dx-stat-label">Port range</div></div></div>
 </div>
 
 <div class="row g-3">
     <div class="col-lg-8">
-        <div class="card srx-card mb-3"><div class="card-body">
+        <div class="card dx-card mb-3"><div class="card-body">
             <form method="get" class="row g-2 align-items-end mb-3">
                 <div class="col-auto"><label class="form-label text-secondary small">Type</label>
                     <select name="type" class="form-select form-select-sm"><option value="">All</option>
@@ -51,9 +51,9 @@
 
             <form method="post" asp-page-handler="Bulk">
                 <div class="d-flex gap-2 mb-3">
-                    <button name="action" value="start" class="btn btn-sm btn-outline-success srx-confirm-form" data-confirm-message="Start selected apps?">Start</button>
-                    <button name="action" value="stop" class="btn btn-sm btn-outline-warning srx-confirm-form" data-confirm-message="Stop selected apps?">Stop</button>
-                    <button name="action" value="restart" class="btn btn-sm btn-outline-secondary srx-confirm-form" data-confirm-message="Restart selected apps?">Restart</button>
+                    <button name="action" value="start" class="btn btn-sm btn-outline-success dx-confirm-form" data-confirm-message="Start selected apps?">Start</button>
+                    <button name="action" value="stop" class="btn btn-sm btn-outline-warning dx-confirm-form" data-confirm-message="Stop selected apps?">Stop</button>
+                    <button name="action" value="restart" class="btn btn-sm btn-outline-secondary dx-confirm-form" data-confirm-message="Restart selected apps?">Restart</button>
                 </div>
                 @if (!Model.Apps.Any()) { <p class="text-secondary mb-0">No apps.</p> }
                 else
@@ -86,7 +86,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Top memory usage</h6>
             @if (!Model.TopMemory.Any()) { <p class="text-secondary mb-0">No running apps.</p> }
             else

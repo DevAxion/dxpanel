@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Global Razor Pages filter that turns an unhandled exception thrown from a

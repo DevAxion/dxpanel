@@ -1,5 +1,5 @@
 @page "/Client/Apps/Detail/{slug}"
-@model SRXPanel.Pages.Client.Apps.DetailModel
+@model DXPanel.Pages.Client.Apps.DetailModel
 @{
     var a = Model.App;
     ViewData["Title"] = a.Name;
@@ -7,7 +7,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Catalog">Catalog</a></li>
         <li class="breadcrumb-item active" aria-current="page">@a.Name</li>
@@ -27,12 +27,12 @@
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-2">About</h6>
             <p class="text-secondary mb-0">@a.Description</p>
         </div></div>
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3">Features</h6>
             @foreach (var f in a.FeatureList)
             {
@@ -40,7 +40,7 @@
             }
         </div></div>
 
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3">Screenshots</h6>
             <div class="row g-2">
                 @for (var i = 1; i <= 3; i++)
@@ -55,14 +55,14 @@
             <p class="text-secondary small mt-2 mb-0">Preview images are supplied by the application vendor.</p>
         </div></div>
 
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-2">Changelog</h6>
             <pre class="bg-black p-3 rounded small mb-0"><code>@a.Changelog</code></pre>
         </div></div>
     </div>
 
     <div class="col-lg-4">
-        <div class="card srx-card"><div class="card-body">
+        <div class="card dx-card"><div class="card-body">
             <h6 class="text-light mb-3">Requirements</h6>
             <div class="d-flex justify-content-between py-1"><span class="text-secondary">Disk space</span><span class="text-light">@a.MinDiskMB MB</span></div>
             <div class="d-flex justify-content-between py-1"><span class="text-secondary">PHP version</span><span class="text-light">@a.MinPhpVersion+</span></div>

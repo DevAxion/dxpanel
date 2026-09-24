@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 public class SystemStats
 {

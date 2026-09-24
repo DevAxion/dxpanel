@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 // ============================================================
 // Phase 16 — Node.js / Python / Ruby / Go app hosting

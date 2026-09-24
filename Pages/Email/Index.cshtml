@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Email.IndexModel
+@model DXPanel.Pages.Email.IndexModel
 @{
     ViewData["Title"] = "Email";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Email</li>
         </ol>
@@ -36,7 +36,7 @@
 
 <div class="tab-content">
     <div class="tab-pane fade show active" id="accounts">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 @if (Model.Accounts.Any())
                 {
@@ -67,11 +67,11 @@
                                     <td>
                                         @if (e.IsActive)
                                         {
-                                            <span class="badge srx-badge-active">Active</span>
+                                            <span class="badge dx-badge-active">Active</span>
                                         }
                                         else
                                         {
-                                            <span class="badge srx-badge-suspended">Disabled</span>
+                                            <span class="badge dx-badge-suspended">Disabled</span>
                                         }
                                     </td>
                                     <td>@e.CreatedAt.ToString("yyyy-MM-dd")</td>
@@ -83,7 +83,7 @@
                                                     <i class="bi @(e.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
                                                 </button>
                                             </form>
-                                            <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete email account '@e.EmailAddress'?">
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete email account '@e.EmailAddress'?">
                                                 <button type="submit" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </div>
@@ -102,7 +102,7 @@
     </div>
 
     <div class="tab-pane fade" id="forwarders">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 @if (Model.Forwarders.Any())
                 {
@@ -133,7 +133,7 @@
                                     }
                                     <td>@f.CreatedAt.ToString("yyyy-MM-dd")</td>
                                     <td class="text-end">
-                                        <form method="post" asp-page-handler="DeleteForwarder" asp-route-id="@f.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete this forwarder?">
+                                        <form method="post" asp-page-handler="DeleteForwarder" asp-route-id="@f.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete this forwarder?">
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                         </form>
                                     </td>

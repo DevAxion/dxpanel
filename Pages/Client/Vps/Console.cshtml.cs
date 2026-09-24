@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace SRXPanel.Pages.Client.Vps;
+namespace DXPanel.Pages.Client.Vps;
 
 public class ConsoleModel : PageModel
 {

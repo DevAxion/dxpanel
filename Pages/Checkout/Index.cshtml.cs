@@ -2,11 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
 
-namespace SRXPanel.Pages.Checkout;
+namespace DXPanel.Pages.Checkout;
 
 public class IndexModel : PageModel
 {
@@ -82,7 +82,7 @@ public class IndexModel : PageModel
         if (StartTrial)
         {
             await _billing.StartTrialAsync(user, Plan);
-            TempData["Success"] = $"Your 14-day free trial of {Plan.Name} has started! Welcome to SRXPanel.";
+            TempData["Success"] = $"Your 14-day free trial of {Plan.Name} has started! Welcome to DXPanel.";
             return RedirectToPage("/Dashboard/Index");
         }
 

@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Apps;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Apps;
 
-namespace SRXPanel.Pages.Admin.Apps;
+namespace DXPanel.Pages.Admin.Apps;
 
 public class UpdatesModel : PageModel
 {

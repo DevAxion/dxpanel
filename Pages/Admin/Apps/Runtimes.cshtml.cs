@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.AppHosting;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.AppHosting;
 
-namespace SRXPanel.Pages.Admin.Apps;
+namespace DXPanel.Pages.Admin.Apps;
 
 public class RuntimesModel : PageModel
 {

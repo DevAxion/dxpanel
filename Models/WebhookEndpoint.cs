@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 /// <summary>A client-configured outbound webhook URL and the events it subscribes to.</summary>
 public class WebhookEndpoint

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Services.Developer;
+using DXPanel.Services.Developer;
 
-namespace SRXPanel.Pages.Client.Developer;
+namespace DXPanel.Pages.Client.Developer;
 
 public class DnsLookupModel : PageModel
 {

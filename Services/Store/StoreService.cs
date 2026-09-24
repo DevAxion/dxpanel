@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Billing;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Billing;
 
-namespace SRXPanel.Services.Store;
+namespace DXPanel.Services.Store;
 
 public enum ServiceKind { Shared, Vps, Reseller }
 

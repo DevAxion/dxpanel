@@ -1,12 +1,12 @@
 @page "/Client/Cron/Logs/{id:int}"
-@model SRXPanel.Pages.Client.Cron.LogsModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Cron.LogsModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Cron Execution Log";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Cron/Index">Cron Jobs</a></li>
         <li class="breadcrumb-item active" aria-current="page">Execution Log</li>
     </ol></nav>
@@ -33,7 +33,7 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body">
+    <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body">
         <div class="text-secondary small">Status</div>
         <div class="fs-5">
             @switch (Model.Job.State)
@@ -45,15 +45,15 @@
             }
         </div>
     </div></div></div>
-    <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body">
+    <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body">
         <div class="text-secondary small">Last run</div>
         <div class="text-light">@(Model.Job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "Never")</div>
     </div></div></div>
-    <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body">
+    <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body">
         <div class="text-secondary small">Next run</div>
         <div class="text-light">@(Model.Job.IsActive ? Model.Job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—" : "Disabled")</div>
     </div></div></div>
-    <div class="col-md-3"><div class="card srx-card h-100"><div class="card-body">
+    <div class="col-md-3"><div class="card dx-card h-100"><div class="card-body">
         <div class="text-secondary small">Last exit code</div>
         <div class="fs-5 @(Model.Job.LastExitCode == 0 ? "text-success" : Model.Job.LastExitCode == null ? "text-secondary" : "text-danger")">
             @(Model.Job.LastExitCode?.ToString() ?? "—")
@@ -63,7 +63,7 @@
 
 @if (!Model.Logs.Any())
 {
-    <div class="card srx-card"><div class="card-body text-center py-5">
+    <div class="card dx-card"><div class="card-body text-center py-5">
         <i class="bi bi-list-ul text-secondary" style="font-size:40px;"></i>
         <h6 class="text-light mt-3">This job has not run yet</h6>
         <p class="text-secondary mb-0">The scheduler checks for due jobs every minute. Use “Run now” to trigger it immediately.</p>
@@ -71,7 +71,7 @@
 }
 else
 {
-    <div class="card srx-card"><div class="table-responsive">
+    <div class="card dx-card"><div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>

@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 public static class HostingHelpers
 {

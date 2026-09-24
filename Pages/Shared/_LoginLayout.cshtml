@@ -1,4 +1,4 @@
-@using SRXPanel.Services
+@using DXPanel.Services
 @inject IFrontendService Frontend
 @{
     var lfs = await Frontend.GetSettingsAsync();
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (lfs.PrimaryColor != null)
     {
-        <style>:root { --srx-sidebar-active: @lfs.PrimaryColor; --srx-accent: @lfs.PrimaryColor; } .btn-primary { background-color: @lfs.PrimaryColor; border-color: @lfs.PrimaryColor; }</style>
+        <style>:root { --dx-sidebar-active: @lfs.PrimaryColor; --dx-accent: @lfs.PrimaryColor; } .btn-primary { background-color: @lfs.PrimaryColor; border-color: @lfs.PrimaryColor; }</style>
     }
 </head>
 <body>

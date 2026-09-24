@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SRXPanel.Models;
+namespace DXPanel.Models;
 
 // ---------------- Server node ----------------
 
@@ -111,7 +111,7 @@ public class ServerService
         ServerServiceType.FTP => "vsftpd",
         ServerServiceType.Email => "postfix",
         ServerServiceType.DNS => "named",
-        _ => "srx-backup"
+        _ => "dx-backup"
     };
 }
 

@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Billing;
-using SRXPanel.Services.Store;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Billing;
+using DXPanel.Services.Store;
 
-namespace SRXPanel.Services.Nodes;
+namespace DXPanel.Services.Nodes;
 
 /// <summary>
 /// Pings every node once a minute, stores a metrics sample, evaluates alert thresholds and
@@ -220,7 +220,7 @@ public class NodeMonitorService : BackgroundService
 
                 // SMS only once the alert is >30 minutes old.
                 if (alert.CreatedAt < now.AddMinutes(-30) && !string.IsNullOrEmpty(admin.PhoneNumber))
-                    await sms.SendAsync(admin.PhoneNumber, $"SRXPanel CRITICAL: {alert.Message}");
+                    await sms.SendAsync(admin.PhoneNumber, $"DXPanel CRITICAL: {alert.Message}");
             }
 
             alert.Escalated = true;

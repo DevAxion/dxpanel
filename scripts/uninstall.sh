@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# SRXPanel uninstaller
+# DXPanel uninstaller
 #   bash uninstall.sh
 #
 set -euo pipefail
 
-APP_DIR="/var/www/srxpanel"
-CONFIG_DIR="/etc/srxpanel"
+APP_DIR="/var/www/dxpanel"
+CONFIG_DIR="/etc/dxpanel"
 
 C_RESET='\033[0m'; C_GREEN='\033[0;32m'; C_YELLOW='\033[1;33m'; C_BLUE='\033[0;34m'; C_RED='\033[0;31m'
 info() { echo -e "${C_BLUE}==>${C_RESET} $*"; }
@@ -16,7 +16,7 @@ die()  { echo -e "${C_RED}✗${C_RESET} $*" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || die "Run as root (sudo)."
 
-warn "This will remove the SRXPanel application and its services."
+warn "This will remove the DXPanel application and its services."
 read -rp 'Type UNINSTALL to confirm: ' confirm
 [ "$confirm" = "UNINSTALL" ] || die "Aborted."
 
@@ -24,19 +24,19 @@ read -rp "Remove panel data (SQLite DB, backups, vhosts)? [y/N] " rm_data
 read -rp "Drop the MySQL database and user? [y/N] " rm_db
 
 info "Stopping and removing systemd service…"
-systemctl stop srxpanel 2>/dev/null || true
-systemctl disable srxpanel 2>/dev/null || true
-rm -f /etc/systemd/system/srxpanel.service
+systemctl stop dxpanel 2>/dev/null || true
+systemctl disable dxpanel 2>/dev/null || true
+rm -f /etc/systemd/system/dxpanel.service
 systemctl daemon-reload
 ok "Service removed"
 
 info "Removing Nginx config…"
-rm -f /etc/nginx/sites-enabled/srxpanel.conf /etc/nginx/sites-available/srxpanel.conf
+rm -f /etc/nginx/sites-enabled/dxpanel.conf /etc/nginx/sites-available/dxpanel.conf
 nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
 ok "Nginx config removed"
 
 info "Removing Fail2ban jail…"
-rm -f /etc/fail2ban/jail.d/srxpanel.conf
+rm -f /etc/fail2ban/jail.d/dxpanel.conf
 systemctl restart fail2ban 2>/dev/null || true
 
 if [[ "${rm_db,,}" == "y" ]]; then
@@ -57,13 +57,13 @@ info "Removing application files…"
 rm -rf "$APP_DIR/publish" "$APP_DIR/src"
 
 if [[ "${rm_data,,}" == "y" ]]; then
-  rm -rf "$APP_DIR" "$CONFIG_DIR" /var/log/srxpanel /var/backups/srxpanel /var/www/vhosts
+  rm -rf "$APP_DIR" "$CONFIG_DIR" /var/log/dxpanel /var/backups/dxpanel /var/www/vhosts
   ok "All panel data removed"
 else
-  warn "Kept data in $APP_DIR, $CONFIG_DIR, /var/backups/srxpanel"
+  warn "Kept data in $APP_DIR, $CONFIG_DIR, /var/backups/dxpanel"
 fi
 
 # SSL certificates are intentionally left in place (managed by certbot).
 warn "Let's Encrypt certificates were left intact. Remove with: certbot delete"
 
-ok "SRXPanel uninstalled."
+ok "DXPanel uninstalled."

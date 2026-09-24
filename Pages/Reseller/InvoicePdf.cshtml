@@ -1,5 +1,5 @@
 @page
-@model SRXPanel.Pages.Reseller.InvoicePdfModel
+@model DXPanel.Pages.Reseller.InvoicePdfModel
 @{
     Layout = null;
     var primary = Model.Branding?.PrimaryColor ?? "#2563eb";
@@ -57,7 +57,7 @@
                 <div class="muted">Issued: @Model.Invoice.CreatedAt.ToString("yyyy-MM-dd")</div>
                 <div class="muted">Due: @Model.Invoice.DueDate.ToString("yyyy-MM-dd")</div>
                 <div style="margin-top:.4rem;">
-                    <span class="pill @(Model.Invoice.Status == SRXPanel.Models.ResellerInvoiceStatus.Paid ? "paid" : "unpaid")">@Model.Invoice.Status</span>
+                    <span class="pill @(Model.Invoice.Status == DXPanel.Models.ResellerInvoiceStatus.Paid ? "paid" : "unpaid")">@Model.Invoice.Status</span>
                 </div>
             </div>
         </div>

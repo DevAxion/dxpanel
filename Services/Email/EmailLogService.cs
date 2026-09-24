@@ -1,9 +1,9 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
+using DXPanel.Data;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Email;
+namespace DXPanel.Services.Email;
 
 public record PagedLogs(List<EmailLog> Items, int Page, int TotalPages, int TotalItems);
 
@@ -69,7 +69,7 @@ public class EmailLogService : IEmailLogService
             .AppendLine($"X-Spam-Status: {(log.SpamScore >= 5 ? "Yes" : "No")}, score={log.SpamScore:0.0} required=5.0")
             .AppendLine($"Delivery-Status: {log.Status}")
             .AppendLine(log.DeliveredAt.HasValue ? $"Delivered: {log.DeliveredAt:R}" : "Delivered: —")
-            .AppendLine("Received: from srxpanel (localhost [127.0.0.1]) by mx; via ESMTP")
+            .AppendLine("Received: from dxpanel (localhost [127.0.0.1]) by mx; via ESMTP")
             .ToString();
 
         var preview = log.Status switch

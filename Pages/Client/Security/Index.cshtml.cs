@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using SRXPanel.Models;
-using SRXPanel.Services.Security;
+using DXPanel.Models;
+using DXPanel.Services.Security;
 
-namespace SRXPanel.Pages.Client.Security;
+namespace DXPanel.Pages.Client.Security;
 
 public class IndexModel : PageModel
 {

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.Developer;
+namespace DXPanel.Services.Developer;
 
 public record StagingOptions(bool CloneDatabase, bool PasswordProtect, string? AuthUser, string? AuthPassword, int? ExpiryDays);
 
@@ -154,7 +154,7 @@ public class StagingService : IStagingService
             }
 
             // 5. A staging site must never send mail or take a payment.
-            commands.Add(await _runner.WriteFileAsync($"{stagingPath}/.srx-staging",
+            commands.Add(await _runner.WriteFileAsync($"{stagingPath}/.dx-staging",
                 $"STAGING=1\nDISABLE_EMAILS=1\nDISABLE_PAYMENTS=1\nCLONED_FROM={domain.DomainName}\nCREATED={DateTime.UtcNow:u}\n",
                 ServiceName));
 
@@ -239,7 +239,7 @@ public class StagingService : IStagingService
                 ? "--exclude='wp-content/uploads/' --exclude='storage/app/public/' --exclude='public/uploads/' "
                 : "";
             commands.Add(await _runner.RunAsync(
-                $"rsync -a --delete {exclude}--exclude='.srx-staging' --exclude='.htpasswd' {site.StagingPath}/ {domain.DocumentRoot}/", ServiceName));
+                $"rsync -a --delete {exclude}--exclude='.dx-staging' --exclude='.htpasswd' {site.StagingPath}/ {domain.DocumentRoot}/", ServiceName));
         }
 
         if (options.SyncDatabase && site.DatabaseName != null)

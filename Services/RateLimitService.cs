@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 
-namespace SRXPanel.Services;
+namespace DXPanel.Services;
 
 /// <summary>
 /// Simple per-user sliding-window rate limiter for create operations

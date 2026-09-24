@@ -1,20 +1,20 @@
 @page
-@model SRXPanel.Pages.Client.SslModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.SslModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "SSL";
     (string cls, string label) Badge(SslCertificate? c)
     {
         if (c == null) return ("text-bg-secondary", "No SSL");
-        if (c.Status == SslCertStatus.Expired || c.DaysUntilExpiry < 0) return ("srx-badge-suspended", "Expired");
+        if (c.Status == SslCertStatus.Expired || c.DaysUntilExpiry < 0) return ("dx-badge-suspended", "Expired");
         if (c.DaysUntilExpiry <= 30) return ("text-bg-warning", $"{c.DaysUntilExpiry} days");
-        return ("srx-badge-active", $"{c.DaysUntilExpiry} days");
+        return ("dx-badge-active", $"{c.DaysUntilExpiry} days");
     }
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Client/Dashboard">My Account</a></li>
             <li class="breadcrumb-item active" aria-current="page">SSL</li>
         </ol>
@@ -26,7 +26,7 @@
     <a asp-page="/Ssl/Upload" class="btn btn-outline-secondary btn-sm"><i class="bi bi-upload"></i> Upload Custom</a>
 </div>
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Rows.Any())
         {

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using SRXPanel.Data;
-using SRXPanel.Models;
-using SRXPanel.Services;
-using SRXPanel.Services.Interfaces;
+using DXPanel.Data;
+using DXPanel.Models;
+using DXPanel.Services;
+using DXPanel.Services.Interfaces;
 
-namespace SRXPanel.Services.AppHosting;
+namespace DXPanel.Services.AppHosting;
 
 public record CreateAppRequest(string UserId, string Name, AppRuntimeType Type, int? DomainId, int? RuntimeId,
     string AppPath, string EntryPoint, string StartCommand, int ProcessCount, bool AutoRestart,

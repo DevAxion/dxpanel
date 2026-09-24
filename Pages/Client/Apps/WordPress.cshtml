@@ -1,7 +1,7 @@
 @page "/Client/Apps/WordPress/{id:int}"
-@model SRXPanel.Pages.Client.Apps.WordPressModel
-@using SRXPanel.Models
-@using SRXPanel.Services.Apps
+@model DXPanel.Pages.Client.Apps.WordPressModel
+@using DXPanel.Models
+@using DXPanel.Services.Apps
 @{
     var i = Model.Installation;
     var h = Model.Health;
@@ -11,7 +11,7 @@
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item"><a asp-page="/Client/Apps/Index">Applications</a></li>
         <li class="breadcrumb-item"><a href="/Client/Apps/Manage/@i.Id">@i.SiteTitle</a></li>
         <li class="breadcrumb-item active" aria-current="page">WordPress Manager</li>
@@ -34,14 +34,14 @@
 {
     <div class="row g-4">
         <div class="col-lg-4">
-            <div class="card srx-card text-center"><div class="card-body">
+            <div class="card dx-card text-center"><div class="card-body">
                 <h6 class="text-secondary text-uppercase small">Site health</h6>
                 <div style="font-size:46px;font-weight:800;color:@ScoreColor(h.Score);">@h.Score</div>
                 <div class="text-secondary">out of 100</div>
             </div></div>
         </div>
         <div class="col-lg-8">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3">Overview</h6>
                 <div class="row g-3">
                     <div class="col-6 col-md-3"><div class="text-secondary small">WordPress</div><div class="text-light">@h.WpVersion @(h.CoreUpToDate ? Html.Raw("<span class='badge text-bg-success'>latest</span>") : Html.Raw("<span class='badge text-bg-warning'>update</span>"))</div></div>
@@ -67,7 +67,7 @@ else if (Model.Tab is "plugins" or "themes")
 
     <div class="row g-4">
         <div class="col-lg-7">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="text-light mb-0">Installed @(isPlugin ? "plugins" : "themes")</h6>
                     @if (isPlugin)
@@ -119,7 +119,7 @@ else if (Model.Tab is "plugins" or "themes")
         </div>
 
         <div class="col-lg-5">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-search"></i> Install from WordPress.org</h6>
                 <form method="get" class="input-group input-group-sm mb-3">
                     <input type="hidden" name="tab" value="@Model.Tab" />
@@ -151,7 +151,7 @@ else
 {
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card srx-card mb-4"><div class="card-body">
+            <div class="card dx-card mb-4"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-terminal"></i> WP-CLI commands</h6>
                 <div class="d-grid gap-2">
                     <form method="post" asp-page-handler="Cli"><input type="hidden" name="id" value="@i.Id" /><input type="hidden" name="command" value="@WpCliCommand.FlushCache" />
@@ -176,7 +176,7 @@ else
         </div>
 
         <div class="col-lg-6">
-            <div class="card srx-card"><div class="card-body">
+            <div class="card dx-card"><div class="card-body">
                 <h6 class="text-light mb-3"><i class="bi bi-toggles"></i> Configuration flags</h6>
                 @{
                     var flags = new (string Key, string Label, string Help)[]

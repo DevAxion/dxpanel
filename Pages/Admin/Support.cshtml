@@ -1,15 +1,15 @@
 @page
-@model SRXPanel.Pages.Admin.SupportModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Admin.SupportModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Support";
     string PriBadge(TicketPriority p) => p switch { TicketPriority.Urgent => "text-bg-danger", TicketPriority.High => "text-bg-warning", TicketPriority.Low => "text-bg-secondary", _ => "text-bg-info" };
-    string StatBadge(TicketStatus s) => s switch { TicketStatus.Open => "srx-badge-active", TicketStatus.InProgress => "text-bg-warning", _ => "text-bg-secondary" };
+    string StatBadge(TicketStatus s) => s switch { TicketStatus.Open => "dx-badge-active", TicketStatus.InProgress => "text-bg-warning", _ => "text-bg-secondary" };
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Support</li>
         </ol>
@@ -56,7 +56,7 @@
     <div class="col-lg-8">
         @if (Model.Selected is { } ticket)
         {
-            <div class="card srx-card mb-3">
+            <div class="card dx-card mb-3">
                 <div class="card-body">
                     <h5 class="text-light">#@ticket.Id — @ticket.Subject</h5>
                     <div class="small text-secondary mb-3">From @ticket.User?.UserName (@ticket.User?.Email)</div>
@@ -125,10 +125,10 @@
         }
         else
         {
-            <div class="card srx-card"><div class="card-body text-center py-5 text-secondary"><i class="bi bi-inbox fs-1"></i><p class="mt-2 mb-0">Select a ticket.</p></div></div>
+            <div class="card dx-card"><div class="card-body text-center py-5 text-secondary"><i class="bi bi-inbox fs-1"></i><p class="mt-2 mb-0">Select a ticket.</p></div></div>
         }
 
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3">Canned Responses</h6>
                 <form method="post" asp-page-handler="AddCanned" class="row g-2">

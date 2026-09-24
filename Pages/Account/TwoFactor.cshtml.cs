@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using QRCoder;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.Account;
+namespace DXPanel.Pages.Account;
 
 [Authorize]
 
@@ -20,7 +20,7 @@ namespace SRXPanel.Pages.Account;
 /// </summary>
 public class TwoFactorModel : PageModel
 {
-    private const string Issuer = "SRXPanel";
+    private const string Issuer = "DXPanel";
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuditLogService _audit;
     private readonly UrlEncoder _urlEncoder;

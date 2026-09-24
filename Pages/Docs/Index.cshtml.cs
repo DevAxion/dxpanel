@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
-using SRXPanel.Models;
-using SRXPanel.Services;
+using DXPanel.Models;
+using DXPanel.Services;
 
-namespace SRXPanel.Pages.Docs;
+namespace DXPanel.Pages.Docs;
 
 [AllowAnonymous]
 public class IndexModel : PageModel

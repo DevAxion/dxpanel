@@ -1,5 +1,5 @@
 @page
-@model SRXPanel.Pages.RegisterModel
+@model DXPanel.Pages.RegisterModel
 @{
     Layout = "_PublicLayout";
     ViewData["Title"] = "Create your account";
@@ -84,7 +84,7 @@
                         <div class="col-md-4">
                             <label class="plan-card d-block" style="cursor:pointer;">
                                 <input type="radio" name="planpick" value="@plan.Id" class="d-none" @(Model.Input.PlanId == plan.Id ? "checked" : "") />
-                                <div class="p-3 h-100" style="background:#161b22;border:1px solid @(featured ? "var(--srx-primary)" : "#30363d");border-radius:12px;">
+                                <div class="p-3 h-100" style="background:#161b22;border:1px solid @(featured ? "var(--dx-primary)" : "#30363d");border-radius:12px;">
                                     @if (featured) { <span class="badge text-bg-primary mb-1">Popular</span> }
                                     <h5 class="text-light mb-1">@plan.Name</h5>
                                     <div class="mb-2"><span style="font-size:26px;font-weight:800;color:#fff;">@Money(plan.Price)</span><span class="text-secondary small">/mo</span></div>
@@ -135,7 +135,7 @@
                 document.querySelectorAll('.reg-step').forEach(function (s) { s.classList.toggle('d-none', +s.dataset.step !== step); });
                 document.querySelectorAll('.step-indicator').forEach(function (ind) {
                     var n = +ind.dataset.step, dot = ind.querySelector('.step-dot'), lbl = ind.querySelector('.step-label');
-                    if (n <= step) { dot.style.background = 'var(--srx-primary)'; dot.style.color = '#fff'; dot.style.borderColor = 'var(--srx-primary)'; lbl.classList.remove('text-secondary'); lbl.classList.add('text-light'); }
+                    if (n <= step) { dot.style.background = 'var(--dx-primary)'; dot.style.color = '#fff'; dot.style.borderColor = 'var(--dx-primary)'; lbl.classList.remove('text-secondary'); lbl.classList.add('text-light'); }
                     else { dot.style.background = '#161b22'; dot.style.color = '#8b949e'; dot.style.borderColor = '#30363d'; lbl.classList.add('text-secondary'); lbl.classList.remove('text-light'); }
                 });
                 window.scrollTo({ top: 0, behavior: 'smooth' });

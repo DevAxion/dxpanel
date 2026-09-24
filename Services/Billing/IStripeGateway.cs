@@ -1,6 +1,6 @@
-using SRXPanel.Models;
+using DXPanel.Models;
 
-namespace SRXPanel.Services.Billing;
+namespace DXPanel.Services.Billing;
 
 public record StripeSubscriptionResult(
     string SubscriptionId,

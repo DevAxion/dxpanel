@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Databases.IndexModel
+@model DXPanel.Pages.Databases.IndexModel
 @{
     ViewData["Title"] = "Databases";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Databases</li>
         </ol>
@@ -33,7 +33,7 @@
     </form>
 }
 
-<div class="card srx-card">
+<div class="card dx-card">
     <div class="card-body">
         @if (Model.Databases.Any())
         {
@@ -68,16 +68,16 @@
                             <td>
                                 @if (d.IsActive)
                                 {
-                                    <span class="badge srx-badge-active">Active</span>
+                                    <span class="badge dx-badge-active">Active</span>
                                 }
                                 else
                                 {
-                                    <span class="badge srx-badge-suspended">Inactive</span>
+                                    <span class="badge dx-badge-suspended">Inactive</span>
                                 }
                             </td>
                             <td>@d.CreatedAt.ToString("yyyy-MM-dd")</td>
                             <td class="text-end">
-                                <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="d-inline srx-confirm-form" data-confirm-message="Delete database '@d.DbName'? All data will be lost.">
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@d.Id" class="d-inline dx-confirm-form" data-confirm-message="Delete database '@d.DbName'? All data will be lost.">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
                             </td>

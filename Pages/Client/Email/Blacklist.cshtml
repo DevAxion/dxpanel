@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Client.Email.BlacklistModel
-@using SRXPanel.Models
+@model DXPanel.Pages.Client.Email.BlacklistModel
+@using DXPanel.Models
 @{
     ViewData["Title"] = "Blacklist Check";
 }
 
 @section Breadcrumb {
-    <nav aria-label="breadcrumb"><ol class="breadcrumb srx-breadcrumb mb-0">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb dx-breadcrumb mb-0">
         <li class="breadcrumb-item">Email</li><li class="breadcrumb-item active" aria-current="page">Blacklist</li>
     </ol></nav>
 }
@@ -22,12 +22,12 @@
 
 @if (Model.Selected == null)
 {
-    <div class="card srx-card"><div class="card-body text-secondary text-center py-4">Add a domain first to run blacklist checks.</div></div>
+    <div class="card dx-card"><div class="card-body text-secondary text-center py-4">Add a domain first to run blacklist checks.</div></div>
 }
 else
 {
     <div class="row g-3 mb-4">
-        <div class="col-md-4"><div class="card srx-card h-100"><div class="card-body text-center">
+        <div class="col-md-4"><div class="card dx-card h-100"><div class="card-body text-center">
             <div class="text-secondary small mb-2">Overall status</div>
             @{ var listed = Model.Result?.AnyListed ?? (Model.History.FirstOrDefault()?.Status == BlacklistCheckStatus.Listed); }
             @if (listed)
@@ -43,7 +43,7 @@ else
                 <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Check Now</button></form>
         </div></div></div>
 
-        <div class="col-md-8"><div class="card srx-card h-100"><div class="card-body">
+        <div class="col-md-8"><div class="card dx-card h-100"><div class="card-body">
             <h6 class="text-light mb-3">Settings</h6>
             <form method="post" asp-page-handler="AutoCheck" class="row g-2 align-items-end mb-3">
                 <input type="hidden" name="domainId" value="@Model.Selected.Id" />
@@ -67,7 +67,7 @@ else
 
     @if (Model.Result != null)
     {
-        <div class="card srx-card mb-4"><div class="card-body">
+        <div class="card dx-card mb-4"><div class="card-body">
             <h6 class="text-light mb-3">Results</h6>
             @foreach (var (label, res) in new[] { ("IP", Model.Result.Ip), ("Domain", Model.Result.Domain), ("MX", Model.Result.Mx) })
             {
@@ -89,7 +89,7 @@ else
         </div></div>
     }
 
-    <div class="card srx-card"><div class="card-body">
+    <div class="card dx-card"><div class="card-body">
         <h6 class="text-light mb-3">Check history</h6>
         @if (!Model.History.Any()) { <p class="text-secondary mb-0">No checks yet.</p> }
         else

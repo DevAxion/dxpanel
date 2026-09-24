@@ -1,12 +1,12 @@
 @page "{id:int}"
-@model SRXPanel.Pages.Email.EditModel
+@model DXPanel.Pages.Email.EditModel
 @{
     ViewData["Title"] = "Edit Email Account";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Email/Index">Email</a></li>
             <li class="breadcrumb-item active" aria-current="page">Edit</li>
@@ -16,7 +16,7 @@
 
 <h4 class="text-light mb-4">Edit Email Account — <span class="text-secondary">@Model.EmailAddress</span></h4>
 
-<div class="card srx-card" style="max-width: 640px;">
+<div class="card dx-card" style="max-width: 640px;">
     <div class="card-body">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 

@@ -1,12 +1,12 @@
 @page
-@model SRXPanel.Pages.Billing.PaymentMethodsModel
+@model DXPanel.Pages.Billing.PaymentMethodsModel
 @{
     ViewData["Title"] = "Payment Methods";
 }
 
 @section Breadcrumb {
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb srx-breadcrumb mb-0">
+        <ol class="breadcrumb dx-breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-page="/Dashboard/Index">Dashboard</a></li>
             <li class="breadcrumb-item"><a asp-page="/Billing/Index">Billing</a></li>
             <li class="breadcrumb-item active" aria-current="page">Payment Methods</li>
@@ -18,7 +18,7 @@
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3">Saved Cards</h6>
                 @if (Model.Methods.Any())
@@ -47,7 +47,7 @@
                                                     <button class="btn btn-outline-secondary" title="Set default"><i class="bi bi-star"></i></button>
                                                 </form>
                                             }
-                                            <form method="post" asp-page-handler="Remove" asp-route-id="@pm.Id" class="d-inline srx-confirm-form" data-confirm-message="Remove this card?">
+                                            <form method="post" asp-page-handler="Remove" asp-route-id="@pm.Id" class="d-inline dx-confirm-form" data-confirm-message="Remove this card?">
                                                 <button class="btn btn-outline-danger" title="Remove"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </div>
@@ -66,7 +66,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="card srx-card">
+        <div class="card dx-card">
             <div class="card-body">
                 <h6 class="text-light mb-3">Add Card</h6>
                 @if (Model.SimulationMode)
