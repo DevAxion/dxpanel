@@ -1,6 +1,6 @@
-# Contributing to SRXPanel
+# Contributing to DXPanel
 
-Thanks for your interest in improving SRXPanel! This guide covers how to get a dev
+Thanks for your interest in improving DXPanel! This guide covers how to get a dev
 environment running and how to submit changes.
 
 ## Development setup
@@ -8,8 +8,8 @@ environment running and how to submit changes.
 Requirements: [.NET 9 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
-git clone https://github.com/srxpanel/srxpanel
-cd srxpanel
+git clone https://github.com/DevAxion/dxpanel
+cd dxpanel
 dotnet restore
 dotnet run
 ```
@@ -56,7 +56,7 @@ docker/       Dockerfile, docker-compose.yml, .env.example
 ## Reporting issues
 
 Please include your OS, panel version (from `/api/health`), reproduction steps and any
-relevant output from `journalctl -u srxpanel`.
+relevant output from `journalctl -u dxpanel`.
 
 ## License
 

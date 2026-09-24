@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to SRXPanel are documented here. This project adheres to
+All notable changes to DXPanel are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
 ## [1.0.0] - 2026-07-08
@@ -32,4 +32,4 @@ First public release — production-ready.
 - **Phase 2** — Core hosting features (domains, databases, FTP, email, DNS, files).
 - **Phase 1** — Authentication, roles, dashboard & user management.
 
-[1.0.0]: https://github.com/srxpanel/srxpanel/releases/tag/v1.0.0
+[1.0.0]: https://github.com/DevAxion/dxpanel/releases/tag/v1.0.0

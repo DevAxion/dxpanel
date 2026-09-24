@@ -1,22 +1,22 @@
 <div align="center">
 
-# SRXPanel
+# DXPanel
 
 **Your own hosting control panel — an open-source cPanel alternative.**
 
-[![Build](https://github.com/srxpanel/srxpanel/actions/workflows/build.yml/badge.svg)](https://github.com/srxpanel/srxpanel/actions/workflows/build.yml)
+[![Build](https://github.com/DevAxion/dxpanel/actions/workflows/build.yml/badge.svg)](https://github.com/DevAxion/dxpanel/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04-E95420?logo=ubuntu&logoColor=white)](https://ubuntu.com/)
 
 </div>
 
-SRXPanel is a modern, self-hosted web hosting control panel built with ASP.NET Core 9.
+DXPanel is a modern, self-hosted web hosting control panel built with ASP.NET Core 9.
 Manage domains, email, MySQL databases, DNS, SSL, files, billing and resellers from a
 single dark-themed dashboard — deployed to a fresh Ubuntu server with **one command**.
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/SeniorSRX/srxpanel/main/scripts/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/DevAxion/dxpanel/main/scripts/install.sh)
 ```
 
 ## ✨ Features
@@ -38,7 +38,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/SeniorSRX/srxpanel/main/scri
 ### One-liner (Ubuntu 22.04)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/SeniorSRX/srxpanel/main/scripts/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/DevAxion/dxpanel/main/scripts/install.sh)
 ```
 
 The interactive installer sets up Nginx, MySQL, PHP (7.4–8.3), the .NET 9 runtime,
@@ -48,8 +48,8 @@ certificate. Requirements: **Ubuntu 22.04**, 1 CPU, 1 GB RAM, 10 GB disk, root a
 ### Docker
 
 ```bash
-git clone https://github.com/srxpanel/srxpanel
-cd srxpanel/docker
+git clone https://github.com/DevAxion/dxpanel
+cd dxpanel/docker
 cp .env.example .env
 nano .env            # set domain, passwords, Stripe keys
 docker compose up -d
@@ -58,8 +58,8 @@ docker compose up -d
 ### From source (development)
 
 ```bash
-git clone https://github.com/srxpanel/srxpanel
-cd srxpanel
+git clone https://github.com/DevAxion/dxpanel
+cd dxpanel
 dotnet run
 ```
 
@@ -96,7 +96,7 @@ curl -s https://panel.example.com/api/health | jq
 From the server shell:
 
 ```bash
-curl -fsSL https://get.srxpanel.com/update.sh | bash
+curl -fsSL https://get.dxpanel.com/update.sh | bash
 ```
 
 …or in the panel under **Admin → Updates** (changelog, one-click update, history,
